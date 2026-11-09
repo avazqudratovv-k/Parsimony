@@ -246,3 +246,11 @@
 - When the text has no amount, the server answers with the code `no_amount` and the app says so plainly ("I couldn't find an amount. Say how much it cost, like “Coffee 6.50 card”."), for typed text, voice and receipt photos.
 - When one purchase was split by item, the toast offers **Make it one**: it turns the entries back into a single entry with the total, the notes joined, and the category of the biggest item.
 - The Export button is an outlined button in the ink colour, so it can be seen.
+
+## Items of one purchase are shown together
+
+Several items bought in one go (milk, shampoo, chocolate at GS25) are saved as separate entries, so each keeps its own category and price. They share a `group_id` (migration `c5e8a1f30d92`). The list shows them as one card: the merchant, the total, and each item with its own price.
+
+- Tapping an item opens that item for editing. Swipe or long-press deletes the whole purchase, and the Undo toast restores all of it.
+- "Make it one" in the add toast is still available for people who prefer a single entry.
+- Grouping is done in the browser from `group_id`, so monthly totals and charts still count each item under its own category.

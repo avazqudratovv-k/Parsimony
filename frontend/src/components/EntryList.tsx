@@ -6,10 +6,11 @@ import { useDeleteEntry } from "../api/entries";
 import type { Entry } from "../api/types";
 import type { Lang } from "../i18n";
 import {
-  LOW_CONFIDENCE, currentDate, fill, formatDay, formatMoney, formatTime, paymentLabel, shiftDate,
+  LOW_CONFIDENCE, categoryLabel, currentDate, fill, formatDay, formatMoney, formatTime, paymentLabel, shiftDate,
 } from "../lib/format";
 import { useI18n } from "../i18n";
 import { DESKTOP, useTokens } from "../theme";
+import { CategoryIcon } from "./CategoryIcon";
 import { EntryAvatar } from "./EntryAvatar";
 import { Icon } from "./Icon";
 import { useToast } from "./Toast";
@@ -29,13 +30,31 @@ const LONG_PRESS_MS = 500;
 const UNDO_MS = 5200; // a little longer than the toast, so Undo works for as long as it is visible
 
 type RowProps = {
-  entry: Entry; timeZone: string; desktop: boolean;
-  onOpen: () => void; onDelete: () => void; onActions: () => void;
+  group: Entry[]; // one entry, or the items of one purchase
+  timeZone: string; desktop: boolean;
+  onOpen: (id: string) => void; onDelete: () => void; onActions: () => void;
 };
 
-function EntryRow({ entry, timeZone, desktop, onOpen, onDelete, onActions }: RowProps) {
+/** Items saved from one purchase share a group_id; show them together, in the order they were made. */
+function groupDay(items: Entry[]): Entry[][] {
+  const out: Entry[][] = [];
+  const byId = new Map<string, Entry[]>();
+  for (const e of items) {
+    const known = e.group_id ? byId.get(e.group_id) : undefined;
+    if (known) { known.push(e); continue; }
+    const fresh = [e];
+    if (e.group_id) byId.set(e.group_id, fresh);
+    out.push(fresh);
+  }
+  for (const g of out) g.sort((a, b) => a.created_at.localeCompare(b.created_at));
+  return out;
+}
+
+function EntryRow({ group, timeZone, desktop, onOpen, onDelete, onActions }: RowProps) {
   const { t, lang } = useI18n();
   const c = useTokens();
+  const entry = group[0];
+  const multi = group.length > 1;
   // Phone gestures: swipe left to delete (Telegram style), press and hold for Edit / Delete.
   const [offset, setOffset] = useState(0);
   const [dragging, setDragging] = useState(false);
@@ -89,15 +108,22 @@ function EntryRow({ entry, timeZone, desktop, onOpen, onDelete, onActions }: Row
   }
   function cancel() { cancelPress(); g.current.active = false; g.current.swiping = false; setDragging(false); setOffset(0); }
 
-  const checkThis = entry.confidence < LOW_CONFIDENCE && !entry.user_corrected;
+  const checkThis = group.some((e) => e.confidence < LOW_CONFIDENCE && !e.user_corrected);
   const title = entry.merchant ?? entry.note ?? t("entry.noMerchant");
   const meta = [
-    entry.merchant ? entry.note : null,
+    entry.merchant && !multi ? entry.note : null,
     entry.payment_method !== "unknown" ? paymentLabel(t, entry.payment_method) : null,
     formatTime(entry.created_at, timeZone),
   ].filter(Boolean) as string[];
   const source = (entry.source in SOURCE_ICON ? entry.source : "text") as keyof typeof SOURCE_ICON;
-  const amount = formatMoney(entry.amount, entry.currency, lang);
+  const total = multi ? (Math.round(group.reduce((sum, e) => sum + Number(e.amount), 0) * 100) / 100).toFixed(2) : entry.amount;
+  const amount = formatMoney(total, entry.currency, lang);
+  const biggest = [...group].sort((a, b) => Number(b.amount) - Number(a.amount))[0];
+  const tap = (id: string) => () => {
+    if (g.current.suppressClick) { g.current.suppressClick = false; return; }
+    if (offset !== 0) return setOffset(0);
+    onOpen(id);
+  };
 
   return (
     <Box component="li" sx={{ position: "relative", overflow: "hidden", borderTop: `1px solid ${c.line}`, "&:first-of-type": { borderTop: 0 } }}>
@@ -125,10 +151,46 @@ function EntryRow({ entry, timeZone, desktop, onOpen, onDelete, onActions }: Row
         ...(desktop ? {} : { touchAction: "pan-y", userSelect: "none", WebkitTouchCallout: "none" }),
       }}
     >
+      {multi ? (
+      <Box sx={{ flex: 1, minWidth: 0 }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 3 }}>
+          <EntryAvatar category={biggest.category} domain={entry.merchant_domain} />
+          <Box sx={{ minWidth: 0, flex: 1 }}>
+            <Typography noWrap sx={{ fontWeight: 500 }}>{title}</Typography>
+            <Typography variant="body2" color="text.secondary" noWrap sx={{ mt: "2px" }}>{meta.join(" · ")}</Typography>
+          </Box>
+          <Box sx={{ textAlign: "right", display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 1 }}>
+            <Typography sx={{ fontWeight: 600, fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap" }}>{amount}</Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ fontSize: 12 }}>{fill(t("entry.items"), { count: group.length })}</Typography>
+          </Box>
+        </Box>
+        <Box component="ul" sx={{ listStyle: "none", m: 0, mt: 2, p: 0, ml: "52px", borderLeft: `2px solid ${c.line}` }}>
+          {group.map((it) => {
+            const label = it.note ?? categoryLabel(t, it.category);
+            const price = formatMoney(it.amount, it.currency, lang);
+            return (
+              <Box component="li" key={it.id}>
+                <Box
+                  component="button" type="button" onClick={tap(it.id)} aria-label={`${label}, ${price}`}
+                  sx={{
+                    all: "unset", cursor: "pointer", display: "flex", alignItems: "center", gap: 2, width: "100%", boxSizing: "border-box", minHeight: 40, pl: 3, borderRadius: 1.5,
+                    "&:focus-visible": { outline: `2px solid ${c.focus}`, outlineOffset: 2 }, "&:hover": { bgcolor: c.sunken },
+                  }}
+                >
+                  <Box sx={{ color: c.inkMuted, display: "flex" }}><CategoryIcon category={it.category} tile={false} size={16} /></Box>
+                  <Typography noWrap sx={{ flex: 1, minWidth: 0, fontSize: 14 }}>{label}</Typography>
+                  <Typography sx={{ fontSize: 14, fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap", pr: 0.5 }}>{price}</Typography>
+                </Box>
+              </Box>
+            );
+          })}
+        </Box>
+      </Box>
+      ) : (
       <Box
         component="button"
         type="button"
-        onClick={() => { if (g.current.suppressClick) { g.current.suppressClick = false; return; } if (offset !== 0) return setOffset(0); onOpen(); }}
+        onClick={tap(entry.id)}
         aria-label={`${title}, ${amount}`}
         sx={{
           all: "unset", cursor: "pointer", display: "flex", alignItems: "center", gap: 3, flex: 1, minWidth: 0, borderRadius: 1.5,
@@ -169,9 +231,10 @@ function EntryRow({ entry, timeZone, desktop, onOpen, onDelete, onActions }: Row
           )}
         </Box>
       </Box>
-      {desktop && (
+      )}
+      {desktop && !multi && (
         <Button
-          onClick={onOpen}
+          onClick={() => onOpen(entry.id)}
           aria-label={`${t("entry.fix")}: ${title}`}
           startIcon={<Icon name="edit" size={16} />}
           sx={{ minHeight: 44, flexShrink: 0, fontWeight: 500, fontSize: 13, "&:hover": { bgcolor: "transparent", boxShadow: `inset 0 0 0 1px ${c.lineStrong}` } }}
@@ -199,33 +262,35 @@ export function EntryList({ query, isCurrentMonth, timeZone, onOpen }: Props) {
   const desktop = useMediaQuery(DESKTOP);
   const toast = useToast();
   const remove = useDeleteEntry();
-  const [actionsFor, setActionsFor] = useState<Entry | null>(null);
+  const [actionsFor, setActionsFor] = useState<Entry[] | null>(null);
   const openedAt = useRef(0);
   const { data: all, isPending, isError, refetch } = query;
 
   // Delete is undoable: the entry disappears at once, but the request is only sent after the Undo window closes.
   const [hidden, setHidden] = useState<Set<string>>(new Set());
-  const pending = useRef(new Map<string, number>());
+  const pending = useRef(new Map<string, { timer: number; ids: string[] }>());
   const send = remove.mutate;
   const sendRef = useRef(send);
   sendRef.current = send;
-  const unhide = (id: string) => setHidden((h) => { const n = new Set(h); n.delete(id); return n; });
-  function deleteEntry(id: string) {
-    setHidden((h) => new Set(h).add(id));
+  const unhide = (ids: string[]) => setHidden((h) => { const n = new Set(h); ids.forEach((id) => n.delete(id)); return n; });
+  // One call for one entry, or for every item of a purchase.
+  function deleteEntries(ids: string[]) {
+    const key = ids[0];
+    setHidden((h) => new Set([...h, ...ids]));
     const timer = window.setTimeout(() => {
-      pending.current.delete(id);
-      sendRef.current(id, { onSettled: () => unhide(id) });
+      pending.current.delete(key);
+      ids.forEach((id) => sendRef.current(id, { onSettled: () => unhide([id]) }));
     }, UNDO_MS);
-    pending.current.set(id, timer);
+    pending.current.set(key, { timer, ids });
     toast({
       message: t("toast.deleted"), icon: "trash", duration: UNDO_MS,
-      action: { label: t("toast.undo"), onClick: () => { window.clearTimeout(pending.current.get(id)); pending.current.delete(id); unhide(id); } },
+      action: { label: t("toast.undo"), onClick: () => { window.clearTimeout(pending.current.get(key)?.timer); pending.current.delete(key); unhide(ids); } },
     });
   }
   const data = all?.filter((e) => !hidden.has(e.id)) as Entry[];
   // Leaving the page must not lose a delete that is still waiting.
   useEffect(() => () => {
-    for (const [id, timer] of pending.current) { window.clearTimeout(timer); sendRef.current(id); }
+    for (const { timer, ids } of pending.current.values()) { window.clearTimeout(timer); ids.forEach((id) => sendRef.current(id)); }
     pending.current.clear();
   }, []);
 
@@ -299,9 +364,9 @@ export function EntryList({ query, isCurrentMonth, timeZone, onOpen }: Props) {
                 ...(desktop ? { border: `1px solid ${c.line}`, borderRadius: 3, overflow: "hidden" } : {}),
               }}
             >
-              {g.items.map((entry) => (
-                <EntryRow key={entry.id} entry={entry} timeZone={timeZone} desktop={desktop} onOpen={() => onOpen(entry.id)}
-                  onDelete={() => deleteEntry(entry.id)} onActions={() => { openedAt.current = Date.now(); setActionsFor(entry); }} />
+              {groupDay(g.items).map((group) => (
+                <EntryRow key={group[0].id} group={group} timeZone={timeZone} desktop={desktop} onOpen={onOpen}
+                  onDelete={() => deleteEntries(group.map((e) => e.id))} onActions={() => { openedAt.current = Date.now(); setActionsFor(group); }} />
               ))}
             </Box>
           </section>
@@ -312,21 +377,28 @@ export function EntryList({ query, isCurrentMonth, timeZone, onOpen }: Props) {
         slotProps={{ paper: { sx: { borderRadius: "16px 16px 0 0", pb: "max(12px, env(safe-area-inset-bottom))" } } }}
       >
         <Box role="menu" aria-label={t("entry.actions")} sx={{ p: 2 }}>
-          <Typography noWrap sx={{ px: 3, py: 2, fontSize: 13, color: c.inkMuted }}>
-            {actionsFor ? `${actionsFor.merchant ?? actionsFor.note ?? t("entry.noMerchant")} · ${formatMoney(actionsFor.amount, actionsFor.currency, lang)}` : ""}
-          </Typography>
-          <Button
-            role="menuitem" fullWidth startIcon={<Icon name="edit" size={18} />} sx={{ justifyContent: "flex-start", py: 1.5, px: 3, color: c.ink }}
-            onClick={() => { const id = actionsFor!.id; setActionsFor(null); onOpen(id); }}
-          >
-            {t("entry.edit")}
-          </Button>
-          <Button
-            role="menuitem" fullWidth color="error" startIcon={<Icon name="trash" size={18} />} sx={{ justifyContent: "flex-start", py: 1.5, px: 3 }}
-            onClick={() => { const id = actionsFor!.id; setActionsFor(null); deleteEntry(id); }}
-          >
-            {t("entry.delete")}
-          </Button>
+          {actionsFor && (
+            <>
+              <Typography noWrap sx={{ px: 3, py: 2, fontSize: 13, color: c.inkMuted }}>
+                {`${actionsFor[0].merchant ?? actionsFor[0].note ?? t("entry.noMerchant")} · ${formatMoney(
+                  (Math.round(actionsFor.reduce((sum, e) => sum + Number(e.amount), 0) * 100) / 100).toFixed(2), actionsFor[0].currency, lang)}`}
+              </Typography>
+              {actionsFor.length === 1 && (
+                <Button
+                  role="menuitem" fullWidth startIcon={<Icon name="edit" size={18} />} sx={{ justifyContent: "flex-start", py: 1.5, px: 3, color: c.ink }}
+                  onClick={() => { const id = actionsFor[0].id; setActionsFor(null); onOpen(id); }}
+                >
+                  {t("entry.edit")}
+                </Button>
+              )}
+              <Button
+                role="menuitem" fullWidth color="error" startIcon={<Icon name="trash" size={18} />} sx={{ justifyContent: "flex-start", py: 1.5, px: 3 }}
+                onClick={() => { const ids = actionsFor.map((e) => e.id); setActionsFor(null); deleteEntries(ids); }}
+              >
+                {actionsFor.length > 1 ? t("entry.deleteAll") : t("entry.delete")}
+              </Button>
+            </>
+          )}
         </Box>
       </Drawer>
     </Box>

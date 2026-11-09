@@ -22,6 +22,7 @@ export type Entry = {
   date: string; // YYYY-MM-DD
   merchant: string | null;
   merchant_domain?: string | null; // only set when logos are switched on
+  group_id?: string | null; // items of one purchase share it
   note: string | null;
   amount: string; // "6.50"
   currency: string;

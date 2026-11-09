@@ -100,6 +100,8 @@ export const uz: Dict = {
   "entry.edited": "Tahrirlangan",
   "entry.edit": "Tahrirlash",
   "entry.delete": "Oʻchirish",
+  "entry.items": "{count} ta mahsulot",
+  "entry.deleteAll": "Hammasini oʻchirish",
   "entry.actions": "Yozuv amallari",
   "entry.fix": "Tuzatish",
   "entry.noMerchant": "Xarajat",

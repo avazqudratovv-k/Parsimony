@@ -50,12 +50,14 @@ def _save(
     ai_output: dict | None,
     source: str = "text",
     merchant_domain: str | None = None,
+    group_id: uuid.UUID | None = None,
 ) -> Entry:
     entry = Entry(
         user_id=user.id,
         date=data.date,
         merchant=data.merchant,
         merchant_domain=merchant_domain if get_settings().logos_enabled else None,
+        group_id=group_id,
         note=data.note,
         amount=data.amount,
         currency=data.currency,
@@ -124,6 +126,7 @@ def create_from_text(
             )
         ]
     saved = []
+    group_id = uuid.uuid4()  # the items of this purchase are shown together
     for item in items:
         part = EntryCreate(
             date=entry.date,
@@ -145,6 +148,7 @@ def create_from_text(
                 ai_output=outcome.raw,
                 source=source,
                 merchant_domain=entry.merchant_domain,
+                group_id=group_id,
             )
         )
     return saved

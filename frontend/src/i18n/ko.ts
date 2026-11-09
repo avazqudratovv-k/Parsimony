@@ -99,6 +99,8 @@ export const ko: Dict = {
   "entry.edited": "수정됨",
   "entry.edit": "수정",
   "entry.delete": "삭제",
+  "entry.items": "{count}개 항목",
+  "entry.deleteAll": "모두 삭제",
   "entry.actions": "항목 작업",
   "entry.fix": "수정하기",
   "entry.noMerchant": "지출",

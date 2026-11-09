@@ -412,6 +412,46 @@ describe("Fix this", () => {
   });
 });
 
+describe("one purchase, several items", () => {
+  const G = "00000000-0000-0000-0000-000000000001";
+  const MILK = { ...ENTRY, id: "g1", merchant: "GS25", note: "Milk", amount: "2.00", category: "groceries", group_id: G, created_at: "2026-11-08T03:00:00Z" };
+  const SHAMPOO = { ...ENTRY, id: "g2", merchant: "GS25", note: "Shampoo", amount: "5.50", category: "shopping", group_id: G, created_at: "2026-11-08T03:00:01Z" };
+
+  it("shows them together with the total and each item's own price", async () => {
+    signedInApi({}, [SHAMPOO, MILK]);
+    renderApp("/app");
+    await screen.findByText("GS25");
+    expect(screen.getAllByText("GS25")).toHaveLength(1); // one card, not two rows
+    expect(screen.getAllByText("$7.50").length).toBeGreaterThan(0); // the total (also in the day header)
+    expect(screen.getByText("2 items")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Milk, $2.00" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Shampoo, $5.50" })).toBeInTheDocument();
+  });
+
+  it("tapping one item opens that item", async () => {
+    signedInApi({}, [MILK, SHAMPOO]);
+    renderApp("/app");
+    const user = userEvent.setup();
+    await user.click(await screen.findByRole("button", { name: "Shampoo, $5.50" }));
+    const dialog = await screen.findByRole("dialog", { name: "Fix this entry" });
+    expect(within(dialog).getByDisplayValue("5.50")).toBeInTheDocument();
+  });
+
+  it("swipe-delete removes every item of the purchase", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    const calls = signedInApi({ "DELETE /api/entries/g1": { status: 204 }, "DELETE /api/entries/g2": { status: 204 } }, [MILK, SHAMPOO]);
+    renderApp("/app");
+    const card = (await screen.findByRole("button", { name: "Milk, $2.00" })).closest("ul")!.parentElement!.parentElement!;
+    fireEvent.pointerDown(card, { clientX: 300, clientY: 100, pointerType: "touch", pointerId: 1, button: 0 });
+    fireEvent.pointerMove(card, { clientX: 200, clientY: 100, pointerType: "touch", pointerId: 1 });
+    fireEvent.pointerUp(card, { pointerType: "touch", pointerId: 1 });
+    fireEvent.click(await screen.findByRole("button", { name: "Delete" }));
+    act(() => { vi.advanceTimersByTime(5300); });
+    await waitFor(() => expect(calls.filter((c) => c.method === "DELETE").map((c) => c.url).sort()).toEqual(["/api/entries/g1", "/api/entries/g2"]));
+    vi.useRealTimers();
+  });
+});
+
 describe("merchant logos", () => {
   const WITH_LOGO = { ...ENTRY, merchant: "GS25", merchant_domain: "gs25.com" };
   const logoOf = () => document.querySelector("img[src*='favicons']") as HTMLImageElement | null;

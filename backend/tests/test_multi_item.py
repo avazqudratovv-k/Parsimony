@@ -41,6 +41,17 @@ def test_a_purchase_with_several_items_becomes_one_entry_per_item(client):
     assert {e["raw_input"] for e in listed} == {"GS25 milk 2000 shampoo 5500 won card"}
 
 
+def test_the_items_of_one_purchase_share_a_group_id_and_a_normal_entry_has_none(client):
+    signup(client)
+    use_parser(FakeParser(answer()))
+    body = post(client).json()
+    assert body["group_id"] is not None
+    assert body["siblings"][0]["group_id"] == body["group_id"]
+
+    use_parser(FakeParser(good_json(date="2026-10-15")))
+    assert post(client, "coffee").json()["group_id"] is None
+
+
 def test_it_costs_one_ai_call_not_one_per_item(client):
     signup(client)
     parser = FakeParser(answer())

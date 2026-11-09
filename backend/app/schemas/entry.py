@@ -85,6 +85,7 @@ class EntryOut(BaseModel):
     created_at: dt.datetime
     updated_at: dt.datetime
     merchant_domain: str | None = None
+    group_id: uuid.UUID | None = None
 
 
 class EntryCreated(EntryOut):

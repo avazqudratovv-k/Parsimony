@@ -99,6 +99,8 @@ export const en = {
   "entry.edited": "Edited",
   "entry.edit": "Edit",
   "entry.delete": "Delete",
+  "entry.items": "{count} items",
+  "entry.deleteAll": "Delete all items",
   "entry.actions": "Entry actions",
   "entry.fix": "Fix this",
   "entry.noMerchant": "Expense",

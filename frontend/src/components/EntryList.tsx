@@ -113,6 +113,7 @@ function EntryRow({ group, timeZone, desktop, onOpen, onDelete, onActions }: Row
   const title = entry.merchant ?? entry.note ?? t("entry.noMerchant");
   const meta = [
     entry.merchant && !multi ? entry.note : null,
+    multi && checkThis ? fill(t("entry.items"), { count: group.length }) : null, // else it sits under the total
     entry.payment_method !== "unknown" ? paymentLabel(t, entry.payment_method) : null,
     formatTime(entry.created_at, timeZone),
   ].filter(Boolean) as string[];
@@ -162,7 +163,14 @@ function EntryRow({ group, timeZone, desktop, onOpen, onDelete, onActions }: Row
           </Box>
           <Box sx={{ textAlign: "right", display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 1 }}>
             <Typography sx={{ fontWeight: 600, fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap" }}>{amount}</Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ fontSize: 12 }}>{fill(t("entry.items"), { count: group.length })}</Typography>
+            {checkThis ? (
+              <Box component="span" sx={{ display: "inline-flex", alignItems: "center", gap: 1, fontSize: 12, fontWeight: 600, color: c.warn }}>
+                <Icon name="alert" size={14} />
+                {uncertain ? fill(t("entry.checkFields"), { fields: uncertain }) : t("entry.checkThis")}
+              </Box>
+            ) : (
+              <Typography variant="body2" color="text.secondary" sx={{ fontSize: 12 }}>{fill(t("entry.items"), { count: group.length })}</Typography>
+            )}
           </Box>
         </Box>
         <Box component="ul" sx={{ listStyle: "none", m: 0, mt: 2, p: 0, ml: "52px", borderLeft: `2px solid ${c.line}` }}>

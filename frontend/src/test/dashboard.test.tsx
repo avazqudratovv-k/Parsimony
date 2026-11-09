@@ -423,9 +423,17 @@ describe("one purchase, several items", () => {
     await screen.findByText("GS25");
     expect(screen.getAllByText("GS25")).toHaveLength(1); // one card, not two rows
     expect(screen.getAllByText("$7.50").length).toBeGreaterThan(0); // the total (also in the day header)
-    expect(screen.getByText("2 items")).toBeInTheDocument();
+    expect(screen.getByText(/2 items/)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Milk, $2.00" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Shampoo, $5.50" })).toBeInTheDocument();
+  });
+
+  it("a purchase the AI was unsure about says what to check on the grouped card too", async () => {
+    const unsure = (e: typeof MILK) => ({ ...e, confidence: 0.5, uncertain: ["category"] });
+    signedInApi({}, [unsure(MILK), unsure(SHAMPOO)]);
+    renderApp("/app");
+    expect(await screen.findByText("Check: category")).toBeInTheDocument();
+    expect(screen.getByText(/2 items/)).toBeInTheDocument();
   });
 
   it("tapping one item opens that item", async () => {

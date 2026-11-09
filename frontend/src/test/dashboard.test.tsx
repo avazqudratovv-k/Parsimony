@@ -368,6 +368,23 @@ describe("Fix this", () => {
   });
 });
 
+describe("export", () => {
+  it("downloads the month as CSV and offers PDF", async () => {
+    URL.createObjectURL = vi.fn(() => "blob:x");
+    URL.revokeObjectURL = vi.fn();
+    const click = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => {});
+    signedInApi();
+    renderApp("/app");
+    const user = userEvent.setup();
+    await user.click(await screen.findByRole("button", { name: "Export" }));
+    expect(screen.getByRole("menuitem", { name: "Save as PDF" })).toBeInTheDocument();
+    await user.click(screen.getByRole("menuitem", { name: "Download CSV (Excel)" }));
+    expect(click).toHaveBeenCalled();
+    expect(await screen.findByText("Downloaded")).toBeInTheDocument();
+    click.mockRestore();
+  });
+});
+
 describe("phone gestures", () => {
   const press = (el: Element, x: number) => fireEvent.pointerDown(el, { clientX: x, clientY: 100, pointerType: "touch", pointerId: 1, button: 0 });
   const dragTo = (el: Element, x: number) => fireEvent.pointerMove(el, { clientX: x, clientY: 100, pointerType: "touch", pointerId: 1 });

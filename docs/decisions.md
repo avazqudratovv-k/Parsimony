@@ -218,4 +218,8 @@
 ## Landing page
 
 - The landing page follows the Claude Design opening: the headline, then a big "Try it as a guest" button (so a visitor can look around in one tap), a row of the three ways to add (type, voice, receipt photo), a small sample list, and the email form below ("or use your email"). On a desktop it is two columns.
-- `frontend/vercel.json` lets the frontend run on Vercel while the API stays on the server: `/api/*` is forwarded to the server, so the browser still sees one site and the session cookie stays same-origin.
+
+## Export
+
+- "Export" above the list: a CSV file (UTF-8 with a BOM so Excel reads Korean and Uzbek; amounts stay as written; cells starting with = + - @ are defused) and a PDF made through the browser's print dialog ("Save as PDF").
+- The PDF uses the print dialog on purpose: it keeps Korean and Uzbek text correct without bundling a font or a PDF library.

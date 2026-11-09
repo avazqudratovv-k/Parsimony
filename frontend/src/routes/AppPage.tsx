@@ -6,6 +6,7 @@ import { useEntries, useMonthlyStats } from "../api/entries";
 import { AddBar } from "../components/AddBar";
 import { CategoryChart } from "../components/CategoryChart";
 import { DemoBanner } from "../components/DemoBanner";
+import { ExportMenu } from "../components/ExportMenu";
 import { EntryList } from "../components/EntryList";
 import { FixDialog } from "../components/FixDialog";
 import { NeedsCheck } from "../components/NeedsCheck";
@@ -50,6 +51,7 @@ export function AppPage() {
     />
   );
   const chart = <CategoryChart month={month} data={stats.data} previous={previous.data} isPending={stats.isPending} isError={stats.isError} />;
+  const exporter = entries.data && entries.data.length > 0 ? <ExportMenu month={month} entries={entries.data} /> : null;
   const list = (
     <EntryList query={entries} month={month} isCurrentMonth={month === thisMonth} timeZone={timeZone} onOpen={setOpenId} />
   );
@@ -69,6 +71,7 @@ export function AppPage() {
           <Box sx={{ display: "grid", gridTemplateColumns: "1fr 400px", gap: 8, alignItems: "start" }}>
             <Box>
               <AddBar onAdded={() => setPicked(null)} />
+              {exporter}
               {list}
             </Box>
             <Box sx={{ position: "sticky", top: 24, display: "flex", flexDirection: "column", gap: 4 }}>
@@ -81,6 +84,7 @@ export function AppPage() {
             <Box sx={{ mb: 3 }}>{controls}</Box>
             {chart}
             <Box sx={{ mt: 4 }}><NeedsCheck entries={entries.data ?? []} onOpen={setOpenId} /></Box>
+            {exporter}
             {list}
             <AddBar onAdded={() => setPicked(null)} />
           </>

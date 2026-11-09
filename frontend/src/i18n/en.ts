@@ -133,6 +133,7 @@ export const en = {
   "list.empty.month": "No expenses in this month.",
   "day.today": "Today",
   "day.yesterday": "Yesterday",
+  "day.total": "Total {amount}",
   "source.text": "Typed",
   "source.voice": "Voice",
   "source.photo": "Photo",

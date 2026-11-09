@@ -1,6 +1,7 @@
 import { Alert, Box, Button, Skeleton, Typography, useMediaQuery } from "@mui/material";
 import type { UseQueryResult } from "@tanstack/react-query";
 import type { Entry } from "../api/types";
+import type { Lang } from "../i18n";
 import {
   LOW_CONFIDENCE, currentDate, fill, formatDay, formatMoney, formatTime, paymentLabel, shiftDate,
 } from "../lib/format";
@@ -8,6 +9,13 @@ import { useI18n } from "../i18n";
 import { DESKTOP, useTokens } from "../theme";
 import { CategoryIcon } from "./CategoryIcon";
 import { Icon } from "./Icon";
+
+// One day's total per currency, e.g. "$54.70" or "₩15,000 + $18.00" when a day mixes currencies.
+function dayTotal(items: Entry[], lang: Lang): string {
+  const sums = new Map<string, number>();
+  for (const e of items) sums.set(e.currency, (sums.get(e.currency) ?? 0) + Number(e.amount));
+  return [...sums].map(([cur, sum]) => formatMoney((Math.round(sum * 100) / 100).toFixed(2), cur, lang)).join(" + ");
+}
 
 const SOURCE_ICON = { text: "keyboard", voice: "mic", photo: "camera" } as const;
 
@@ -160,7 +168,13 @@ export function EntryList({ query, isCurrentMonth, timeZone, onOpen }: Props) {
                 {label && <><strong style={{ color: c.ink, fontWeight: 600 }}>{label}</strong> · </>}
                 {label ? formatDay(g.date, lang) : <strong style={{ color: c.ink, fontWeight: 600 }}>{formatDay(g.date, lang)}</strong>}
               </span>
-              <span>{fill(t(count === 1 ? "chart.count.one" : "chart.count.other"), { count })}</span>
+              <span style={{ textAlign: "right" }}>
+                {fill(t(count === 1 ? "chart.count.one" : "chart.count.other"), { count })}
+                {" · "}
+                <strong style={{ color: c.ink, fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>
+                  {fill(t("day.total"), { amount: dayTotal(g.items, lang) })}
+                </strong>
+              </span>
             </Box>
             <Box
               component="ul"

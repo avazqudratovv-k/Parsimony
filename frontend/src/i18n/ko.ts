@@ -133,6 +133,7 @@ export const ko: Dict = {
   "list.empty.month": "이 달에는 지출이 없어요.",
   "day.today": "오늘",
   "day.yesterday": "어제",
+  "day.total": "합계 {amount}",
   "source.text": "입력",
   "source.voice": "음성",
   "source.photo": "사진",

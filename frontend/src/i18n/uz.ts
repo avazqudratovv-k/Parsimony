@@ -135,6 +135,7 @@ export const uz: Dict = {
   "list.empty.month": "Bu oyda xarajat yoʻq.",
   "day.today": "Bugun",
   "day.yesterday": "Kecha",
+  "day.total": "Jami {amount}",
   "source.text": "Yozilgan",
   "source.voice": "Ovoz",
   "source.photo": "Surat",

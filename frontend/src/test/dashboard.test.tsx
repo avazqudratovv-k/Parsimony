@@ -17,6 +17,14 @@ describe("dashboard list", () => {
     expect(screen.getByText(/Sun 8 Nov/)).toBeInTheDocument();
   });
 
+  it("shows each day's total, per currency, in the day header", async () => {
+    const SAME_DAY_USD = { ...ENTRY, id: "e3", merchant: "Uber", note: null, amount: "18.00", raw_input: "uber 18" };
+    signedInApi({}, [ENTRY, SAME_DAY_USD, LOW]);
+    renderApp("/app");
+    await screen.findByText("Uber");
+    expect(screen.getByText("Total $24.50 + ₩9,000")).toBeInTheDocument();
+  });
+
   it("marks low-confidence entries 'Check this' but not good ones", async () => {
     signedInApi({}, [ENTRY, LOW]);
     renderApp("/app");

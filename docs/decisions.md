@@ -161,3 +161,9 @@
 - Copy now says "smart adds" instead of "AI entries".
 - OPEN DECISION: the design says typing is free and only voice/photo count as smart adds (hidden fair-use cap on typed lines). Today every typed entry still calls Gemini and counts toward the 30/day cap. Kept counting all AI parses for now; only the wording changed.
 - Deferred to stage 2: toasts with Undo, opening animation, mobile entry details screen, My page rework, parse-failure notice with "Enter manually", remaining custom icons. Voice and receipt screens belong to Days 11-13.
+
+## Day 10 (deploy) and phone layout fixes
+- Live at https://parsimony.duckdns.org (Docker Compose project `parsimony-prod`, only 127.0.0.1:4300 published, host Nginx site in /etc/nginx/conf.d/parsimony.conf, Let's Encrypt via certbot). Update: `git pull && docker compose -f docker-compose.prod.yml up -d --build`. Steps in docs/deploy.md.
+- One backend worker on purpose (in-memory rate limits and daily caps). Host Nginx overwrites X-Forwarded-For, so limits count real visitor IPs.
+- Phone fixes: hidden h1 was 100% wide and let the page drag sideways (now 1px, plus overflow-x: clip and no overscroll bounce); header sticky on phones; add bar keeps a fixed height (hint line space reserved).
+- Day headers now show each day's total per currency ("Total $54.70", or "$24.50 + ₩9,000" on a mixed day).

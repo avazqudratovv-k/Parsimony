@@ -9,7 +9,7 @@ import { FixDialog } from "./FixDialog";
 import { Icon } from "./Icon";
 
 /** Receipt flow (design 4b/4c): "Reading the receipt…" with Cancel, then the fields to check. */
-export function ReceiptDialog({ file, onClose }: { file: File; onClose: () => void }) {
+export function ReceiptDialog({ file, onClose }: { file: File; onClose: (added?: Entry) => void }) {
   const t = useT();
   const { lang } = useI18n();
   const add = useAddPhoto();
@@ -44,14 +44,14 @@ export function ReceiptDialog({ file, onClose }: { file: File; onClose: () => vo
   }
 
   const entry: Entry | undefined = add.data;
-  if (entry && editing) return <FixDialog entry={entry} onClose={onClose} />;
+  if (entry && editing) return <FixDialog entry={entry} onClose={() => onClose(entry)} />;
 
   const thumb = preview && (
     <Box component="img" src={preview} alt={t("photo.alt")} sx={{ width: 88, height: 112, objectFit: "cover", borderRadius: 2, border: 1, borderColor: "divider", flex: "none" }} />
   );
 
   return (
-    <Dialog open onClose={add.isPending ? undefined : onClose} fullWidth maxWidth="xs" aria-labelledby="receipt-title">
+    <Dialog open onClose={add.isPending ? undefined : () => onClose(add.data)} fullWidth maxWidth="xs" aria-labelledby="receipt-title">
       <DialogTitle id="receipt-title">{entry ? t("photo.checkTitle") : t("photo.title")}</DialogTitle>
       <DialogContent sx={{ display: "grid", gap: 3 }}>
         {add.isPending && (
@@ -101,14 +101,14 @@ export function ReceiptDialog({ file, onClose }: { file: File; onClose: () => vo
         {add.isPending && <Button variant="outlined" onClick={cancel} fullWidth>{t("photo.cancel")}</Button>}
         {add.isError && (
           <>
-            <Button variant="outlined" onClick={onClose}>{t("photo.close")}</Button>
+            <Button variant="outlined" onClick={() => onClose()}>{t("photo.close")}</Button>
             <Button variant="contained" onClick={run}>{t("photo.retry")}</Button>
           </>
         )}
         {entry && (
           <>
             <Button variant="outlined" startIcon={<Icon name="edit" size={18} />} onClick={() => setEditing(true)}>{t("photo.edit")}</Button>
-            <Button variant="contained" startIcon={<Icon name="check" size={18} />} onClick={onClose}>{t("photo.ok")}</Button>
+            <Button variant="contained" startIcon={<Icon name="check" size={18} />} onClick={() => onClose(entry)}>{t("photo.ok")}</Button>
           </>
         )}
       </DialogActions>

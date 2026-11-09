@@ -17,7 +17,7 @@ export type Draft = { note: string; currency: string; date: string };
  * "Fix this": every field of the entry, the original words, Save and Delete. Full screen on phones.
  * With a `draft` instead of an entry it is the "Enter manually" form: the same fields, saved as a new entry.
  */
-export function FixDialog({ entry, draft, onClose }: { entry?: Entry; draft?: Draft; onClose: () => void }) {
+export function FixDialog({ entry, draft, onClose }: { entry?: Entry; draft?: Draft; onClose: (created?: Entry) => void }) {
   const { t, lang } = useI18n();
   const toast = useToast();
   const creating = !entry;
@@ -57,7 +57,7 @@ export function FixDialog({ entry, draft, onClose }: { entry?: Entry; draft?: Dr
           amount: cleanAmount, currency: currency.trim().toUpperCase(), date, category: category as Category,
           payment_method: payment as PaymentMethod, merchant: merchant.trim() || null, note: note.trim() || null,
         },
-        { onSuccess: () => { toast({ message: t("toast.added") }); onClose(); } },
+        { onSuccess: (created) => { toast({ message: t("toast.added") }); onClose(created); } },
       );
     }
     // Send only what changed, so an untouched entry is never marked as "edited".
@@ -85,7 +85,7 @@ export function FixDialog({ entry, draft, onClose }: { entry?: Entry; draft?: Dr
   }
 
   return (
-    <Dialog open onClose={busy ? undefined : onClose} fullScreen={fullScreen} fullWidth maxWidth="sm" aria-labelledby="fix-title">
+    <Dialog open onClose={busy ? undefined : () => onClose()} fullScreen={fullScreen} fullWidth maxWidth="sm" aria-labelledby="fix-title">
       <Box component="form" onSubmit={onSubmit} noValidate sx={{ display: "flex", flexDirection: "column", minHeight: 0, flex: 1 }}>
         <DialogTitle id="fix-title">{creating ? t("manual.title") : t("fix.title")}</DialogTitle>
         <DialogContent sx={{ display: "grid", gap: 4, pt: "8px !important" }}>
@@ -124,7 +124,7 @@ export function FixDialog({ entry, draft, onClose }: { entry?: Entry; draft?: Dr
             </Button>
           )}
           <Box sx={{ display: "flex", gap: 2 }}>
-            <Button onClick={onClose} disabled={busy} color="inherit">{t("fix.cancel")}</Button>
+            <Button onClick={() => onClose()} disabled={busy} color="inherit">{t("fix.cancel")}</Button>
             <Button type="submit" variant="contained" disabled={busy}>{creating ? t("manual.save") : t("fix.save")}</Button>
           </Box>
         </DialogActions>

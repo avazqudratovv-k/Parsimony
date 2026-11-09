@@ -70,7 +70,7 @@ export function AppPage() {
         {desktop ? (
           <Box sx={{ display: "grid", gridTemplateColumns: "1fr 400px", gap: 8, alignItems: "start" }}>
             <Box>
-              <AddBar onAdded={() => setPicked(null)} />
+              <AddBar onAdded={(e) => goToMonth(e ? e.date.slice(0, 7) : thisMonth)} />
               {exporter}
               {list}
             </Box>
@@ -86,7 +86,7 @@ export function AppPage() {
             <Box sx={{ mt: 4 }}><NeedsCheck entries={entries.data ?? []} onOpen={setOpenId} /></Box>
             {exporter}
             {list}
-            <AddBar onAdded={() => setPicked(null)} />
+            <AddBar onAdded={(e) => goToMonth(e ? e.date.slice(0, 7) : thisMonth)} />
           </>
         )}
       </Box>

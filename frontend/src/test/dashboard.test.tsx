@@ -133,6 +133,16 @@ describe("toasts and manual entry", () => {
     expect(calls.some((c) => c.method === "DELETE" && c.url === "/api/entries/n1")).toBe(true);
   });
 
+  it("shows the month of what was just added, even when it is dated in the past", async () => {
+    const OLD = { ...ENTRY, id: "old1", merchant: "LOTTE Super", amount: "10820.00", currency: "KRW", date: "2024-10-30" };
+    const calls = signedInApi({ "POST /api/entries": { status: 201, body: OLD } });
+    renderApp("/app");
+    const user = userEvent.setup();
+    await user.type(await screen.findByLabelText("Describe an expense"), "lotte super 10820 won on 30 Oct 2024");
+    await user.click(screen.getByRole("button", { name: "Add" }));
+    await waitFor(() => expect(calls.some((c) => c.url.startsWith("/api/entries?month=2024-10"))).toBe(true));
+  });
+
   it("says how many entries one purchase became, and Undo removes all of them", async () => {
     const A = { ...ENTRY, id: "m1", merchant: "GS25", note: "Milk", amount: "2.00" };
     const B = { ...ENTRY, id: "m2", merchant: "GS25", note: "Shampoo", amount: "5.50", category: "shopping" };

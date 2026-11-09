@@ -9,7 +9,7 @@ import { useQuery } from "@tanstack/react-query";
 import { meQuery } from "../api/auth";
 import { ApiError } from "../api/client";
 import { useAddEntry, useDeleteEntry, useUpdateEntry, useUsage } from "../api/entries";
-import type { Category, EntryCreated } from "../api/types";
+import type { Category, Entry, EntryCreated } from "../api/types";
 import { addErrorMessage } from "../lib/errors";
 import { currentDate, fill, formatMoney } from "../lib/format";
 import { useI18n, useT } from "../i18n";
@@ -20,7 +20,8 @@ import { useToast } from "./Toast";
 import { VoiceDialog } from "./VoiceDialog";
 
 // Docked at the bottom on phones, at the top of the list on desktop (as in the design).
-export function AddBar({ onAdded }: { onAdded?: () => void }) {
+// onAdded gets the new entry so the page can show the month it belongs to (a receipt can be from last year).
+export function AddBar({ onAdded }: { onAdded?: (entry?: Entry) => void }) {
   const t = useT();
   const { lang } = useI18n();
   const toast = useToast();
@@ -73,19 +74,19 @@ export function AddBar({ onAdded }: { onAdded?: () => void }) {
     e.preventDefault();
     const value = text.trim();
     if (!value || add.isPending) return;
-    add.mutate(value, { onSuccess: (entry) => { setText(""); onAdded?.(); announce(entry); } });
+    add.mutate(value, { onSuccess: (entry) => { setText(""); onAdded?.(entry); announce(entry); } });
   }
 
   const bar = (
     <Box sx={{ width: "100%" }}>
-      {voice && <VoiceDialog onClose={() => setVoice(false)} onAdded={(entry) => { onAdded?.(); announce(entry); }} />}
+      {voice && <VoiceDialog onClose={() => setVoice(false)} onAdded={(entry) => { onAdded?.(entry); announce(entry); }} />}
       {manual && me && (
         <FixDialog
           draft={{ note: text.trim(), currency: me.default_currency, date: currentDate(me.timezone) }}
-          onClose={() => { setManual(false); add.reset(); setText(""); onAdded?.(); }}
+          onClose={(created) => { setManual(false); add.reset(); setText(""); onAdded?.(created); }}
         />
       )}
-      {photo && <ReceiptDialog file={photo} onClose={() => { setPhoto(null); onAdded?.(); }} />}
+      {photo && <ReceiptDialog file={photo} onClose={(added) => { setPhoto(null); onAdded?.(added); }} />}
       {add.isError && (
         <Alert
           severity="error" role="alert" onClose={() => add.reset()} sx={{ mb: 2 }}

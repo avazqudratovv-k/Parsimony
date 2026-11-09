@@ -280,3 +280,7 @@ A flag that never goes away is useless: the app cannot know the user checked it.
 - A real edit also counts as checked.
 - Checking one item checks the whole purchase, because its items share one AI answer.
 - The rule lives in one place (`needsCheck` in `lib/format.ts`) and is used by the list, the Needs a check card, the Fix form and the photo dialog.
+
+## After adding, show the month of the new entry
+
+Adding used to jump back to the current month. A receipt photo (or "Oct 5 lunch") is often dated in another month, so the new entry looked like it had not been saved. Adding by text, voice, photo or the manual form now opens the month of the entry that was just created.

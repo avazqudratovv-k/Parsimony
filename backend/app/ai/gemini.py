@@ -4,7 +4,12 @@ from google import genai
 from google.genai import types
 
 from app.ai.base import AdapterError, ParseContext, RawModelOutput
-from app.ai.prompts import ENTRY_JSON_SCHEMA, build_receipt_prompt, build_system_prompt
+from app.ai.prompts import (
+    ENTRY_JSON_SCHEMA,
+    TRANSCRIBE_PROMPT,
+    build_receipt_prompt,
+    build_system_prompt,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -58,3 +63,29 @@ class GeminiImageParser:
     def complete_image(self, image: bytes, mime: str, ctx: ParseContext) -> RawModelOutput:
         photo = types.Part.from_bytes(data=image, mime_type=mime)
         return _generate(self._client, self._model, [photo], build_receipt_prompt(ctx))
+
+
+class GeminiTranscriber:
+    def __init__(self, api_key: str, model: str) -> None:
+        self._model = model
+        self._client = genai.Client(
+            api_key=api_key,
+            http_options=types.HttpOptions(timeout=IMAGE_TIMEOUT_MS),
+        )
+
+    def transcribe(self, audio: bytes, mime: str) -> RawModelOutput:
+        clip = types.Part.from_bytes(data=audio, mime_type=mime)
+        try:
+            response = self._client.models.generate_content(
+                model=self._model,
+                contents=[clip],
+                config=types.GenerateContentConfig(
+                    system_instruction=TRANSCRIBE_PROMPT,
+                    temperature=0.0,
+                    max_output_tokens=300,
+                ),
+            )
+        except Exception as exc:
+            logger.warning("Gemini transcription failed: %s", type(exc).__name__)
+            raise AdapterError("The AI service is unavailable") from exc
+        return RawModelOutput(text=(response.text or "").strip(), model=self._model)

@@ -35,3 +35,9 @@ class ImageParser(Protocol):
     """Reads one receipt photo. Same contract as TextParser: raw JSON text back, no validation."""
 
     def complete_image(self, image: bytes, mime: str, ctx: ParseContext) -> RawModelOutput: ...
+
+
+class AudioTranscriber(Protocol):
+    """Turns one short voice clip into text. Returns the transcript as plain text."""
+
+    def transcribe(self, audio: bytes, mime: str) -> RawModelOutput: ...

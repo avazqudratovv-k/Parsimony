@@ -71,7 +71,12 @@ def _save(
 
 
 def create_from_text(
-    db: Session, user: User, parser: TextParser, text: str, timezone: str | None
+    db: Session,
+    user: User,
+    parser: TextParser,
+    text: str,
+    timezone: str | None,
+    source: str = "text",
 ) -> Entry:
     """Typed text -> model -> validated JSON -> saved entry. Counts against the daily AI cap."""
     _check_room(db, user)  # before the AI call, so a full account never spends a cap
@@ -86,6 +91,7 @@ def create_from_text(
         confidence=outcome.entry.confidence,
         model_used=outcome.model_used,
         ai_output=outcome.raw,
+        source=source,
     )
 
 

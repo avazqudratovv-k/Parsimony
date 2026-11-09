@@ -1,4 +1,4 @@
-from app.ai.registry import get_image_parser, get_text_parser
+from app.ai.registry import get_image_parser, get_text_parser, get_transcriber
 from app.main import app
 
 
@@ -14,6 +14,10 @@ def use_parser(parser):
 
 def use_image_parser(parser):
     app.dependency_overrides[get_image_parser] = lambda: parser
+
+
+def use_transcriber(transcriber):
+    app.dependency_overrides[get_transcriber] = lambda: transcriber
 
 
 def manual_payload(**overrides):

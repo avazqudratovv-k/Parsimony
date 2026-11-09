@@ -188,3 +188,11 @@
 - The server saves the entry straight away, so "Check the receipt" shows what was saved. Edit opens "Fix this"; "Looks right" just closes. Cancel stops the upload but cannot undo a read that already started.
 - One photo costs one smart add; the upload starts exactly once, even in React StrictMode.
 - The mic button is not added until voice works, so there is no dead button.
+
+## Day 12–13: voice
+
+- The browser records with MediaRecorder, then decodes and re-encodes to 16 kHz mono WAV (~1 MB for 30 s). Phones record in different formats (webm / mp4), so one small universal format means the server and the model never have to guess. The server checks the first bytes (RIFF/WAVE), not the label.
+- Two steps, as in the design: `POST /api/entries/transcribe` (clip -> words, one smart add, nothing saved), the user fixes the words, then the normal `POST /api/entries` with `source: "voice"`. Mishearing numbers is the main risk of voice input, so the user sees the words before anything is saved.
+- Gemini does the transcription (same key, no extra server or model to run on the 2-CPU box). The clip is held in memory only, never stored, like receipt photos.
+- Not built: the design's "We'll add" preview card. It needs a parse-without-save step; the saved entry already appears in the list with "Fix this".
+- A confirmed voice entry also passes through the typed-entry pool (hidden fair-use cap), which is fine: it keeps one rule for all text that reaches the parser.

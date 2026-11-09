@@ -18,6 +18,8 @@ class Settings(BaseSettings):
     gemini_vision_model: str = ""
     # Largest receipt photo accepted. The app shrinks photos before sending, so this is generous.
     max_photo_bytes: int = 8 * 1024 * 1024
+    # Largest voice clip accepted: 30 s of 16 kHz mono WAV is about 1 MB.
+    max_audio_bytes: int = 2 * 1024 * 1024
     session_max_age_seconds: int = 7 * 24 * 3600
 
     # "Smart adds" (receipt photo, voice) are capped per day, reset at 00:00 UTC.

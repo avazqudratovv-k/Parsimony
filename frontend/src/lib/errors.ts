@@ -1,5 +1,6 @@
 import { ApiError } from "../api/client";
 import type { TFn } from "../i18n";
+import { MicError } from "./audio";
 
 // Our own translated text for each way adding an entry can fail (the server's text is English only).
 export function addErrorMessage(e: unknown, t: TFn): string {
@@ -14,6 +15,20 @@ export function addErrorMessage(e: unknown, t: TFn): string {
     if (e.status === 502 || e.status === 503) return t("add.error.unavailable");
   }
   return t("add.error.generic");
+}
+
+// Voice: the microphone itself can fail before the server is involved.
+export function voiceErrorMessage(e: unknown, t: TFn): string {
+  if (e instanceof MicError) {
+    if (e.kind === "denied") return t("voice.error.denied");
+    if (e.kind === "unsupported") return t("voice.error.unsupported");
+    return t("voice.error.failed");
+  }
+  if (e instanceof ApiError) {
+    if (e.status === 422) return t("voice.error.noSpeech");
+    if (e.status === 413) return t("voice.error.long");
+  }
+  return addErrorMessage(e, t);
 }
 
 // Same idea for a receipt photo: the status says what went wrong with the picture itself.

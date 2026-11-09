@@ -46,3 +46,17 @@ class FakeImageParser:
         if isinstance(answer, Exception):
             raise answer
         return RawModelOutput(text=answer, model="fake-vision-model")
+
+
+class FakeTranscriber:
+    """Returns a scripted transcript (or raises) and records the clips it was given."""
+
+    def __init__(self, answer: str | Exception = "taxi 12000 won card") -> None:
+        self._answer = answer
+        self.calls: list[tuple[bytes, str]] = []
+
+    def transcribe(self, audio: bytes, mime: str) -> RawModelOutput:
+        self.calls.append((audio, mime))
+        if isinstance(self._answer, Exception):
+            raise self._answer
+        return RawModelOutput(text=self._answer, model="fake-audio-model")

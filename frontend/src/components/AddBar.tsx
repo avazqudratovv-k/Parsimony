@@ -11,6 +11,7 @@ import { fill } from "../lib/format";
 import { useT } from "../i18n";
 import { Icon } from "./Icon";
 import { ReceiptDialog } from "./ReceiptDialog";
+import { VoiceDialog } from "./VoiceDialog";
 
 // Docked at the bottom on phones, at the top of the list on desktop (as in the design).
 export function AddBar({ onAdded }: { onAdded?: () => void }) {
@@ -23,6 +24,7 @@ export function AddBar({ onAdded }: { onAdded?: () => void }) {
   const cameraInput = useRef<HTMLInputElement>(null);
   const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
   const [photo, setPhoto] = useState<File | null>(null);
+  const [voice, setVoice] = useState(false);
   const { data: usage } = useUsage();
 
   function onPick(e: ChangeEvent<HTMLInputElement>) {
@@ -40,6 +42,7 @@ export function AddBar({ onAdded }: { onAdded?: () => void }) {
 
   const bar = (
     <Box sx={{ width: "100%" }}>
+      {voice && <VoiceDialog onClose={() => setVoice(false)} onAdded={() => onAdded?.()} />}
       {photo && <ReceiptDialog file={photo} onClose={() => { setPhoto(null); onAdded?.(); }} />}
       {add.isError && (
         <Alert severity="error" role="alert" onClose={() => add.reset()} sx={{ mb: 2 }}>
@@ -75,6 +78,13 @@ export function AddBar({ onAdded }: { onAdded?: () => void }) {
           <ArrowUpwardIcon />
         </IconButton>
         )}
+        <Tooltip title={t("add.voice")}>
+          <span>
+            <IconButton aria-label={t("add.voice")} disabled={add.isPending || !!photo || voice} onClick={() => setVoice(true)} sx={{ width: 44, height: 44 }}>
+              <Icon name="mic" size={22} />
+            </IconButton>
+          </span>
+        </Tooltip>
         <Tooltip title={t("add.photo")}>
           <span>
             <IconButton aria-label={t("add.photo")} disabled={add.isPending || !!photo} onClick={(e) => setMenuAnchor(e.currentTarget)} sx={{ width: 44, height: 44 }}>

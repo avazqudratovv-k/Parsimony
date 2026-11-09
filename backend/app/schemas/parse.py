@@ -1,3 +1,5 @@
+from typing import Literal
+
 from pydantic import BaseModel, Field, field_validator
 
 from app.models.enums import PaymentMethod
@@ -16,6 +18,8 @@ class ParseTextRequest(BaseModel):
     text: str = Field(min_length=1, max_length=500)
     # IANA name such as "Asia/Seoul". Falls back to the user's saved timezone.
     timezone: str | None = None
+    # "voice" when the text came from a confirmed transcript. Only a label for the list.
+    source: Literal["text", "voice"] = "text"
 
     @field_validator("text")
     @classmethod
@@ -31,3 +35,7 @@ class ParseTextRequest(BaseModel):
 class ParseTextResponse(BaseModel):
     entry: ParsedEntry
     model_used: str
+
+
+class TranscribeResponse(BaseModel):
+    text: str

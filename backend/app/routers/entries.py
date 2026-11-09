@@ -15,20 +15,28 @@ from fastapi import (
     status,
 )
 
-from app.ai.base import AdapterError, ImageParser, TextParser
-from app.ai.registry import get_image_parser, get_text_parser
+from app.ai.base import AdapterError, AudioTranscriber, ImageParser, TextParser
+from app.ai.registry import get_image_parser, get_text_parser, get_transcriber
 from app.config import get_settings
 from app.deps import CurrentUser, DbSession
 from app.models.enums import UsageKind
 from app.schemas.common import validate_timezone
 from app.schemas.entry import EntryCreate, EntryOut, EntryUpdate
-from app.schemas.parse import ParseTextRequest, ParseTextResponse
-from app.services import entry_service, image_check, parse_service, usage_service
+from app.schemas.parse import ParseTextRequest, ParseTextResponse, TranscribeResponse
+from app.services import (
+    audio_check,
+    entry_service,
+    image_check,
+    parse_service,
+    usage_service,
+    voice_service,
+)
 
 router = APIRouter(prefix="/entries", tags=["entries"])
 
 Parser = Annotated[TextParser, Depends(get_text_parser)]
 PhotoParser = Annotated[ImageParser, Depends(get_image_parser)]
+Transcriber = Annotated[AudioTranscriber, Depends(get_transcriber)]
 MonthParam = Annotated[str | None, Query(pattern=r"^\d{4}-(0[1-9]|1[0-2])$")]
 CurrencyParam = Annotated[str | None, Query(pattern=r"^[A-Za-z]{3}$")]
 
@@ -84,6 +92,16 @@ def api_errors() -> Iterator[None]:
             413,
             f"That photo is too large (the limit is {exc.limit // (1024 * 1024)} MB).",
         ) from None
+    except audio_check.EmptyAudio:
+        raise HTTPException(422, "The recording was empty. Please try again.") from None
+    except audio_check.UnsupportedAudio:
+        raise HTTPException(
+            status.HTTP_415_UNSUPPORTED_MEDIA_TYPE, "Please send the recording as a WAV file."
+        ) from None
+    except audio_check.AudioTooLarge:
+        raise HTTPException(413, "That recording is too long.") from None
+    except voice_service.NoSpeech:
+        raise HTTPException(422, "I couldn't hear any words. Please try again.") from None
     except parse_service.NotAnExpense:
         raise HTTPException(
             422, "I couldn't find an expense amount in that. Try e.g. 'Lunch $12 cash'."
@@ -116,7 +134,9 @@ def create_entry_from_text(
 ):
     """Typed text -> AI -> saved entry."""
     with api_errors():
-        return entry_service.create_from_text(db, user, parser, body.text, body.timezone)
+        return entry_service.create_from_text(
+            db, user, parser, body.text, body.timezone, source=body.source
+        )
 
 
 @router.post("/photo", response_model=EntryOut, status_code=status.HTTP_201_CREATED)
@@ -137,6 +157,21 @@ def create_entry_from_photo(
         data = file.file.read(limit + 1)  # one byte more than allowed, so "too large" is detectable
         mime = image_check.check_photo(data, limit)
         return entry_service.create_from_photo(db, user, parser, data, mime, timezone)
+
+
+@router.post("/transcribe", response_model=TranscribeResponse)
+def transcribe_voice(
+    user: CurrentUser,
+    db: DbSession,
+    transcriber: Transcriber,
+    file: Annotated[UploadFile, File()],
+):
+    """Voice clip -> transcript for the user to confirm. Saves nothing; the clip is never stored."""
+    limit = get_settings().max_audio_bytes
+    with api_errors():
+        data = file.file.read(limit + 1)
+        mime = audio_check.check_clip(data, limit)
+        return TranscribeResponse(text=voice_service.transcribe(db, user, transcriber, data, mime))
 
 
 @router.post("/manual", response_model=EntryOut, status_code=status.HTTP_201_CREATED)

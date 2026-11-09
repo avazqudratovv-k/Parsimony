@@ -1,6 +1,7 @@
 import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+import * as audio from "../lib/audio";
 import { ENTRY, MONTHLY, OVERVIEW, USER, renderApp, signedInApi } from "./helpers";
 
 const LOW = { ...ENTRY, id: "e2", merchant: "CGV", note: null, amount: "9000.00", currency: "KRW", category: "entertainment", confidence: 0.5, raw_input: "movie 9000 won" };
@@ -185,6 +186,80 @@ describe("receipt photo", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent(expected);
     await user.click(screen.getByRole("button", { name: "Close" }));
     await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+  });
+});
+
+describe("voice", () => {
+  const stubMic = () =>
+    vi.spyOn(audio, "startRecording").mockResolvedValue({
+      stop: async () => new Blob(["RIFF"], { type: "audio/wav" }),
+      cancel: () => {},
+    });
+  const openVoice = async () => {
+    const user = userEvent.setup();
+    await user.click(await screen.findByRole("button", { name: "Add by voice" }));
+    return user;
+  };
+
+  it("records, shows the words to confirm, then saves the entry as voice", async () => {
+    stubMic();
+    const VOICE = { ...ENTRY, id: "v1", merchant: null, note: "Taxi", amount: "12000.00", currency: "KRW", category: "transport", source: "voice", raw_input: "taxi 12000 won card" };
+    const calls = signedInApi({
+      "POST /api/entries/transcribe": { status: 200, body: { text: "taxi 12000 won card" } },
+      "POST /api/entries": { status: 201, body: VOICE },
+    });
+    renderApp("/app");
+    const user = await openVoice();
+    await user.click(await screen.findByRole("button", { name: "Stop recording" }));
+    const box = await screen.findByLabelText(/Transcript/);
+    expect(box).toHaveValue("taxi 12000 won card");
+    expect(calls.find((c) => c.url === "/api/entries/transcribe")!.form!.get("file")).toBeInstanceOf(Blob);
+    await user.clear(box);
+    await user.type(box, "taxi 13000 won card");
+    await user.click(screen.getByRole("button", { name: "Add entry" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    const post = calls.find((c) => c.method === "POST" && c.url === "/api/entries")!;
+    expect(post.body).toMatchObject({ text: "taxi 13000 won card", source: "voice" });
+  });
+
+  it("explains a blocked microphone and lets you close", async () => {
+    vi.spyOn(audio, "startRecording").mockRejectedValue(new audio.MicError("denied"));
+    signedInApi();
+    renderApp("/app");
+    const user = await openVoice();
+    expect(await screen.findByRole("alert")).toHaveTextContent("microphone is blocked");
+    await user.click(screen.getByRole("button", { name: "Close" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+  });
+
+  it("says so when no words were heard", async () => {
+    stubMic();
+    signedInApi({ "POST /api/entries/transcribe": { status: 422, body: { detail: "x" } } });
+    renderApp("/app");
+    const user = await openVoice();
+    await user.click(await screen.findByRole("button", { name: "Stop recording" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("couldn't hear any words");
+  });
+
+  it("Record again goes back to listening", async () => {
+    const spy = stubMic();
+    signedInApi({ "POST /api/entries/transcribe": { status: 200, body: { text: "lunch 9" } } });
+    renderApp("/app");
+    const user = await openVoice();
+    await user.click(await screen.findByRole("button", { name: "Stop recording" }));
+    await user.click(await screen.findByRole("button", { name: "Record again" }));
+    expect(await screen.findByRole("button", { name: "Stop recording" })).toBeInTheDocument();
+    expect(spy).toHaveBeenCalledTimes(2);
+  });
+
+  it("cancelling while listening closes without calling the server", async () => {
+    stubMic();
+    const calls = signedInApi();
+    renderApp("/app");
+    const user = await openVoice();
+    await user.click(await screen.findByRole("button", { name: "Cancel" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    expect(calls.some((c) => c.url.includes("transcribe"))).toBe(false);
   });
 });
 

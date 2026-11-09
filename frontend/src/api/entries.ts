@@ -36,8 +36,10 @@ export const useOverview = () =>
 export function useAddEntry() {
   const refresh = useRefreshData();
   return useMutation({
-    mutationFn: (text: string) =>
-      api<Entry>("/entries", { method: "POST", body: { text, timezone: browserTimezone() } }),
+    mutationFn: (input: string | { text: string; source: "voice" }) => {
+      const { text, source } = typeof input === "string" ? { text: input, source: "text" as const } : input;
+      return api<Entry>("/entries", { method: "POST", body: { text, source, timezone: browserTimezone() } });
+    },
     // A failed AI call still counts toward the daily cap, so refresh the counter either way.
     onSettled: refresh,
   });
@@ -54,6 +56,19 @@ export function useAddPhoto() {
       return api<Entry>("/entries/photo", { method: "POST", form, signal });
     },
     onSettled: refresh, // a failed read still counts toward the cap
+  });
+}
+
+/** Voice clip -> transcript. Nothing is saved yet: the user confirms the words first. */
+export function useTranscribe() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (wav: Blob) => {
+      const form = new FormData();
+      form.append("file", wav, "clip.wav");
+      return api<{ text: string }>("/entries/transcribe", { method: "POST", form });
+    },
+    onSettled: () => qc.invalidateQueries({ queryKey: ["usage"] }), // every clip counts as a smart add
   });
 }
 

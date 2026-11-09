@@ -93,6 +93,8 @@ describe("add bar", () => {
     [422, { detail: "x" }, "couldn't read that as an expense"],
     [429, { detail: { code: "daily_limit_account", message: "x", resets_at: "2026-11-10T00:00:00Z" } }, "used all of today's smart adds"],
     [429, { detail: { code: "daily_limit_global", message: "x", resets_at: "2026-11-10T00:00:00Z" } }, "daily smart add limit for everyone"],
+    [429, { detail: { code: "typed_limit_account", message: "x", resets_at: "2026-11-10T00:00:00Z" } }, "fair-use limit for typed entries"],
+    [429, { detail: { code: "typed_limit_global", message: "x", resets_at: "2026-11-10T00:00:00Z" } }, "daily typing limit for everyone"],
     [409, { detail: { code: "entry_limit", message: "x" } }, "Entry limit reached"],
     [502, { detail: "x" }, "unavailable right now"],
   ])("explains a %s failure in plain words", async (status, body, expected) => {

@@ -44,6 +44,8 @@ export const uz: Dict = {
   "add.error.unreadable": "Buni xarajat sifatida oʻqiy olmadim. “Tushlik 12 USD naqd” kabi yozing.",
   "add.error.limitUser": "Bugungi aqlli qoʻshishlar tugadi. Ertaga qaytib keling.",
   "add.error.limitGlobal": "Demoning bugungi aqlli qoʻshish limiti hamma uchun tugadi. Ertaga urinib koʻring.",
+  "add.error.typedUser": "Bugun matn orqali kiritish limitiga yetdingiz. Ertaga qaytib keling.",
+  "add.error.typedGlobal": "Demoning bugungi matn kiritish limiti hamma uchun tugadi. Ertaga urinib koʻring.",
   "add.error.entryLimit": "Yozuvlar limiti toʻldi. Koʻproq qoʻshish uchun ba’zilarini oʻchiring.",
   "add.error.unavailable": "AI xizmati hozir ishlamayapti. Qayta urinib koʻring.",
   "add.error.generic": "Qoʻshib boʻlmadi. Qayta urinib koʻring.",

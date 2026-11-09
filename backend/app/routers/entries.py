@@ -27,15 +27,27 @@ def api_errors() -> Iterator[None]:
         yield
     except usage_service.DailyLimitReached as exc:
         who = "account" if exc.which == "account" else "global"
-        message = (
-            "You've used all of today's AI entries. You can still add entries manually."
-            if exc.which == "account"
-            else "The demo has reached its daily AI limit for everyone. Please try again tomorrow."
-        )
+        if exc.pool == "typed":
+            code = f"typed_limit_{who}"
+            message = (
+                "You've reached today's fair-use limit for typed entries. "
+                "Please try again tomorrow."
+                if exc.which == "account"
+                else "The demo has reached its daily typing limit for everyone. "
+                "Please try again tomorrow."
+            )
+        else:
+            code = f"daily_limit_{who}"
+            message = (
+                "You've used all of today's smart adds. You can still add entries manually."
+                if exc.which == "account"
+                else "The demo has reached its daily smart add limit for everyone. "
+                "Please try again tomorrow."
+            )
         raise HTTPException(
             status.HTTP_429_TOO_MANY_REQUESTS,
             {
-                "code": f"daily_limit_{who}",
+                "code": code,
                 "message": message,
                 "resets_at": exc.resets_at.strftime("%Y-%m-%dT%H:%M:%SZ"),
             },

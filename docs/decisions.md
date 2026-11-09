@@ -167,3 +167,9 @@
 - One backend worker on purpose (in-memory rate limits and daily caps). Host Nginx overwrites X-Forwarded-For, so limits count real visitor IPs.
 - Phone fixes: hidden h1 was 100% wide and let the page drag sideways (now 1px, plus overflow-x: clip and no overscroll bounce); header sticky on phones; add bar keeps a fixed height (hint line space reserved).
 - Day headers now show each day's total per currency ("Total $54.70", or "$24.50 + ₩9,000" on a mixed day).
+
+## Typing is free, smart adds are photo and voice (Day 11 prep)
+- Two separate daily pools in `usage_service`: **smart adds** (photo, voice; 30 per account, 10 per demo, 300 for everyone; the visible "N of 30 left" line and `/api/usage`) and **typed lines** (hidden fair-use cap: 300 per account, 50 per demo, 1000 for everyone). Typing never uses up a smart add and the other way round.
+- Typed entries still call the model, so the typed global cap protects the Gemini free quota. Values are settings (`TEXT_DAILY_CAP_*`).
+- New error codes `typed_limit_account` / `typed_limit_global` with their own translated messages.
+- Receipt photos are deleted right after they are read; only the extracted entry is kept (privacy, less storage). Photos use the same Gemini key.

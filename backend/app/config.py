@@ -16,10 +16,17 @@ class Settings(BaseSettings):
     gemini_text_model: str = "gemini-3.5-flash-lite"
     session_max_age_seconds: int = 7 * 24 * 3600
 
-    # Daily AI-call caps, reset at 00:00 UTC. A call can cost 2 model requests (one retry).
+    # "Smart adds" (receipt photo, voice) are capped per day, reset at 00:00 UTC.
+    # A call can cost 2 model requests (one retry).
     ai_daily_cap_user: int = 30
     ai_daily_cap_demo: int = 10
     ai_daily_cap_global: int = 300
+
+    # Typing is free in the app, but each typed line still asks the model, so it has a hidden
+    # fair-use cap of its own. These never count against the smart adds above.
+    text_daily_cap_user: int = 300
+    text_daily_cap_demo: int = 50
+    text_daily_cap_global: int = 1000
 
     # Demo accounts: deleted after demo_ttl_days; at most demo_max_active alive at once.
     demo_ttl_days: int = 7

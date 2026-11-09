@@ -42,6 +42,8 @@ export const en = {
   "add.error.unreadable": "I couldn't read that as an expense. Try something like “Lunch 12 USD cash”.",
   "add.error.limitUser": "You've used all of today's smart adds. Come back tomorrow.",
   "add.error.limitGlobal": "The demo has reached its daily smart add limit for everyone. Please try again tomorrow.",
+  "add.error.typedUser": "You've reached today's fair-use limit for typed entries. Please try again tomorrow.",
+  "add.error.typedGlobal": "The demo has reached its daily typing limit for everyone. Please try again tomorrow.",
   "add.error.entryLimit": "Entry limit reached. Delete some entries to add more.",
   "add.error.unavailable": "The AI service is unavailable right now. Please try again.",
   "add.error.generic": "Couldn't add that. Please try again.",

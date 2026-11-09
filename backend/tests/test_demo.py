@@ -63,8 +63,8 @@ def test_fixing_a_sample_entry_works_like_a_real_one(client):
     assert fixed["amount"] == "99.00" and fixed["user_corrected"] is True
 
 
-def test_demo_has_a_smaller_ai_cap(client, monkeypatch):
-    settings = Settings(ai_daily_cap_user=30, ai_daily_cap_demo=1)
+def test_demo_has_smaller_caps(client, monkeypatch):
+    settings = Settings(ai_daily_cap_user=30, ai_daily_cap_demo=1, text_daily_cap_demo=1)
     monkeypatch.setattr(usage_service, "get_settings", lambda: settings)
     start_demo(client)
     use_parser(FakeParser(good_json(date="2026-10-15")))

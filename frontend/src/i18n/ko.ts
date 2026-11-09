@@ -42,6 +42,8 @@ export const ko: Dict = {
   "add.error.unreadable": "지출로 읽지 못했어요. “점심 12000원 현금”처럼 써 보세요.",
   "add.error.limitUser": "오늘의 스마트 추가를 모두 사용했어요. 내일 다시 이용해 주세요.",
   "add.error.limitGlobal": "데모의 오늘 스마트 추가가 모두 찼어요. 내일 다시 시도해 주세요.",
+  "add.error.typedUser": "오늘 입력할 수 있는 한도에 도달했어요. 내일 다시 이용해 주세요.",
+  "add.error.typedGlobal": "데모의 오늘 입력 한도가 모두 찼어요. 내일 다시 시도해 주세요.",
   "add.error.entryLimit": "저장할 수 있는 내역이 가득 찼어요. 일부를 삭제한 뒤 다시 추가해 주세요.",
   "add.error.unavailable": "지금은 AI 서비스를 사용할 수 없어요. 잠시 후 다시 시도해 주세요.",
   "add.error.generic": "추가하지 못했어요. 다시 시도해 주세요.",

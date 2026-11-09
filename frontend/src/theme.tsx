@@ -60,7 +60,11 @@ function buildTheme(scheme: "light" | "dark", lang: string) {
     components: {
       MuiCssBaseline: {
         styleOverrides: {
+          // Never let the page drag sideways on phones. "clip" (not "hidden") keeps the sticky header working.
+          html: { overflowX: "clip" },
           body: {
+            overflowX: "clip",
+            overscrollBehaviorY: "none", // no rubber-band bounce that makes the docked bars wobble
             // Korean wraps between words, not mid-word.
             wordBreak: lang === "ko" ? "keep-all" : "normal",
             fontVariantNumeric: "tabular-nums",

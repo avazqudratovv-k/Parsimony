@@ -62,7 +62,7 @@ export function AppPage() {
         component="main"
         sx={{ flex: 1, width: "100%", maxWidth: desktop ? 1280 : 720, mx: "auto", px: { xs: 4, lg: 8 }, pt: { xs: 3, lg: 8 }, pb: { xs: 32, lg: 12 } }}
       >
-        <Typography variant="h1" component="h1" sx={{ position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0 0 0 0)" }}>
+        <Typography variant="h1" component="h1" sx={{ position: "absolute", width: "1px", height: "1px", m: "-1px", p: 0, overflow: "hidden", clip: "rect(0 0 0 0)", whiteSpace: "nowrap", border: 0 }}>
           {t("app.title")}
         </Typography>
         {desktop ? (

@@ -63,11 +63,10 @@ export function AddBar({ onAdded }: { onAdded?: () => void }) {
         </IconButton>
         )}
       </Paper>
-      {usage && (
-        <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 1, textAlign: "center" }}>
-          {fill(t("add.usage"), { left: Math.max(0, usage.limit - usage.used), limit: usage.limit })}
-        </Typography>
-      )}
+      {/* Always take the same height, so the bar never grows when the number arrives. */}
+      <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 1, textAlign: "center", minHeight: "1.5em", lineHeight: 1.5 }}>
+        {usage ? fill(t("add.usage"), { left: Math.max(0, usage.limit - usage.used), limit: usage.limit }) : "\u00a0"}
+      </Typography>
     </Box>
   );
 

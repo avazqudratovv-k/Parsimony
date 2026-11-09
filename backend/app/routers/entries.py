@@ -21,7 +21,7 @@ from app.config import get_settings
 from app.deps import CurrentUser, DbSession
 from app.models.enums import UsageKind
 from app.schemas.common import validate_timezone
-from app.schemas.entry import EntryCreate, EntryOut, EntryUpdate
+from app.schemas.entry import EntryCreate, EntryCreated, EntryOut, EntryUpdate
 from app.schemas.parse import ParseTextRequest, ParseTextResponse, TranscribeResponse
 from app.services import (
     audio_check,
@@ -128,15 +128,22 @@ def parse_entry_text(body: ParseTextRequest, user: CurrentUser, db: DbSession, p
     return ParseTextResponse(entry=outcome.entry, model_used=outcome.model_used)
 
 
-@router.post("", response_model=EntryOut, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=EntryCreated, status_code=status.HTTP_201_CREATED)
 def create_entry_from_text(
     body: ParseTextRequest, user: CurrentUser, db: DbSession, parser: Parser
 ):
-    """Typed text -> AI -> saved entry."""
+    """Typed text -> AI -> saved entry (or several, for one purchase with mixed categories)."""
     with api_errors():
-        return entry_service.create_from_text(
+        saved = entry_service.create_from_text(
             db, user, parser, body.text, body.timezone, source=body.source
         )
+    first, *rest = saved
+    return EntryCreated.model_validate(
+        {
+            **EntryOut.model_validate(first).model_dump(),
+            "siblings": [EntryOut.model_validate(e) for e in rest],
+        }
+    )
 
 
 @router.post("/photo", response_model=EntryOut, status_code=status.HTTP_201_CREATED)

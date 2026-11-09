@@ -115,6 +115,7 @@ export const en = {
   "export.source": "Source",
   "toast.added": "Entry added",
   "toast.addedWhat": "Added: {what}",
+  "toast.addedMany": "Added {count} entries: {what}",
   "toast.dismiss": "Dismiss",
   "toast.undo": "Undo",
   "toast.removed": "Removed",

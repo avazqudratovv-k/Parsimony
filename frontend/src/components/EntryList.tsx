@@ -10,7 +10,7 @@ import {
 } from "../lib/format";
 import { useI18n } from "../i18n";
 import { DESKTOP, useTokens } from "../theme";
-import { CategoryIcon } from "./CategoryIcon";
+import { EntryAvatar } from "./EntryAvatar";
 import { Icon } from "./Icon";
 import { useToast } from "./Toast";
 
@@ -135,7 +135,7 @@ function EntryRow({ entry, timeZone, desktop, onOpen, onDelete, onActions }: Row
           "&:focus-visible": { outline: `2px solid ${c.focus}`, outlineOffset: 2 },
         }}
       >
-        <CategoryIcon category={entry.category} />
+        <EntryAvatar category={entry.category} domain={entry.merchant_domain} />
         <Box sx={{ minWidth: 0, flex: 1 }}>
           <Box sx={{ display: "flex", alignItems: "baseline", gap: 1.5, minWidth: 0 }}>
             <Typography noWrap sx={{ fontWeight: 500 }}>{title}</Typography>

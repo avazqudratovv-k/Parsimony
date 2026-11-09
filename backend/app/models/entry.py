@@ -34,6 +34,7 @@ class Entry(Base):
     date: Mapped[dt.date] = mapped_column(Date)
     merchant: Mapped[str | None] = mapped_column(String(200))
     note: Mapped[str | None] = mapped_column(String(500))
+    merchant_domain: Mapped[str | None] = mapped_column(String(100))  # e.g. "gs25.com"; logos only
     amount: Mapped[Decimal] = mapped_column(Numeric(12, 2))
     currency: Mapped[str] = mapped_column(String(3))
     category: Mapped[str] = mapped_column(String(32))

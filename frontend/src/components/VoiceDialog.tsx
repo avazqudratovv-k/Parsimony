@@ -2,7 +2,7 @@ import { Alert, Box, Button, CircularProgress, Dialog, DialogContent, DialogTitl
 import { keyframes } from "@mui/material/styles";
 import { useEffect, useRef, useState } from "react";
 import { useAddEntry, useTranscribe } from "../api/entries";
-import type { Entry } from "../api/types";
+import type { EntryCreated } from "../api/types";
 import { MAX_SECONDS, startRecording } from "../lib/audio";
 import type { Recorder } from "../lib/audio";
 import { addErrorMessage, voiceErrorMessage } from "../lib/errors";
@@ -13,7 +13,7 @@ const pulse = keyframes`0%,100%{transform:scaleY(.35)}50%{transform:scaleY(1)}`;
 const clock = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 
 /** Voice flow (design 5a/5b): record, write it down, let the user fix the words, then save. */
-export function VoiceDialog({ onClose, onAdded }: { onClose: () => void; onAdded: (entry: Entry) => void }) {
+export function VoiceDialog({ onClose, onAdded }: { onClose: () => void; onAdded: (entry: EntryCreated) => void }) {
   const t = useT();
   const transcribe = useTranscribe();
   const add = useAddEntry();

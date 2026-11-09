@@ -21,6 +21,7 @@ export type Entry = {
   id: string;
   date: string; // YYYY-MM-DD
   merchant: string | null;
+  merchant_domain?: string | null; // only set when logos are switched on
   note: string | null;
   amount: string; // "6.50"
   currency: string;
@@ -34,6 +35,9 @@ export type Entry = {
   created_at: string;
   updated_at: string;
 };
+
+/** The answer to "add this text". Several entries when one purchase had items in different categories. */
+export type EntryCreated = Entry & { siblings?: Entry[] };
 
 export type EntryUpdate = Partial<{
   date: string;

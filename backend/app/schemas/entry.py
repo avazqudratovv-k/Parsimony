@@ -84,3 +84,11 @@ class EntryOut(BaseModel):
     user_corrected: bool
     created_at: dt.datetime
     updated_at: dt.datetime
+    merchant_domain: str | None = None
+
+
+class EntryCreated(EntryOut):
+    """The answer to "add this text": one entry, or the first of several when one purchase was
+    split by item. The rest are in `siblings` so the app can show and undo them together."""
+
+    siblings: list[EntryOut] = []

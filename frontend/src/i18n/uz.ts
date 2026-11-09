@@ -116,6 +116,7 @@ export const uz: Dict = {
   "export.source": "Kiritish usuli",
   "toast.added": "Xarajat qoʻshildi",
   "toast.addedWhat": "Qoʻshildi: {what}",
+  "toast.addedMany": "{count} ta yozuv qoʻshildi: {what}",
   "toast.dismiss": "Yopish",
   "toast.undo": "Bekor qilish",
   "toast.removed": "Oʻchirildi",

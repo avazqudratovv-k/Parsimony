@@ -5,10 +5,10 @@ from google.genai import types
 
 from app.ai.base import AdapterError, ParseContext, RawModelOutput
 from app.ai.prompts import (
-    ENTRY_JSON_SCHEMA,
     TRANSCRIBE_PROMPT,
     build_receipt_prompt,
     build_system_prompt,
+    entry_json_schema,
 )
 
 logger = logging.getLogger(__name__)
@@ -26,7 +26,7 @@ def _generate(client: genai.Client, model: str, contents, system: str) -> RawMod
             config=types.GenerateContentConfig(
                 system_instruction=system,
                 response_mime_type="application/json",
-                response_json_schema=ENTRY_JSON_SCHEMA,
+                response_json_schema=entry_json_schema(),
                 temperature=0.0,
                 max_output_tokens=400,
             ),

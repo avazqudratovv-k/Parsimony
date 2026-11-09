@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "./client";
 import { browserTimezone } from "./auth";
 import { prepareReceipt } from "../lib/photo";
-import type { Category, Entry, EntryUpdate, PaymentMethod, MonthlyStats, Overview, UsageStatus } from "./types";
+import type { Category, Entry, EntryCreated, EntryUpdate, PaymentMethod, MonthlyStats, Overview, UsageStatus } from "./types";
 
 // One place to say "the numbers changed": every list, total and counter refetches.
 function useRefreshData() {
@@ -38,7 +38,7 @@ export function useAddEntry() {
   return useMutation({
     mutationFn: (input: string | { text: string; source: "voice" }) => {
       const { text, source } = typeof input === "string" ? { text: input, source: "text" as const } : input;
-      return api<Entry>("/entries", { method: "POST", body: { text, source, timezone: browserTimezone() } });
+      return api<EntryCreated>("/entries", { method: "POST", body: { text, source, timezone: browserTimezone() } });
     },
     // A failed AI call still counts toward the daily cap, so refresh the counter either way.
     onSettled: refresh,

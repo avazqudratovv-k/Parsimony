@@ -39,6 +39,9 @@ class Settings(BaseSettings):
     demo_max_active: int = 200
 
     # Most entries one account may hold (protects the database from abuse).
+    # Merchant logos. Off until a paid Gemini key is set: when on, the model also names the
+    # merchant's website so the app can show its logo. Off means no extra output and no logos.
+    logos_enabled: bool = False
     max_entries_user: int = 1000
     max_entries_demo: int = 100
 

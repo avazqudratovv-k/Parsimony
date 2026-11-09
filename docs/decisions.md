@@ -223,3 +223,20 @@
 
 - "Export" above the list: a CSV file (UTF-8 with a BOM so Excel reads Korean and Uzbek; amounts stay as written; cells starting with = + - @ are defused) and a PDF made through the browser's print dialog ("Save as PDF").
 - The PDF uses the print dialog on purpose: it keeps Korean and Uzbek text correct without bundling a font or a PDF library.
+
+## One purchase, several items
+
+- If one line lists several things with their own amounts in different categories ("GS25 milk 2,000 shampoo 5,500"), the model returns an `items` list and the server saves one entry per item (same date, merchant, currency and payment method). It is still one AI call and one cap use.
+- Safety checks: at least two items, the items must add up to the total (otherwise the total is saved as one entry, so no money is invented), and the account must have room for all of them.
+- The toast says "Added 2 entries: GS25 ₩7,500" and Undo removes all of them. Photos still save one entry per receipt.
+
+## Logos (built, switched off)
+
+- `LOGOS_ENABLED=false` by default. When it is on, the model also names the merchant's website (`merchant_domain`, cleaned and validated; a bad guess just means no logo) in the same call, and the app shows the logo in the row. Nothing extra is asked or stored while it is off.
+- Without a logo, or if it fails to load or the provider returns its tiny generic icon, the row keeps the category icon.
+- A renamed merchant drops its logo. The logo comes from a public favicon service (`frontend/src/lib/logo.ts`), which sees only the website name, never amounts or notes.
+- To switch on: set a paid Gemini key and `LOGOS_ENABLED=true` in the server `.env`, then rebuild.
+
+## Home-screen install
+
+- The manifest and icons were already part of the app (`public/manifest.webmanifest`, standalone display, 192/512/maskable icons), so Chrome offers "Install app" on Android and iPhone can use "Add to Home Screen". Nothing more was needed.

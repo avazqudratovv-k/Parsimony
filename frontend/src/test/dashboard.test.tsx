@@ -133,6 +133,23 @@ describe("toasts and manual entry", () => {
     expect(calls.some((c) => c.method === "DELETE" && c.url === "/api/entries/n1")).toBe(true);
   });
 
+  it("says how many entries one purchase became, and Undo removes all of them", async () => {
+    const A = { ...ENTRY, id: "m1", merchant: "GS25", note: "Milk", amount: "2.00" };
+    const B = { ...ENTRY, id: "m2", merchant: "GS25", note: "Shampoo", amount: "5.50", category: "shopping" };
+    const calls = signedInApi({
+      "POST /api/entries": { status: 201, body: { ...A, siblings: [B] } },
+      "DELETE /api/entries/m1": { status: 204 },
+      "DELETE /api/entries/m2": { status: 204 },
+    });
+    renderApp("/app");
+    const user = userEvent.setup();
+    await user.type(await screen.findByLabelText("Describe an expense"), "gs25 milk 2 shampoo 5.50");
+    await user.click(screen.getByRole("button", { name: "Add" }));
+    expect(await screen.findByText("Added 2 entries: GS25 $7.50")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Undo" }));
+    await waitFor(() => expect(calls.filter((c) => c.method === "DELETE").map((c) => c.url).sort()).toEqual(["/api/entries/m1", "/api/entries/m2"]));
+  });
+
   it("offers 'Enter manually' when the AI can't read the text, and saves without the AI", async () => {
     const MANUAL = { ...ENTRY, id: "m1", merchant: null, note: "weird thing", amount: "9.00", source: "manual" };
     const calls = signedInApi({
@@ -365,6 +382,37 @@ describe("Fix this", () => {
     expect(calls.some((c) => c.method === "DELETE")).toBe(false);
     await user.click(within(dialog).getByRole("button", { name: "Tap again to delete" }));
     await waitFor(() => expect(calls.some((c) => c.method === "DELETE")).toBe(true));
+  });
+});
+
+describe("merchant logos", () => {
+  const WITH_LOGO = { ...ENTRY, merchant: "GS25", merchant_domain: "gs25.com" };
+  const logoOf = () => document.querySelector("img[src*='favicons']") as HTMLImageElement | null;
+
+  it("shows no logo, only the category icon, when an entry has no domain (logos are off)", async () => {
+    signedInApi({}, [ENTRY]);
+    renderApp("/app");
+    await screen.findByText("Blue Bottle");
+    expect(logoOf()).toBeNull();
+  });
+
+  it("shows the logo for an entry with a domain, and falls back to the icon if it fails", async () => {
+    signedInApi({}, [WITH_LOGO]);
+    renderApp("/app");
+    await screen.findByText("GS25");
+    expect(logoOf()?.src).toContain("domain=gs25.com");
+    fireEvent.error(logoOf()!);
+    await waitFor(() => expect(logoOf()).toBeNull());
+  });
+
+  it("treats a tiny generic icon as 'no logo'", async () => {
+    signedInApi({}, [WITH_LOGO]);
+    renderApp("/app");
+    await screen.findByText("GS25");
+    const img = logoOf()!;
+    Object.defineProperty(img, "naturalWidth", { value: 16 });
+    fireEvent.load(img);
+    await waitFor(() => expect(logoOf()).toBeNull());
   });
 });
 

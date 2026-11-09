@@ -9,7 +9,7 @@ import { useQuery } from "@tanstack/react-query";
 import { meQuery } from "../api/auth";
 import { ApiError } from "../api/client";
 import { useAddEntry, useDeleteEntry, useUsage } from "../api/entries";
-import type { Entry } from "../api/types";
+import type { EntryCreated } from "../api/types";
 import { addErrorMessage } from "../lib/errors";
 import { currentDate, fill, formatMoney } from "../lib/format";
 import { useI18n, useT } from "../i18n";
@@ -44,12 +44,18 @@ export function AddBar({ onAdded }: { onAdded?: () => void }) {
     if (f) setPhoto(f);
   }
 
-  // "Added Taxi ₩12,000 · Undo": undo is exact, it deletes the entry that was just created.
-  function announce(entry: Entry) {
-    const what = `${entry.merchant ?? entry.note ?? ""} ${formatMoney(entry.amount, entry.currency, lang)}`.trim();
+  // "Added Taxi ₩12,000 · Undo": undo is exact, it deletes the entry (or entries) just created.
+  function announce(created: EntryCreated) {
+    const all = [created, ...(created.siblings ?? [])];
+    const total = all.reduce((sum, e) => sum + Number(e.amount), 0);
+    const shown = all.length > 1 ? (Math.round(total * 100) / 100).toFixed(2) : created.amount;
+    const what = `${created.merchant ?? created.note ?? ""} ${formatMoney(shown, created.currency, lang)}`.trim();
     toast({
-      message: fill(t("toast.addedWhat"), { what }),
-      action: { label: t("toast.undo"), onClick: () => remove.mutate(entry.id, { onSuccess: () => toast({ message: t("toast.removed") }) }) },
+      message: all.length > 1 ? fill(t("toast.addedMany"), { count: all.length, what }) : fill(t("toast.addedWhat"), { what }),
+      action: {
+        label: t("toast.undo"),
+        onClick: () => Promise.all(all.map((e) => remove.mutateAsync(e.id))).then(() => toast({ message: t("toast.removed") })).catch(() => {}),
+      },
     });
   }
 

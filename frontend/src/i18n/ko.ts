@@ -115,6 +115,7 @@ export const ko: Dict = {
   "export.source": "입력 방식",
   "toast.added": "지출을 추가했어요",
   "toast.addedWhat": "추가했어요: {what}",
+  "toast.addedMany": "{count}건 추가했어요: {what}",
   "toast.dismiss": "닫기",
   "toast.undo": "실행 취소",
   "toast.removed": "삭제했어요",

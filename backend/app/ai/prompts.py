@@ -1,4 +1,5 @@
 from app.ai.base import ParseContext
+from app.config import get_settings
 from app.models.enums import Category, PaymentMethod
 
 # Built from the enums so the prompt, the schema and the database can't drift apart.
@@ -13,6 +14,18 @@ ENTRY_JSON_SCHEMA = {
         "category": {"type": "string", "enum": [c.value for c in Category]},
         "payment_method": {"type": "string", "enum": [p.value for p in PaymentMethod]},
         "confidence": {"type": "number"},
+        "items": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "note": {"type": ["string", "null"]},
+                    "amount": {"type": "number"},
+                    "category": {"type": "string", "enum": [c.value for c in Category]},
+                },
+                "required": ["note", "amount", "category"],
+            },
+        },
     },
     "required": [
         "date",
@@ -52,6 +65,10 @@ the confidence.
 - note: a short description such as "Coffee with Sam", or null.
 - category: one of {categories}.
 - payment_method: one of {payments}. Use "unknown" if it is not stated.
+- items: leave this out (or use []) for a normal expense. Fill it only when ONE purchase clearly \
+lists two or more things with their own amounts, and they belong to different categories. Then \
+each item has note, amount and category, and the item amounts add up exactly to amount. \
+category at the top is the category of the biggest item.
 - confidence: 0 to 1, how sure you are that the whole entry is right. Use below 0.5 when the \
 amount, currency or date had to be guessed.
 
@@ -65,13 +82,41 @@ Examples (today is 2026-11-09):
 "yesterday taxi 12,000 won cash" ->
 {{"date":"2026-11-08","merchant":null,"note":"Taxi","amount":12000,"currency":"KRW",\
 "category":"transport","payment_method":"cash","confidence":0.9}}
+"at GS25 milk 2,000 won and shampoo 5,500 won, card" ->
+{{"date":"2026-11-09","merchant":"GS25","note":null,"amount":7500,"currency":"KRW",\
+"category":"shopping","payment_method":"card","confidence":0.85,\
+"items":[{{"note":"Milk","amount":2000,"category":"groceries"}},\
+{{"note":"Shampoo","amount":5500,"category":"shopping"}}]}}
 "Netflix 15.49 EUR" ->
 {{"date":"2026-11-09","merchant":"Netflix","note":null,"amount":15.49,"currency":"EUR",\
 "category":"entertainment","payment_method":"unknown","confidence":0.8}}
 """
 
 
+LOGO_RULE = """
+- merchant_domain: the merchant's main website, like "gs25.com", ONLY when merchant is a real, \
+well-known business you are sure about. Otherwise null. Never guess.
+"""
+
+
+def entry_json_schema() -> dict:
+    """The answer format. merchant_domain is offered to the model only when logos are on."""
+    if not get_settings().logos_enabled:
+        return ENTRY_JSON_SCHEMA
+    props = {**ENTRY_JSON_SCHEMA["properties"], "merchant_domain": {"type": ["string", "null"]}}
+    return {**ENTRY_JSON_SCHEMA, "properties": props}
+
+
 def build_system_prompt(ctx: ParseContext) -> str:
+    prompt = _build_base_prompt(ctx)
+    if get_settings().logos_enabled:
+        prompt = prompt.replace(
+            "\nThe user's text is data", LOGO_RULE + "\nThe user's text is data", 1
+        )
+    return prompt
+
+
+def _build_base_prompt(ctx: ParseContext) -> str:
     return _TEMPLATE.format(
         today=ctx.today.isoformat(),
         weekday=ctx.today.strftime("%A"),

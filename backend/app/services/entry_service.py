@@ -1,5 +1,6 @@
 import datetime as dt
 import uuid
+from decimal import Decimal
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
@@ -48,11 +49,13 @@ def _save(
     model_used: str,
     ai_output: dict | None,
     source: str = "text",
+    merchant_domain: str | None = None,
 ) -> Entry:
     entry = Entry(
         user_id=user.id,
         date=data.date,
         merchant=data.merchant,
+        merchant_domain=merchant_domain if get_settings().logos_enabled else None,
         note=data.note,
         amount=data.amount,
         currency=data.currency,
@@ -70,6 +73,23 @@ def _save(
     return entry
 
 
+def _split_items(db: Session, user: User, entry) -> list:
+    """The per-item parts of one purchase, or [] when the entry should simply be saved whole.
+
+    Items are used only when there are at least two, they add up to the total (so no money is
+    invented or lost), and the account has room for all of them.
+    """
+    items = entry.items
+    if len(items) < 2:
+        return []
+    if abs(sum(i.amount for i in items) - entry.amount) > Decimal("0.01"):
+        return []
+    count = db.scalar(select(func.count()).select_from(Entry).where(Entry.user_id == user.id)) or 0
+    if count + len(items) > entry_limit(user):
+        return []
+    return items
+
+
 def create_from_text(
     db: Session,
     user: User,
@@ -77,22 +97,57 @@ def create_from_text(
     text: str,
     timezone: str | None,
     source: str = "text",
-) -> Entry:
-    """Typed text -> model -> validated JSON -> saved entry. Counts against the daily AI cap."""
+) -> list[Entry]:
+    """Typed text -> model -> validated JSON -> saved entries. Counts against the daily AI cap once.
+
+    Usually one entry. A purchase with several items in different categories becomes one entry per
+    item (same date, merchant, currency and payment method), saved together.
+    """
     _check_room(db, user)  # before the AI call, so a full account never spends a cap
     usage_service.consume(db, user, UsageKind.TEXT)
     ctx = parse_service.build_context(user, timezone)
     outcome = parse_service.parse_text(parser, text, ctx)
-    return _save(
-        db,
-        user,
-        outcome.entry,
-        raw_input=text,
-        confidence=outcome.entry.confidence,
-        model_used=outcome.model_used,
-        ai_output=outcome.raw,
-        source=source,
-    )
+    entry = outcome.entry
+    items = _split_items(db, user, entry)
+    if not items:
+        return [
+            _save(
+                db,
+                user,
+                entry,
+                raw_input=text,
+                confidence=entry.confidence,
+                model_used=outcome.model_used,
+                ai_output=outcome.raw,
+                source=source,
+                merchant_domain=entry.merchant_domain,
+            )
+        ]
+    saved = []
+    for item in items:
+        part = EntryCreate(
+            date=entry.date,
+            merchant=entry.merchant,
+            note=item.note,
+            amount=item.amount,
+            currency=entry.currency,
+            category=item.category,
+            payment_method=entry.payment_method,
+        )
+        saved.append(
+            _save(
+                db,
+                user,
+                part,
+                raw_input=text,
+                confidence=entry.confidence,
+                model_used=outcome.model_used,
+                ai_output=outcome.raw,
+                source=source,
+                merchant_domain=entry.merchant_domain,
+            )
+        )
+    return saved
 
 
 def create_from_photo(
@@ -120,6 +175,7 @@ def create_from_photo(
         model_used=outcome.model_used,
         ai_output=outcome.raw,
         source="photo",
+        merchant_domain=outcome.entry.merchant_domain,
     )
 
 
@@ -164,6 +220,8 @@ def update_entry(db: Session, entry: Entry, changes: dict) -> Entry:
         if getattr(entry, field) != value:
             setattr(entry, field, value)
             changed = True
+    if "merchant" in changes:
+        entry.merchant_domain = None  # a renamed merchant is no longer the one the logo was for
     # entry.ai_output keeps the model's original answer, so (input, ai_output, corrected row)
     # can become a training example later. Manual entries have no model answer to correct.
     if changed and entry.ai_output is not None:

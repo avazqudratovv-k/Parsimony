@@ -78,3 +78,19 @@
   visitors' corrections are not trustworthy training data.
 - The `.invalid` demo domain also means nobody can sign up with an address that collides with a demo one.
 - Signup and demo accept the browser's timezone, so "yesterday" means the user's yesterday.
+
+## Day 7: frontend scaffold
+- Vite dev server proxies `/api` to the backend, so the session cookie is same-origin: no CORS config in dev.
+  In production Nginx does the same job.
+- Router: TanStack Router with code-based routes (`/` sign-in, `/app`, 404). Guards run in `beforeLoad` using
+  the cached `/auth/me` query; a 401 from `/auth/me` is treated as "signed out", not an error.
+- Three languages (English, Korean, Uzbek-Latin) with a tiny own i18n layer instead of a library: one typed
+  dictionary per language, English is the source of truth and the others must match its keys (typecheck and a
+  test enforce it). Language is saved in localStorage; the default follows the browser. Dates and money
+  formatting will use `Intl` with the active language on Day 8. Korean and Uzbek texts are first drafts and need
+  a native speaker's review before launch.
+- Error messages shown to users are translated on our side by HTTP status; the backend's English text is not shown.
+- Theme: light, dark or follow-system, one cycle button, saved in localStorage. Colours are the design tokens.
+- Logo: icon files from the design system (rounded green square with italic "p."), PNGs rendered from the SVG.
+  The wordmark is live text in Newsreader Italic. The service worker and offline support come on Day 12.
+- Fonts are self-hosted through `@fontsource` (Inter, Newsreader italic, Noto Sans KR) so no request goes to Google.

@@ -47,6 +47,10 @@ Other folders: `frontend/`, `ml/` (data, training, eval), `docs/`, `scripts/`, `
 - Tests for every new service and route. Record non-obvious choices in `docs/decisions.md`.
 - Small commits with clear messages.
 
+## Frontend commands
+`cd frontend && npm install && npm run dev` (proxies `/api` to localhost:8000), `npm test`, `npm run typecheck`, `npm run build`.
+All UI text lives in `frontend/src/i18n/{en,ko,uz}.ts`; add a key to `en.ts` first, the others then fail typecheck until translated. No hard-coded strings in components.
+
 ## Status
-Day 1 skeleton and health check done. Day 2 models and first migration done. Day 3 auth done. Day 4 Gemini text parser done. Day 5 entries CRUD, corrections, daily AI caps and monthly stats done. Day 6 demo account (`POST /api/auth/demo`), expiry, cleanup and entry limits done (79 tests). Gemini text parsing verified live.
+Day 1 skeleton and health check done. Day 2 models and first migration done. Day 3 auth done. Day 4 Gemini text parser done. Day 5 entries CRUD, corrections, daily AI caps and monthly stats done. Day 6 demo account (`POST /api/auth/demo`), expiry, cleanup and entry limits done (79 tests). Gemini text parsing verified live. Day 7 frontend scaffold done: Vite app, theme (light/dark), EN/KO/UZ, logo, sign-up/log-in/Try demo, protected `/app` placeholder (22 tests).
 Plan: Days 4-6 parser, entries, caps, demo account; 7-9 frontend; 10 deploy; 11-13 photo and voice.

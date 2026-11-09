@@ -138,3 +138,13 @@ describe("language and theme", () => {
     expect(localStorage.getItem("parsimony.theme")).toBe("dark");
   });
 });
+
+describe("brand", () => {
+  it("shows a capital-P wordmark that links home", async () => {
+    mockApi({ "GET /api/auth/me": { status: 200, body: USER } });
+    renderApp("/app");
+    const link = await screen.findByRole("link", { name: "Parsimony" });
+    expect(link).toHaveAttribute("href", "/");
+    expect(link).toHaveTextContent("Parsimony.");
+  });
+});

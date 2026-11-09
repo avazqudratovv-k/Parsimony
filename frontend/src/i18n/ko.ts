@@ -1,7 +1,7 @@
 import type { Dict } from "./en";
 
 export const ko: Dict = {
-  "brand.name": "parsimony",
+  "brand.name": "Parsimony",
   "landing.title": "타이핑 없이 지출을 기록하세요",
   "landing.subtitle": "입력하거나 말하거나 영수증을 찍으면, Parsimony가 깔끔한 내역으로 정리해 드려요.",
   "auth.tab.signup": "회원가입",

@@ -2,7 +2,7 @@ import type { Dict } from "./en";
 
 // Uzbek, Latin script, with the proper modifier letter ʻ (U+02BB) in oʻ and gʻ.
 export const uz: Dict = {
-  "brand.name": "parsimony",
+  "brand.name": "Parsimony",
   "landing.title": "Xarajatlarni yozmasdan kuzating",
   "landing.subtitle":
     "Yozing, ayting yoki chek rasmini oling. Parsimony uni tartibli yozuvga aylantiradi.",

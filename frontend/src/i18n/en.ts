@@ -1,7 +1,7 @@
 // English is the source of truth: every other language must have exactly these keys
 // (ko.ts and uz.ts are typed as Dict, so a missing key fails `npm run typecheck`).
 export const en = {
-  "brand.name": "parsimony",
+  "brand.name": "Parsimony",
   "landing.title": "Track spending without the typing",
   "landing.subtitle": "Type it, say it or snap the receipt. Parsimony turns it into a clean entry.",
   "auth.tab.signup": "Sign up",

@@ -1,4 +1,5 @@
 import { Box } from "@mui/material";
+import { Link } from "@tanstack/react-router";
 import { useT } from "../i18n";
 
 /** The app icon: green rounded square with an italic "p." (outlined, so no font is needed). */
@@ -6,11 +7,16 @@ export function LogoMark({ size = 32 }: { size?: number }) {
   return <Box component="img" src="/icon.svg" alt="" width={size} height={size} sx={{ display: "block" }} />;
 }
 
-/** Icon + the wordmark. The wordmark is live text in Newsreader Italic, per the design. */
+/** Icon + the wordmark, as a link home. The wordmark is live text in Newsreader Italic. */
 export function Wordmark({ size = 32 }: { size?: number }) {
   const t = useT();
   return (
-    <Box sx={{ display: "inline-flex", alignItems: "center", gap: 2.5 }} aria-label="Parsimony">
+    <Box
+      component={Link}
+      to="/"
+      aria-label="Parsimony"
+      sx={{ display: "inline-flex", alignItems: "center", gap: 2.5, textDecoration: "none", color: "inherit", borderRadius: 2 }}
+    >
       <LogoMark size={size} />
       <Box
         component="span"

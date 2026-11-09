@@ -1,0 +1,48 @@
+# Production stack. Only one port is published, on localhost: 127.0.0.1:4300.
+# The server's own Nginx (with HTTPS) forwards parsimony.duckdns.org to it.
+# Start:  docker compose -f docker-compose.prod.yml up -d --build
+name: parsimony-prod
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.prod
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      APP_ENV: production
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - uploads:/srv/uploads
+
+  web:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "127.0.0.1:4300:80"
+
+volumes:
+  pgdata:
+  uploads:

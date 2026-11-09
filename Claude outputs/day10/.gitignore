@@ -1,0 +1,42 @@
+# Secrets: never commit
+.env
+.env.*
+!.env.example
+!.env.production.example
+*.pem
+*.key
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+*.egg-info/
+
+# Node
+node_modules/
+dist/
+.vite/
+
+# Local data
+*.db
+*.sqlite3
+uploads/
+pgdata/
+
+# ML artifacts (large)
+ml/**/*.gguf
+ml/**/*.safetensors
+ml/**/checkpoints/
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+
+# Playwright
+test-results/
+playwright-report/

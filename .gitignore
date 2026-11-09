@@ -2,6 +2,7 @@
 .env
 .env.*
 !.env.example
+!.env.production.example
 *.pem
 *.key
 
@@ -39,6 +40,3 @@ ml/**/checkpoints/
 # Playwright
 test-results/
 playwright-report/
-
-# Delivery copies from Claude
-Claude outputs/

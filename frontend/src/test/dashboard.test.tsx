@@ -383,8 +383,11 @@ describe("phone gestures", () => {
     const menu = await screen.findByRole("menu", { name: "Entry actions" });
     expect(within(menu).getByRole("menuitem", { name: "Edit" })).toBeInTheDocument();
     fireEvent.click(within(menu).getByRole("menuitem", { name: "Delete" }));
-    await waitFor(() => expect(calls.some((c) => c.method === "DELETE" && c.url === "/api/entries/e1")).toBe(true));
     expect(await screen.findByText("Entry deleted")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Blue Bottle, $6.50" })).not.toBeInTheDocument(); // gone at once
+    expect(calls.some((c) => c.method === "DELETE")).toBe(false); // but not sent yet
+    act(() => { vi.advanceTimersByTime(5300); });
+    await waitFor(() => expect(calls.some((c) => c.method === "DELETE" && c.url === "/api/entries/e1")).toBe(true));
     vi.useRealTimers();
   });
 
@@ -401,7 +404,24 @@ describe("phone gestures", () => {
     fireEvent.pointerUp(row, { pointerType: "touch", pointerId: 1 });
   });
 
-  it("swiping left reveals Delete, and tapping it deletes", async () => {
+  it("Undo brings the entry back and never sends the delete", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    const calls = signedInApi({ "DELETE /api/entries/e1": { status: 204 } });
+    renderApp("/app");
+    const row = await rowOf();
+    press(row, 300);
+    dragTo(row, 200);
+    fireEvent.pointerUp(row, { pointerType: "touch", pointerId: 1 });
+    fireEvent.click(await screen.findByRole("button", { name: "Delete" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Undo" }));
+    expect(await screen.findByRole("button", { name: "Blue Bottle, $6.50" })).toBeInTheDocument();
+    act(() => { vi.advanceTimersByTime(6000); });
+    expect(calls.some((c) => c.method === "DELETE")).toBe(false);
+    vi.useRealTimers();
+  });
+
+  it("swiping left reveals Delete, and tapping it deletes after the Undo window", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
     const calls = signedInApi({ "DELETE /api/entries/e1": { status: 204 } });
     renderApp("/app");
     const row = await rowOf();
@@ -410,7 +430,9 @@ describe("phone gestures", () => {
     fireEvent.pointerUp(row, { pointerType: "touch", pointerId: 1 });
     expect(row.style.transform || getComputedStyle(row).transform).toContain("-88px");
     fireEvent.click(await screen.findByRole("button", { name: "Delete" }));
+    act(() => { vi.advanceTimersByTime(5300); });
     await waitFor(() => expect(calls.some((c) => c.method === "DELETE")).toBe(true));
+    vi.useRealTimers();
   });
 
   it("a short swipe snaps back and deletes nothing", async () => {

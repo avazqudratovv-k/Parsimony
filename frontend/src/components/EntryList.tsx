@@ -26,6 +26,7 @@ const SOURCE_ICON = { text: "keyboard", voice: "mic", photo: "camera" } as const
 const REVEAL = 88; // px of the red Delete button revealed by a swipe
 const FULL_SWIPE = 0.55; // a swipe past this fraction of the row deletes straight away
 const LONG_PRESS_MS = 500;
+const UNDO_MS = 5200; // a little longer than the toast, so Undo works for as long as it is visible
 
 type RowProps = {
   entry: Entry; timeZone: string; desktop: boolean;
@@ -200,11 +201,33 @@ export function EntryList({ query, isCurrentMonth, timeZone, onOpen }: Props) {
   const remove = useDeleteEntry();
   const [actionsFor, setActionsFor] = useState<Entry | null>(null);
   const openedAt = useRef(0);
-  const { data, isPending, isError, refetch } = query;
+  const { data: all, isPending, isError, refetch } = query;
 
+  // Delete is undoable: the entry disappears at once, but the request is only sent after the Undo window closes.
+  const [hidden, setHidden] = useState<Set<string>>(new Set());
+  const pending = useRef(new Map<string, number>());
+  const send = remove.mutate;
+  const sendRef = useRef(send);
+  sendRef.current = send;
+  const unhide = (id: string) => setHidden((h) => { const n = new Set(h); n.delete(id); return n; });
   function deleteEntry(id: string) {
-    remove.mutate(id, { onSuccess: () => toast({ message: t("toast.deleted") }) });
+    setHidden((h) => new Set(h).add(id));
+    const timer = window.setTimeout(() => {
+      pending.current.delete(id);
+      sendRef.current(id, { onSettled: () => unhide(id) });
+    }, UNDO_MS);
+    pending.current.set(id, timer);
+    toast({
+      message: t("toast.deleted"),
+      action: { label: t("toast.undo"), onClick: () => { window.clearTimeout(pending.current.get(id)); pending.current.delete(id); unhide(id); } },
+    });
   }
+  const data = all?.filter((e) => !hidden.has(e.id)) as Entry[];
+  // Leaving the page must not lose a delete that is still waiting.
+  useEffect(() => () => {
+    for (const [id, timer] of pending.current) { window.clearTimeout(timer); sendRef.current(id); }
+    pending.current.clear();
+  }, []);
 
   if (isPending) {
     return (

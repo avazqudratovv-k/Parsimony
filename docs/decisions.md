@@ -267,3 +267,7 @@ A single confidence number could only say "unsure". The model now also returns `
 ## Items can be paid in different ways
 
 "Bag 15 card, wallet 30 cash" is one purchase with two ways of paying, but an entry only had one `payment_method`, so the model flagged it as unsure and one item got the wrong method. Items may now carry their own `payment_method` (optional; the purchase's is used when missing). The grouped card shows every method used, for example "Card + Cash".
+
+## Items in different currencies
+
+"Laptop 50$ cash, MacBook 150,000 KRW card" cannot be one total, and the first version silently kept only one of them. Items may now carry their own currency. When they differ, each item is saved as its own entry (not grouped, no total check), so nothing is dropped; the Needs a check list still flags what the AI guessed.

@@ -75,16 +75,23 @@ def _save(
     return entry
 
 
+def _mixed_currencies(entry, items) -> bool:
+    """True when the items are in more than one currency, so they cannot share a total."""
+    return any(i.currency and i.currency != entry.currency for i in items)
+
+
 def _split_items(db: Session, user: User, entry) -> list:
     """The per-item parts of one purchase, or [] when the entry should simply be saved whole.
 
     Items are used only when there are at least two, they add up to the total (so no money is
-    invented or lost), and the account has room for all of them.
+    invented or lost) unless they are in different currencies, and the account has room for all.
     """
     items = entry.items
     if len(items) < 2:
         return []
-    if abs(sum(i.amount for i in items) - entry.amount) > Decimal("0.01"):
+    if not _mixed_currencies(entry, items) and (
+        abs(sum(i.amount for i in items) - entry.amount) > Decimal("0.01")
+    ):
         return []
     count = db.scalar(select(func.count()).select_from(Entry).where(Entry.user_id == user.id)) or 0
     if count + len(items) > entry_limit(user):
@@ -126,14 +133,15 @@ def create_from_text(
             )
         ]
     saved = []
-    group_id = uuid.uuid4()  # the items of this purchase are shown together
+    # Items in one currency are shown together under one total. Mixed currencies stay separate.
+    group_id = None if _mixed_currencies(entry, items) else uuid.uuid4()
     for item in items:
         part = EntryCreate(
             date=entry.date,
             merchant=entry.merchant,
             note=item.note,
             amount=item.amount,
-            currency=entry.currency,
+            currency=item.currency or entry.currency,
             category=item.category,
             payment_method=item.payment_method or entry.payment_method,
         )

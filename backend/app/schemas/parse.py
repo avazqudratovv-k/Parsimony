@@ -6,7 +6,7 @@ from pydantic import BaseModel, Field, field_validator
 
 from app.models.enums import UNCERTAIN_FIELDS, Category, PaymentMethod
 from app.schemas.common import validate_timezone
-from app.schemas.entry import EntryCreate, NormalizedFields
+from app.schemas.entry import CURRENCY_PATTERN, EntryCreate, NormalizedFields
 
 _DOMAIN = re.compile(r"^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?(\.[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)+$")
 
@@ -27,6 +27,7 @@ class ParsedItem(NormalizedFields):
     amount: Decimal = Field(gt=0, max_digits=12, decimal_places=2)
     category: Category
     payment_method: PaymentMethod | None = None  # only when this item was paid differently
+    currency: str | None = Field(default=None, pattern=CURRENCY_PATTERN)  # only when it differs
 
 
 class ParsedEntry(EntryCreate):

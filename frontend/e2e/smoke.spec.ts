@@ -18,9 +18,9 @@ async function signUp(page: Page, email: string) {
 
 test("Try demo opens a sandbox with sample data, a chart, and Fix this works; then logs out", async ({ page }) => {
   await page.goto("/");
-  await page.getByRole("button", { name: "Try demo" }).click();
+  await page.getByRole("button", { name: "Try it as a guest" }).click();
   await expect(page).toHaveURL(/\/app$/);
-  await expect(page.getByRole("note")).toContainText("Demo data only");
+  await expect(page.getByRole("note")).toContainText("Guest account");
   await expect(page.getByRole("heading", { name: "Your expenses" })).toBeVisible();
   // Demo accounts start with sample entries, so the chart and the list both have content.
   await expect(page.getByRole("region", { name: "Spending by category" })).toBeAttached();
@@ -35,7 +35,7 @@ test("Try demo opens a sandbox with sample data, a chart, and Fix this works; th
   await expect(page).toHaveURL(/\/me$/);
   await page.getByRole("button", { name: "Log out" }).click();
   await expect(page).toHaveURL(/\/$/);
-  await expect(page.getByRole("button", { name: "Try demo" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Try it as a guest" })).toBeVisible();
 });
 
 test("sign up, stay signed in after a reload, log out, log back in", async ({ page }) => {

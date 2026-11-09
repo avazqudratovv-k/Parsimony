@@ -2,7 +2,7 @@
 
 An AI expense tracker: type it, say it, or photograph a receipt, and a model turns it into structured data.
 
-> Work in progress. Demo data only: please don't upload real receipts.
+> Work in progress. Receipt photos are read and never stored.
 
 ## Run locally
 

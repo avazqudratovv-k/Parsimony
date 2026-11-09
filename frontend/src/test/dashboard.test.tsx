@@ -334,7 +334,7 @@ describe("My page", () => {
   it("shows the demo note for demo accounts", async () => {
     signedInApi({ "GET /api/auth/me": { status: 200, body: { ...USER, is_demo: true } } });
     renderApp("/me");
-    expect(await screen.findByText(/Demo account\. It deletes itself/)).toBeInTheDocument();
+    expect(await screen.findByText(/Guest account\. It deletes itself/)).toBeInTheDocument();
   });
 
   it("an empty account shows 'Nothing yet'", async () => {

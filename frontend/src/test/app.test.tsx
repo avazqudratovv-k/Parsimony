@@ -15,7 +15,7 @@ describe("routing", () => {
   it("sends a signed-out visitor from /app back to /", async () => {
     mockApi(signedOut);
     const { router } = renderApp("/app");
-    await screen.findByRole("button", { name: "Try demo" });
+    await screen.findByRole("button", { name: "Try it as a guest" });
     expect(router.state.location.pathname).toBe("/");
   });
 
@@ -90,16 +90,16 @@ describe("sign-in page", () => {
       "GET /api/usage": { status: 200, body: { used: 0, limit: 10, resets_at: "2026-11-10T00:00:00Z" } },
     });
     const { router } = renderApp("/");
-    await userEvent.setup().click(await screen.findByRole("button", { name: "Try demo" }));
+    await userEvent.setup().click(await screen.findByRole("button", { name: "Try it as a guest" }));
     await waitFor(() => expect(router.state.location.pathname).toBe("/app"));
-    expect(await screen.findByRole("note")).toHaveTextContent("Demo data only");
+    expect(await screen.findByRole("note")).toHaveTextContent("Guest account");
   });
 
   it("says so when the demo is full", async () => {
     mockApi({ ...signedOut, "POST /api/auth/demo": { status: 503, body: { detail: "full" } } });
     renderApp("/");
-    await userEvent.setup().click(await screen.findByRole("button", { name: "Try demo" }));
-    expect(await screen.findByRole("alert")).toHaveTextContent("demo is full");
+    await userEvent.setup().click(await screen.findByRole("button", { name: "Try it as a guest" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("Guest access is full");
   });
 
 });

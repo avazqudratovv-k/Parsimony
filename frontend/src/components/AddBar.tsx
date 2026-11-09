@@ -65,7 +65,7 @@ export function AddBar({ onAdded }: { onAdded?: () => void }) {
       </Paper>
       {usage && (
         <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 1, textAlign: "center" }}>
-          {fill(t("add.usage"), { used: usage.used, limit: usage.limit })}
+          {fill(t("add.usage"), { left: Math.max(0, usage.limit - usage.used), limit: usage.limit })}
         </Typography>
       )}
     </Box>

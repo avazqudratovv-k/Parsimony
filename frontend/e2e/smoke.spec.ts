@@ -23,7 +23,7 @@ test("Try demo opens a sandbox with sample data, a chart, and Fix this works; th
   await expect(page.getByRole("note")).toContainText("Demo data only");
   await expect(page.getByRole("heading", { name: "Your expenses" })).toBeVisible();
   // Demo accounts start with sample entries, so the chart and the list both have content.
-  await expect(page.getByRole("table", { name: /Spending by category/ })).toBeAttached();
+  await expect(page.getByRole("region", { name: "Spending by category" })).toBeAttached();
   await expect(page.getByRole("button", { name: "Fix this" }).first()).toBeVisible();
 
   await page.getByRole("button", { name: "Fix this" }).first().click();

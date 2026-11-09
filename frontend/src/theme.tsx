@@ -10,14 +10,18 @@ export const tokens = {
     ink: "#1F2421", inkMuted: "#5B605C", inkFaint: "#736C61",
     accent: "#1F6F5C", accentStrong: "#185A4B", accentSoft: "#E3EEE9", onAccent: "#FFFFFF",
     warn: "#8A5A00", warnSoft: "#F6EBD3", warnWash: "#FBF3E4",
-    danger: "#A33A2C", dangerSoft: "#F7E4DF",
+    danger: "#A33A2C", dangerSoft: "#F7E4DF", onDanger: "#FFFFFF",
+    chartBar: "#A9C8BD", focus: "#1F6F5C", scrim: "rgba(31,36,33,0.42)",
+    toastBg: "#1F2421", toastInk: "#F3EFE7", toastMuted: "#A8ADA8", toastAction: "#7CCBB3", toastWarn: "#E2B65E",
   },
   dark: {
     bg: "#161917", surface: "#1F2321", sunken: "#2B302D", line: "#2E3330", lineStrong: "#6E746F",
     ink: "#ECE8E0", inkMuted: "#A8ADA8", inkFaint: "#8A908B",
     accent: "#5FB89E", accentStrong: "#7CCBB3", accentSoft: "#1D2E28", onAccent: "#0E1A16",
     warn: "#E2B65E", warnSoft: "#2E2717", warnWash: "#26221A",
-    danger: "#F0907F", dangerSoft: "#33201C",
+    danger: "#F0907F", dangerSoft: "#33201C", onDanger: "#1F0E0B",
+    chartBar: "#3F6E60", focus: "#7CCBB3", scrim: "rgba(0,0,0,0.6)",
+    toastBg: "#ECE8E0", toastInk: "#1F2421", toastMuted: "#5B605C", toastAction: "#1F6F5C", toastWarn: "#8A5A00",
   },
 } as const;
 
@@ -62,12 +66,18 @@ function buildTheme(scheme: "light" | "dark", lang: string) {
           },
         },
       },
+      MuiButtonBase: { styleOverrides: { root: { "&.Mui-focusVisible": { outline: `2px solid ${c.focus}`, outlineOffset: 2 } } } },
+      MuiDialog: { styleOverrides: { paper: { borderRadius: 20 } } },
       MuiButton: {
         defaultProps: { disableElevation: true },
         styleOverrides: { root: { minHeight: 44, borderRadius: 12 } },
       },
       MuiTextField: { defaultProps: { variant: "outlined", fullWidth: true } },
-      MuiOutlinedInput: { styleOverrides: { root: { borderRadius: 12, backgroundColor: c.surface } } },
+      MuiOutlinedInput: {
+        styleOverrides: {
+          root: { borderRadius: 12, backgroundColor: c.surface, "& .MuiOutlinedInput-notchedOutline": { borderColor: c.lineStrong } },
+        },
+      },
     },
   });
 }
@@ -120,3 +130,11 @@ export function useMode(): ThemeCtx {
   if (!ctx) throw new Error("useMode must be used inside <AppThemeProvider>");
   return ctx;
 }
+
+/** The design tokens for the active light/dark scheme (for pieces MUI's palette doesn't cover). */
+export function useTokens() {
+  return tokens[useMode().scheme];
+}
+
+/** The width where the dashboard becomes two columns (from the design). */
+export const DESKTOP = "(min-width:1024px)";

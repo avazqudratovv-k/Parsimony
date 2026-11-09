@@ -153,3 +153,11 @@
 - `RATE_LIMIT_SCALE` (default 1) multiplies the sign-up/login/demo limits. Only the browser tests raise it, since
   they sign up many times from one address. Never set it in production.
 - Unit tests pin "today" (only `Date`, via fake timers) to 2026-11-09 so month tests do not depend on the calendar.
+
+## Design sync, stage 1 (Day 9.5)
+
+- Applied the updated Claude Design: new tokens, custom line-icon set (`Icon.tsx`), two-column desktop layout (list + add bar left, sticky chart and "Needs a check" right), mobile chart card with top five + "Show all", day-grouped lists, source badges (Typed/Voice/Photo), "Check this" flag.
+- Removed Recharts. The chart is hand-built bars (less code, smaller bundle, matches the design exactly).
+- Copy now says "smart adds" instead of "AI entries".
+- OPEN DECISION: the design says typing is free and only voice/photo count as smart adds (hidden fair-use cap on typed lines). Today every typed entry still calls Gemini and counts toward the 30/day cap. Kept counting all AI parses for now; only the wording changed.
+- Deferred to stage 2: toasts with Undo, opening animation, mobile entry details screen, My page rework, parse-failure notice with "Enter manually", remaining custom icons. Voice and receipt screens belong to Days 11-13.

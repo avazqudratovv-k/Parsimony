@@ -11,14 +11,16 @@ describe("dashboard list", () => {
     renderApp("/app");
     expect(await screen.findByText("Blue Bottle")).toBeInTheDocument();
     expect(screen.getAllByText("$6.50").length).toBeGreaterThan(0);
-    expect(screen.getByText("₩9,000")).toBeInTheDocument();
-    expect(screen.getByText(/Food & drink · Nov 8 · with Sam/)).toBeInTheDocument();
+    expect(screen.getAllByText("₩9,000").length).toBeGreaterThan(0);
+    expect(screen.getByText("with Sam · Card · 12:00")).toBeInTheDocument();
+    expect(screen.getByText("Yesterday")).toBeInTheDocument(); // the day header: Yesterday · Sun 8 Nov
+    expect(screen.getByText(/Sun 8 Nov/)).toBeInTheDocument();
   });
 
   it("marks low-confidence entries 'Check this' but not good ones", async () => {
     signedInApi({}, [ENTRY, LOW]);
     renderApp("/app");
-    await screen.findByText("CGV");
+    await screen.findAllByText("CGV");
     expect(screen.getAllByText("Check this")).toHaveLength(1);
   });
 
@@ -27,7 +29,8 @@ describe("dashboard list", () => {
     renderApp("/app", "ko");
     expect(await screen.findByText("Blue Bottle")).toBeInTheDocument();
     expect(screen.getByText("내 지출")).toBeInTheDocument();
-    expect(screen.getByText(/식비·음료 · 11월 8일/)).toBeInTheDocument();
+    expect(screen.getByText("with Sam · 카드 · 12:00")).toBeInTheDocument();
+    expect(screen.getByText(/11월 8일 \(일\)/)).toBeInTheDocument();
   });
 
   it("shows an empty state", async () => {
@@ -46,7 +49,7 @@ describe("dashboard list", () => {
   it("shows today's AI usage", async () => {
     signedInApi();
     renderApp("/app");
-    expect(await screen.findByText("3 of 30 AI entries used today")).toBeInTheDocument();
+    expect(await screen.findByText("27 of 30 smart adds left today")).toBeInTheDocument();
   });
 });
 
@@ -80,8 +83,8 @@ describe("add bar", () => {
 
   it.each([
     [422, { detail: "x" }, "couldn't read that as an expense"],
-    [429, { detail: { code: "daily_limit_account", message: "x", resets_at: "2026-11-10T00:00:00Z" } }, "used all of today's AI entries"],
-    [429, { detail: { code: "daily_limit_global", message: "x", resets_at: "2026-11-10T00:00:00Z" } }, "daily AI limit for everyone"],
+    [429, { detail: { code: "daily_limit_account", message: "x", resets_at: "2026-11-10T00:00:00Z" } }, "used all of today's smart adds"],
+    [429, { detail: { code: "daily_limit_global", message: "x", resets_at: "2026-11-10T00:00:00Z" } }, "daily smart add limit for everyone"],
     [409, { detail: { code: "entry_limit", message: "x" } }, "Entry limit reached"],
     [502, { detail: "x" }, "unavailable right now"],
   ])("explains a %s failure in plain words", async (status, body, expected) => {
@@ -107,7 +110,7 @@ describe("Fix this", () => {
     const calls = signedInApi({ "PATCH /api/entries/e1": { status: 200, body: { ...ENTRY, amount: "7.00", user_corrected: true } } });
     renderApp("/app");
     const user = userEvent.setup();
-    await user.click((await screen.findAllByRole("button", { name: "Fix this" }))[0]);
+    await user.click(await screen.findByRole("button", { name: "Blue Bottle, $6.50" }));
     const dialog = await screen.findByRole("dialog");
     expect(within(dialog).getByText("Coffee with Sam, $6.50, card")).toBeInTheDocument(); // "You said"
     const amount = within(dialog).getByLabelText("Amount");
@@ -122,7 +125,7 @@ describe("Fix this", () => {
     const calls = signedInApi();
     renderApp("/app");
     const user = userEvent.setup();
-    await user.click((await screen.findAllByRole("button", { name: "Fix this" }))[0]);
+    await user.click(await screen.findByRole("button", { name: "Blue Bottle, $6.50" }));
     const dialog = await screen.findByRole("dialog");
     const amount = within(dialog).getByLabelText("Amount");
     await user.clear(amount);
@@ -136,7 +139,7 @@ describe("Fix this", () => {
     const calls = signedInApi();
     renderApp("/app");
     const user = userEvent.setup();
-    await user.click((await screen.findAllByRole("button", { name: "Fix this" }))[0]);
+    await user.click(await screen.findByRole("button", { name: "Blue Bottle, $6.50" }));
     await user.click(within(await screen.findByRole("dialog")).getByRole("button", { name: "Save" }));
     await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
     expect(calls.some((c) => c.method === "PATCH")).toBe(false);
@@ -146,7 +149,7 @@ describe("Fix this", () => {
     const calls = signedInApi({ "DELETE /api/entries/e1": { status: 204 } });
     renderApp("/app");
     const user = userEvent.setup();
-    await user.click((await screen.findAllByRole("button", { name: "Fix this" }))[0]);
+    await user.click(await screen.findByRole("button", { name: "Blue Bottle, $6.50" }));
     const dialog = await screen.findByRole("dialog");
     await user.click(within(dialog).getByRole("button", { name: "Delete entry" }));
     expect(calls.some((c) => c.method === "DELETE")).toBe(false);
@@ -286,14 +289,29 @@ describe("delete confirm word", () => {
 });
 
 describe("monthly chart", () => {
-  it("shows the month, the total and a table of categories", async () => {
+  const region = () => within(screen.getByRole("region", { name: "Spending by category" }));
+
+  it("shows the month, the total, and each category with its amount and share", async () => {
     signedInApi();
     renderApp("/app");
     expect(await screen.findByRole("heading", { name: "November 2026" })).toBeInTheDocument();
-    expect(await screen.findByText("$6.50", { selector: "p" })).toBeInTheDocument();
-    const table = await screen.findByRole("table", { name: /Spending by category/ });
-    expect(table).toHaveTextContent("Food & drink");
-    expect(table).toHaveTextContent("$6.50");
+    expect(await screen.findByText("SPENT IN NOVEMBER · USD", { exact: false })).toBeInTheDocument();
+    const rows = await within(await screen.findByRole("region", { name: "Spending by category" })).findAllByRole("listitem");
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toHaveTextContent("Food & drink");
+    expect(rows[0]).toHaveTextContent("100%");
+    expect(rows[0]).toHaveTextContent("$6.50");
+  });
+
+  it("compares with last month when there is data for it", async () => {
+    signedInApi({
+      "GET /api/stats/monthly?*": (url) =>
+        url.includes("month=2026-10")
+          ? { status: 200, body: { ...MONTHLY, month: "2026-10", total: "10.00", count: 2 } }
+          : { status: 200, body: { ...MONTHLY, total: "6.50" } },
+    });
+    renderApp("/app");
+    expect(await screen.findByText(/\$3\.50 less than last month/)).toBeInTheDocument();
   });
 
   it("goes to the previous month and asks for that month", async () => {
@@ -306,7 +324,6 @@ describe("monthly chart", () => {
     expect(await screen.findByRole("heading", { name: "October 2026" })).toBeInTheDocument();
     expect(calls.some((c) => c.url === "/api/entries?month=2026-10&limit=100")).toBe(true);
     expect(calls.some((c) => c.url.startsWith("/api/stats/monthly?month=2026-10"))).toBe(true);
-    // The current month is the last one: "next" is off again only once we are back on it.
     await user.click(screen.getByRole("button", { name: "Next month" }));
     expect(await screen.findByRole("heading", { name: "November 2026" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Next month" })).toBeDisabled();
@@ -326,15 +343,32 @@ describe("monthly chart", () => {
     renderApp("/app");
     const user = userEvent.setup();
     await user.click(await screen.findByRole("tab", { name: "KRW" }));
-    expect(await screen.findByRole("table", { name: /Spending by category/ })).toHaveTextContent("Transport");
+    expect(await region().findByText("Transport")).toBeInTheDocument();
     expect(calls.some((c) => c.url.includes("currency=KRW"))).toBe(true);
   });
 
   it("hides the currency tabs for a single currency", async () => {
     signedInApi();
     renderApp("/app");
-    await screen.findByRole("table", { name: /Spending by category/ });
+    await screen.findByRole("region", { name: "Spending by category" });
     expect(screen.queryByRole("tab")).not.toBeInTheDocument();
+  });
+
+  it("shows the top five and a Show all button on a phone", async () => {
+    const cats = ["food_drink", "groceries", "transport", "shopping", "bills", "health", "travel"];
+    signedInApi({
+      "GET /api/stats/monthly?*": {
+        status: 200,
+        body: { ...MONTHLY, total: "70.00", count: 7, by_category: cats.map((category, i) => ({ category, total: String(20 - i * 2), count: 1 })) },
+      },
+    });
+    renderApp("/app");
+    await screen.findByRole("region", { name: "Spending by category" });
+    await region().findByText("Food & drink");
+    expect(region().getAllByRole("listitem")).toHaveLength(5);
+    expect(region().getByText("2 more categories")).toBeInTheDocument();
+    await userEvent.setup().click(region().getByRole("button", { name: "Show all" }));
+    expect(region().getAllByRole("listitem")).toHaveLength(7);
   });
 
   it("says so when the month is empty, and when the chart fails", async () => {
@@ -345,6 +379,25 @@ describe("monthly chart", () => {
     signedInApi({ "GET /api/stats/monthly?*": { status: 500, body: { detail: "boom" } } });
     renderApp("/app");
     expect(await screen.findByText("Couldn't load the chart.")).toBeInTheDocument();
+  });
+});
+
+describe("needs a check", () => {
+  it("lists low-confidence entries that nobody has corrected, and opens Fix this", async () => {
+    signedInApi({}, [ENTRY, LOW]);
+    renderApp("/app");
+    const card = within(await screen.findByRole("region", { name: "Needs a check" }));
+    expect(card.getByText("CGV")).toBeInTheDocument();
+    expect(card.queryByText("Blue Bottle")).not.toBeInTheDocument();
+    await userEvent.setup().click(card.getByRole("button", { name: /CGV/ }));
+    expect(await screen.findByRole("dialog")).toBeInTheDocument();
+  });
+
+  it("is not shown when everything looks right", async () => {
+    signedInApi();
+    renderApp("/app");
+    await screen.findByText("Blue Bottle");
+    expect(screen.queryByRole("region", { name: "Needs a check" })).not.toBeInTheDocument();
   });
 });
 

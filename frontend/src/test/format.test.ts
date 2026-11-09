@@ -26,3 +26,21 @@ describe("month helpers", () => {
     expect(formatDate("2026-11-09", "uz", true)).toBe("9 noy 2026");
   });
 });
+
+describe("money and day formats", () => {
+  it("writes Uzbek money with the symbol after and a decimal comma", async () => {
+    const { formatMoney } = await import("../lib/format");
+    expect(formatMoney("669400.00", "KRW", "uz")).toBe("669 400 ₩");
+    expect(formatMoney("6.50", "USD", "uz")).toBe("6,50 $");
+    expect(formatMoney("6.50", "USD", "en")).toBe("$6.50");
+  });
+
+  it("writes day headers the way the design shows them", async () => {
+    const { formatDay, formatShare } = await import("../lib/format");
+    expect(formatDay("2026-11-09", "en")).toBe("Mon 9 Nov");
+    expect(formatDay("2026-11-09", "ko")).toBe("11월 9일 (월)");
+    expect(formatDay("2026-11-09", "uz")).toBe("9-noyabr, dushanba");
+    expect(formatShare(1, 400)).toBe("1%"); // never 0% for a real amount
+    expect(formatShare(28, 100)).toBe("28%");
+  });
+});

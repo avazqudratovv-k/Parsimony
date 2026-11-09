@@ -18,8 +18,9 @@ export const useEntries = (month: string) =>
     queryFn: () => api<Entry[]>(`/entries?month=${month}&limit=100`),
   });
 
-export const useMonthlyStats = (month: string, currency: string | null) =>
+export const useMonthlyStats = (month: string, currency: string | null, enabled = true) =>
   useQuery({
+    enabled,
     queryKey: ["stats", month, currency],
     queryFn: () => api<MonthlyStats>(`/stats/monthly?month=${month}${currency ? `&currency=${currency}` : ""}`),
     placeholderData: (previous) => previous, // keep the old chart on screen while the next month loads

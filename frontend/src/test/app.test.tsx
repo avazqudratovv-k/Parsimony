@@ -129,17 +129,15 @@ describe("language and theme", () => {
     expect(document.documentElement.lang).toBe("uz");
   });
 
-  it("changes the theme from the menu and sets it on the page", async () => {
+  it("toggles between light and dark and remembers it", async () => {
     mockApi(signedOut);
     renderApp("/");
     const user = userEvent.setup();
-    await user.click(await screen.findByRole("button", { name: "Menu" }));
-    await user.click(screen.getByRole("menuitemradio", { name: "Light" }));
-    expect(document.documentElement.dataset.theme).toBe("light");
-    await user.click(screen.getByRole("button", { name: "Menu" }));
-    await user.click(screen.getByRole("menuitemradio", { name: "Dark" }));
+    await user.click(await screen.findByRole("button", { name: "Switch to dark mode" }));
     expect(document.documentElement.dataset.theme).toBe("dark");
     expect(localStorage.getItem("parsimony.theme")).toBe("dark");
+    await user.click(screen.getByRole("button", { name: "Switch to light mode" }));
+    expect(document.documentElement.dataset.theme).toBe("light");
   });
 });
 

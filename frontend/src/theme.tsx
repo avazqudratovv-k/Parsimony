@@ -72,7 +72,7 @@ function buildTheme(scheme: "light" | "dark", lang: string) {
   });
 }
 
-type ThemeCtx = { mode: Mode; setMode: (m: Mode) => void };
+type ThemeCtx = { mode: Mode; scheme: "light" | "dark"; setMode: (m: Mode) => void };
 const ModeContext = createContext<ThemeCtx | null>(null);
 
 export function AppThemeProvider({ children }: { children: ReactNode }) {
@@ -104,7 +104,7 @@ export function AppThemeProvider({ children }: { children: ReactNode }) {
   }, [scheme]);
 
   const theme = useMemo(() => buildTheme(scheme, lang), [scheme, lang]);
-  const value = useMemo(() => ({ mode, setMode }), [mode, setMode]);
+  const value = useMemo(() => ({ mode, scheme, setMode }), [mode, scheme, setMode]);
   return (
     <ModeContext.Provider value={value}>
       <ThemeProvider theme={theme}>

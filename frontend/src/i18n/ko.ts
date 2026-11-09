@@ -31,10 +31,8 @@ export const ko: Dict = {
   "notFound.back": "홈으로",
   "lang.heading": "언어",
   "lang.label": "언어 변경",
-  "theme.light": "라이트",
-  "theme.dark": "다크",
-  "theme.system": "시스템",
+  "theme.toLight": "라이트 모드로 전환",
+  "theme.toDark": "다크 모드로 전환",
   "menu.label": "메뉴",
-  "theme.label": "색상 테마",
   "common.loading": "불러오는 중…",
 };

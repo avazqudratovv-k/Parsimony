@@ -33,10 +33,8 @@ export const uz: Dict = {
   "notFound.back": "Bosh sahifa",
   "lang.heading": "Til",
   "lang.label": "Tilni oʻzgartirish",
-  "theme.light": "Yorugʻ",
-  "theme.dark": "Qorongʻi",
-  "theme.system": "Tizim",
+  "theme.toLight": "Yorugʻ rejimga oʻtish",
+  "theme.toDark": "Qorongʻi rejimga oʻtish",
   "menu.label": "Menyu",
-  "theme.label": "Rang mavzusi",
   "common.loading": "Yuklanmoqda…",
 };

@@ -31,11 +31,9 @@ export const en = {
   "notFound.back": "Go home",
   "lang.heading": "Language",
   "lang.label": "Change language",
-  "theme.light": "Light",
-  "theme.dark": "Dark",
-  "theme.system": "System",
+  "theme.toLight": "Switch to light mode",
+  "theme.toDark": "Switch to dark mode",
   "menu.label": "Menu",
-  "theme.label": "Colour theme",
   "common.loading": "Loading…",
 } as const;
 

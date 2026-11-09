@@ -36,6 +36,7 @@ export const uz: Dict = {
   "theme.light": "Yorugʻ",
   "theme.dark": "Qorongʻi",
   "theme.system": "Tizim",
+  "menu.label": "Menyu",
   "theme.label": "Rang mavzusi",
   "common.loading": "Yuklanmoqda…",
 };

@@ -34,6 +34,7 @@ export const ko: Dict = {
   "theme.light": "라이트",
   "theme.dark": "다크",
   "theme.system": "시스템",
+  "menu.label": "메뉴",
   "theme.label": "색상 테마",
   "common.loading": "불러오는 중…",
 };

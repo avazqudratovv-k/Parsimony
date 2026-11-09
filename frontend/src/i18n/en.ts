@@ -34,6 +34,7 @@ export const en = {
   "theme.light": "Light",
   "theme.dark": "Dark",
   "theme.system": "System",
+  "menu.label": "Menu",
   "theme.label": "Colour theme",
   "common.loading": "Loading…",
 } as const;

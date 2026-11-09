@@ -105,7 +105,9 @@ describe("sign-in page", () => {
       "POST /api/auth/logout": { status: 204 },
     });
     const { router } = renderApp("/app");
-    await userEvent.setup().click(await screen.findByRole("button", { name: "Log out" }));
+    const user = userEvent.setup();
+    await user.click(await screen.findByRole("button", { name: "Menu" }));
+    await user.click(screen.getByRole("menuitem", { name: "Log out" }));
     await waitFor(() => expect(router.state.location.pathname).toBe("/"));
   });
 });
@@ -127,13 +129,15 @@ describe("language and theme", () => {
     expect(document.documentElement.lang).toBe("uz");
   });
 
-  it("cycles the theme and sets it on the page", async () => {
+  it("changes the theme from the menu and sets it on the page", async () => {
     mockApi(signedOut);
     renderApp("/");
     const user = userEvent.setup();
-    await user.click(await screen.findByRole("button", { name: /Colour theme: System/ }));
+    await user.click(await screen.findByRole("button", { name: "Menu" }));
+    await user.click(screen.getByRole("menuitemradio", { name: "Light" }));
     expect(document.documentElement.dataset.theme).toBe("light");
-    await user.click(screen.getByRole("button", { name: /Colour theme: Light/ }));
+    await user.click(screen.getByRole("button", { name: "Menu" }));
+    await user.click(screen.getByRole("menuitemradio", { name: "Dark" }));
     expect(document.documentElement.dataset.theme).toBe("dark");
     expect(localStorage.getItem("parsimony.theme")).toBe("dark");
   });

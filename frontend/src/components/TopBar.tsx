@@ -5,10 +5,10 @@ import { Wordmark } from "./Logo";
 import { ThemeToggle } from "./ThemeToggle";
 
 // Logo on the left; language and theme on the right. Log out lives on My page.
-export function TopBar({ center }: { center?: ReactNode }) {
+export function TopBar({ center, brand = true }: { center?: ReactNode; brand?: boolean }) {
   return (
     <Box component="header" sx={{ display: "flex", alignItems: "center", gap: 1, px: { xs: 4, sm: 6 }, py: 3, borderBottom: 1, borderColor: "divider", bgcolor: "background.paper", position: { xs: "sticky", lg: "static" }, top: 0, zIndex: 20 }}>
-      <Wordmark size={32} />
+      {brand && <Wordmark size={32} />}
       <Box sx={{ flex: 1 }} />
       {center}
       <Box sx={{ flex: 1 }} />

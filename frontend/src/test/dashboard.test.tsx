@@ -1,4 +1,4 @@
-import { screen, waitFor, within } from "@testing-library/react";
+import { act, fireEvent, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import * as audio from "../lib/audio";
@@ -368,18 +368,82 @@ describe("Fix this", () => {
   });
 });
 
+describe("phone gestures", () => {
+  const press = (el: Element, x: number) => fireEvent.pointerDown(el, { clientX: x, clientY: 100, pointerType: "touch", pointerId: 1, button: 0 });
+  const dragTo = (el: Element, x: number) => fireEvent.pointerMove(el, { clientX: x, clientY: 100, pointerType: "touch", pointerId: 1 });
+  const rowOf = async () => (await screen.findByRole("button", { name: "Blue Bottle, $6.50" })).parentElement!;
+
+  it("press and hold opens Edit / Delete; Delete removes the entry", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    const calls = signedInApi({ "DELETE /api/entries/e1": { status: 204 } });
+    renderApp("/app");
+    const row = await rowOf();
+    press(row, 200);
+    act(() => { vi.advanceTimersByTime(600); });
+    const menu = await screen.findByRole("menu", { name: "Entry actions" });
+    expect(within(menu).getByRole("menuitem", { name: "Edit" })).toBeInTheDocument();
+    fireEvent.click(within(menu).getByRole("menuitem", { name: "Delete" }));
+    await waitFor(() => expect(calls.some((c) => c.method === "DELETE" && c.url === "/api/entries/e1")).toBe(true));
+    expect(await screen.findByText("Entry deleted")).toBeInTheDocument();
+    vi.useRealTimers();
+  });
+
+  it("a quick tap still opens the entry, and moving cancels the hold", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    signedInApi();
+    renderApp("/app");
+    const row = await rowOf();
+    press(row, 200);
+    dragTo(row, 150);
+    act(() => { vi.advanceTimersByTime(600); });
+    expect(screen.queryByRole("menu")).not.toBeInTheDocument();
+    vi.useRealTimers();
+    fireEvent.pointerUp(row, { pointerType: "touch", pointerId: 1 });
+  });
+
+  it("swiping left reveals Delete, and tapping it deletes", async () => {
+    const calls = signedInApi({ "DELETE /api/entries/e1": { status: 204 } });
+    renderApp("/app");
+    const row = await rowOf();
+    press(row, 300);
+    dragTo(row, 200);
+    fireEvent.pointerUp(row, { pointerType: "touch", pointerId: 1 });
+    expect(row.style.transform || getComputedStyle(row).transform).toContain("-88px");
+    fireEvent.click(await screen.findByRole("button", { name: "Delete" }));
+    await waitFor(() => expect(calls.some((c) => c.method === "DELETE")).toBe(true));
+  });
+
+  it("a short swipe snaps back and deletes nothing", async () => {
+    const calls = signedInApi();
+    renderApp("/app");
+    const row = await rowOf();
+    press(row, 300);
+    dragTo(row, 280);
+    fireEvent.pointerUp(row, { pointerType: "touch", pointerId: 1 });
+    expect(calls.some((c) => c.method === "DELETE")).toBe(false);
+  });
+});
+
 describe("My page", () => {
   it("shows the overview with per-currency totals", async () => {
     signedInApi();
     renderApp("/me");
     expect(await screen.findByRole("heading", { name: "My page" })).toBeInTheDocument();
-    expect(await screen.findByText("/ 1000")).toBeInTheDocument();
+    expect(await screen.findByText(/ of 1000$/)).toBeInTheDocument();
     expect(screen.getByText("₩9,000")).toBeInTheDocument();
     expect(screen.getByText("$6.50")).toBeInTheDocument();
     expect(screen.getByText("Oct 2, 2026")).toBeInTheDocument();
-    expect(screen.getByText("/ 30")).toBeInTheDocument();
-    expect(screen.getByText(USER.email)).toBeInTheDocument();
+    expect(screen.getByText(/ of 30$/)).toBeInTheDocument();
+    expect(screen.getAllByText(USER.email).length).toBeGreaterThan(0);
     expect(screen.getByText("me")).toBeInTheDocument(); // no display name yet: the part before the @
+  });
+
+  it("shows the danger zone as its own section", async () => {
+    signedInApi();
+    renderApp("/me");
+    const zone = (await screen.findByRole("heading", { name: "Danger zone" })).closest("section")!;
+    expect(within(zone).getByText("Deletes your account and every entry.")).toBeInTheDocument();
+    expect(within(zone).getByRole("button", { name: "Delete my account" })).toBeInTheDocument();
   });
 
   it("saves currency and timezone, enabling Save only after a change", async () => {

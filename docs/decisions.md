@@ -201,3 +201,10 @@
 
 - After a typed or voice entry a toast says what was added, with Undo. Undo deletes the exact entry that was just created, so it needs no extra backend. Deleting an entry has no undo yet (re-creating it would lose its source and original words).
 - When the AI cannot read typed text (422), the error offers "Enter manually": the same form as "Fix this", pre-filled with what was typed, saved through the existing `/entries/manual` endpoint. No smart add is used, so it works even when the daily limit is used up.
+
+## My page, opening animation, phone gestures
+
+- **My page** is grouped into Overview, Settings, Account and a separate Danger zone, so the destructive action is never next to Save.
+- **Opening animation** uses only opacity/transform/clip-path (no layout work), plays once per browser session (`sessionStorage`), is skipped by any tap or key, and shrinks to a 150 ms fade under reduced motion.
+- **Phone gestures** (screens under 1024 px only): swipe left reveals a red Delete button (a short swipe snaps back, a very long one deletes), press and hold (~0.5 s) opens an Edit / Delete sheet. Vertical scrolling always wins, and the desktop "Fix this" button is unchanged. Delete is not undoable, on purpose: re-creating the entry would lose its source and original text.
+- **Merchant logos: not built.** They would need an extra AI call per entry (cost), guess brand domains (often wrong) and send merchant names to a third-party logo service (privacy). Initials avatars are the cheap, offline alternative if wanted later.

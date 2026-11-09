@@ -1,4 +1,3 @@
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { Alert, Autocomplete, Avatar, Box, Button, Chip, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, LinearProgress, Paper, Skeleton, TextField, Typography } from "@mui/material";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
@@ -7,35 +6,60 @@ import type { ReactNode } from "react";
 import { meQuery, useDeleteMe, useLogout, useUpdateMe } from "../api/auth";
 import { useOverview, useUsage } from "../api/entries";
 import { DemoBanner } from "../components/DemoBanner";
+import { Icon } from "../components/Icon";
 import { TopBar } from "../components/TopBar";
 import { fill, formatDate, formatMoney, normalizeWord } from "../lib/format";
 import { useI18n } from "../i18n";
 import { tokens } from "../theme";
 
-function Section({ title, children }: { title: string; children: ReactNode }) {
+function Section({ title, children, danger }: { title: string; children: ReactNode; danger?: boolean }) {
   return (
-    <Paper variant="outlined" component="section" sx={{ p: { xs: 4, sm: 6 }, borderRadius: 3, display: "grid", gap: 4 }}>
-      <Typography variant="h2" component="h2">{title}</Typography>
+    <Paper
+      variant="outlined" component="section"
+      sx={{ p: { xs: 4, sm: 6 }, borderRadius: 3, display: "grid", gap: 4, ...(danger ? { borderColor: "error.main" } : {}) }}
+    >
+      <Typography variant="h2" component="h2" sx={danger ? { color: "error.main" } : undefined}>{title}</Typography>
       {children}
     </Paper>
   );
 }
 
-function Stat({ label, children }: { label: string; children: ReactNode }) {
+// One number in its own small card (overview grid).
+function Stat({ label, children, note }: { label: string; children: ReactNode; note?: string }) {
   return (
-    <Box>
+    <Paper variant="outlined" sx={{ p: 3.5, borderRadius: 2.5, display: "grid", gap: 1, alignContent: "start", minWidth: 0, bgcolor: "background.default" }}>
       <Typography variant="body2" color="text.secondary">{label}</Typography>
-      <Box sx={{ fontWeight: 600, fontSize: 18 }}>{children}</Box>
-    </Box>
+      <Box sx={{ fontWeight: 600, fontSize: 20, fontVariantNumeric: "tabular-nums", overflowWrap: "anywhere" }}>{children}</Box>
+      {note && <Typography variant="caption" color="text.secondary">{note}</Typography>}
+    </Paper>
   );
 }
 
+const FALLBACK_ZONES = ["UTC", "Asia/Seoul", "Asia/Tashkent", "America/New_York", "Europe/London"];
 function timeZones(): string[] {
   try {
     return (Intl as unknown as { supportedValuesOf: (k: string) => string[] }).supportedValuesOf("timeZone");
   } catch {
-    return ["UTC", "Asia/Seoul", "Asia/Tashkent", "America/New_York", "Europe/London"];
+    return FALLBACK_ZONES;
   }
+}
+
+/** "Asia/Seoul" -> { city: "Seoul", region: "Asia/Seoul", offset: "UTC+9" } */
+const zoneCache = new Map<string, { city: string; offset: string }>();
+function zoneInfo(id: string) {
+  let hit = zoneCache.get(id);
+  if (!hit) {
+    let offset = "";
+    try {
+      const part = new Intl.DateTimeFormat("en", { timeZone: id, timeZoneName: "shortOffset" }).formatToParts(new Date()).find((x) => x.type === "timeZoneName");
+      offset = (part?.value ?? "").replace("GMT", "UTC") || "UTC";
+    } catch {
+      offset = "";
+    }
+    hit = { city: (id.split("/").pop() ?? id).replace(/_/g, " "), offset };
+    zoneCache.set(id, hit);
+  }
+  return hit;
 }
 
 export function MePage() {
@@ -85,7 +109,7 @@ export function MePage() {
       <TopBar />
       <Box component="main" sx={{ flex: 1, width: "100%", maxWidth: 720, mx: "auto", px: { xs: 4, sm: 6 }, py: { xs: 5, sm: 8 }, display: "grid", gap: 5, alignContent: "start" }}>
         <Box>
-          <Button component={Link} to="/app" startIcon={<ArrowBackIcon />} color="inherit" sx={{ ml: -2, mb: 2 }}>{t("me.back")}</Button>
+          <Button component={Link} to="/app" startIcon={<Icon name="arrow-left" size={18} />} color="inherit" sx={{ ml: -2, mb: 2 }}>{t("me.back")}</Button>
           <Typography variant="h1" component="h1">{t("me.title")}</Typography>
         </Box>
 
@@ -109,15 +133,15 @@ export function MePage() {
           {overview.isPending || !o ? (
             <Skeleton variant="rounded" height={120} />
           ) : (
-            <Box sx={{ display: "grid", gap: 4, gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)" } }}>
-              <Box>
-                <Stat label={t("me.entries")}>
-                  {o.total_entries}{" "}
-                  <Typography component="span" color="text.secondary" sx={{ fontWeight: 400 }}>/ {o.entry_limit}</Typography>
-                </Stat>
-                <LinearProgress variant="determinate" value={Math.min(100, (o.total_entries / o.entry_limit) * 100)} sx={{ mt: 2, height: 6, borderRadius: 3 }} />
-              </Box>
-              {o.first_date && <Stat label={t("me.since")}>{formatDate(o.first_date, lang, true)}</Stat>}
+            <Box sx={{ display: "grid", gap: 3, gridTemplateColumns: "repeat(2, minmax(0, 1fr))" }}>
+              <Stat label={t("me.entries")}>
+                {fill(t("me.entriesOf"), { count: o.total_entries, limit: o.entry_limit })}
+                <LinearProgress
+                  variant="determinate" value={Math.min(100, (o.total_entries / o.entry_limit) * 100)}
+                  aria-label={t("me.entries")} sx={{ mt: 1.5, height: 6, borderRadius: 3 }}
+                />
+              </Stat>
+              {o.first_date && <Stat label={t("me.since")} note={t("me.sinceNote")}>{formatDate(o.first_date, lang, true)}</Stat>}
               <Stat label={t("me.spent")}>
                 {o.totals.length === 0 ? (
                   <Typography color="text.secondary">{t("me.noSpending")}</Typography>
@@ -126,9 +150,8 @@ export function MePage() {
                 )}
               </Stat>
               {usage.data && (
-                <Stat label={t("me.aiToday")}>
-                  {usage.data.used}{" "}
-                  <Typography component="span" color="text.secondary" sx={{ fontWeight: 400 }}>/ {usage.data.limit}</Typography>
+                <Stat label={t("me.aiToday")} note={t("me.aiNote")}>
+                  {fill(t("me.entriesOf"), { count: usage.data.used, limit: usage.data.limit })}
                 </Stat>
               )}
             </Box>
@@ -156,24 +179,43 @@ export function MePage() {
             value={timezone}
             disableClearable
             onChange={(_, v) => { setTimezone(v); setSaved(false); }}
-            renderInput={(params) => <TextField {...params} label={t("me.timezone")} helperText={t("me.timezoneHelp")} />}
+            getOptionLabel={(id) => `${zoneInfo(id).city} · ${id}`}
+            renderOption={({ key, ...props }, id) => (
+              <Box component="li" key={key} {...props} sx={{ display: "flex", flexDirection: "column", alignItems: "flex-start !important" }}>
+                <span>{zoneInfo(id).city}</span>
+                <Typography variant="caption" color="text.secondary">{id} · {zoneInfo(id).offset}</Typography>
+              </Box>
+            )}
+            renderInput={(params) => <TextField {...params} label={t("me.timezone")} helperText={`${zoneInfo(timezone).offset} · ${t("me.timezoneHelp")}`} />}
           />
           {updateMe.isError && <Alert severity="error" role="alert">{t("me.error.generic")}</Alert>}
           <Box sx={{ display: "flex", alignItems: "center", gap: 3 }}>
             <Button variant="contained" onClick={save} disabled={!dirty || updateMe.isPending}>{t("me.save")}</Button>
-            {saved && !dirty && <Typography role="status" color="text.secondary">{t("me.saved")}</Typography>}
+            {saved && !dirty && (
+              <Typography role="status" color="primary" sx={{ display: "inline-flex", alignItems: "center", gap: 1 }}>
+                <Icon name="check" size={18} />{t("me.saved")}
+              </Typography>
+            )}
           </Box>
         </Section>
 
         <Section title={t("me.account")}>
           {user.is_demo && <Alert severity="warning">{t("me.demoAccount")}</Alert>}
           <Box>
-            <Button variant="outlined" disabled={logout.isPending} onClick={() => logout.mutate(undefined, { onSuccess: () => navigate({ to: "/" }) })}>
+            <Typography variant="body2" color="text.secondary">{t("me.signedInAs")}</Typography>
+            <Typography sx={{ overflowWrap: "anywhere" }}>{user.email}</Typography>
+          </Box>
+          <Box>
+            <Button variant="outlined" startIcon={<Icon name="logout" size={18} />} disabled={logout.isPending} onClick={() => logout.mutate(undefined, { onSuccess: () => navigate({ to: "/" }) })}>
               {t("me.logout")}
             </Button>
           </Box>
+        </Section>
+
+        <Section title={t("me.danger")} danger>
+          <Typography variant="body2">{t("me.dangerBody")}</Typography>
           <Box>
-            <Button color="error" variant="outlined" onClick={() => { setTyped(""); setConfirmOpen(true); }}>{t("me.delete")}</Button>
+            <Button color="error" variant="outlined" startIcon={<Icon name="trash" size={18} />} onClick={() => { setTyped(""); setConfirmOpen(true); }}>{t("me.delete")}</Button>
           </Box>
         </Section>
       </Box>

@@ -54,7 +54,7 @@ def api_errors() -> Iterator[None]:
                 "You've reached today's fair-use limit for typed entries. "
                 "Please try again tomorrow."
                 if exc.which == "account"
-                else "The demo has reached its daily typing limit for everyone. "
+                else "Parsimony has reached its daily typing limit for everyone. "
                 "Please try again tomorrow."
             )
         else:
@@ -62,7 +62,7 @@ def api_errors() -> Iterator[None]:
             message = (
                 "You've used all of today's smart adds. You can still add entries manually."
                 if exc.which == "account"
-                else "The demo has reached its daily smart add limit for everyone. "
+                else "Parsimony has reached its daily smart add limit for everyone. "
                 "Please try again tomorrow."
             )
         raise HTTPException(

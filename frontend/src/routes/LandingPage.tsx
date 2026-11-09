@@ -1,15 +1,51 @@
 import { Alert, Box, Button, Divider, Paper, Tab, Tabs, TextField, Typography } from "@mui/material";
+import { keyframes } from "@mui/material/styles";
 import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import { ApiError } from "../api/client";
 import { useDemo, useLogin, useSignup } from "../api/auth";
 import { clearExpiredNotice, peekExpiredNotice } from "../lib/session";
+import { Hero } from "../components/Hero";
 import { TopBar } from "../components/TopBar";
 import { useT } from "../i18n";
 import type { TFn } from "../i18n";
 
 type Tab = "signup" | "login";
+
+// Opening moment (1.1 s): the receipt logo prints in, then the page settles. Only opacity, transform and clip-path move.
+const fade = keyframes`from{opacity:0}to{opacity:1}`;
+const settle = keyframes`from{opacity:0;transform:scale(.96)}to{opacity:1;transform:none}`;
+const print = keyframes`from{clip-path:inset(0 0 100% 0)}to{clip-path:inset(0 0 0 0)}`;
+const slideIn = keyframes`from{opacity:0;transform:translateX(-6px)}to{opacity:1;transform:none}`;
+const riseIn = keyframes`from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}`;
+const SEEN = "parsimony.intro";
+
+/** True only on the first landing page view of a browser session. */
+function shouldPlayIntro(): boolean {
+  try {
+    if (sessionStorage.getItem(SEEN)) return false;
+    sessionStorage.setItem(SEEN, "1");
+  } catch {
+    return false; // storage blocked: skip the animation rather than replay it every time
+  }
+  return true;
+}
+
+const introStyles = {
+  "&.intro .i-sq": { transformOrigin: "center", transformBox: "fill-box", animation: `${settle} 200ms ease-out both` },
+  "&.intro .i-paper": { animation: `${print} 360ms cubic-bezier(.4,0,.2,1) 120ms both` },
+  "&.intro .i-p": { animation: `${fade} 200ms ease-out 440ms both` },
+  "&.intro .i-dot": { animation: `${fade} 160ms ease-out 560ms both` },
+  "&.intro .i-word": { animation: `${slideIn} 220ms ease-out 600ms both` },
+  "&.intro .i-s1": { animation: `${riseIn} 260ms ease-out 700ms both` },
+  "&.intro .i-s2": { animation: `${riseIn} 260ms ease-out 760ms both` },
+  "&.intro .i-s3": { animation: `${riseIn} 260ms ease-out 820ms both` },
+  "@media (prefers-reduced-motion: reduce)": {
+    "&.intro .i-sq, &.intro .i-paper, &.intro .i-p, &.intro .i-dot, &.intro .i-word, &.intro .i-s1, &.intro .i-s2, &.intro .i-s3": { animation: "none" },
+    "&.intro": { animation: `${fade} 150ms ease-out both` },
+  },
+} as const;
 type FieldErrors = { email?: string; password?: string };
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -32,6 +68,7 @@ export function LandingPage() {
   const navigate = useNavigate();
   // Read once, then forget, so the notice shows a single time after a session ends.
   const [expiredNotice] = useState(peekExpiredNotice);
+  const [intro, setIntro] = useState(shouldPlayIntro);
   useEffect(() => clearExpiredNotice, []);
   const [tab, setTab] = useState<Tab>("signup");
   const [email, setEmail] = useState("");
@@ -71,14 +108,21 @@ export function LandingPage() {
   }
 
   return (
-    <Box sx={{ minHeight: "100dvh", display: "flex", flexDirection: "column" }}>
-      <TopBar />
+    <Box
+      className={intro ? "intro" : undefined}
+      // Any tap or key press skips straight to the finished page; nothing is blocked while it plays.
+      onPointerDownCapture={intro ? () => setIntro(false) : undefined}
+      onKeyDownCapture={intro ? () => setIntro(false) : undefined}
+      sx={{ minHeight: "100dvh", display: "flex", flexDirection: "column", ...introStyles }}
+    >
+      <TopBar brand={false} />
       <Box component="main" sx={{ flex: 1, display: "flex", justifyContent: "center", px: 4, py: { xs: 8, sm: 14 } }}>
         <Box sx={{ width: "100%", maxWidth: 440 }}>
-          <Typography variant="h1" component="h1" sx={{ mb: 2 }}>{t("landing.title")}</Typography>
-          <Typography color="text.secondary" sx={{ mb: 6 }}>{t("landing.subtitle")}</Typography>
+          <Box sx={{ mb: 6 }}><Hero /></Box>
+          <Typography className="i-s1" variant="h1" component="h1" sx={{ mb: 2 }}>{t("landing.title")}</Typography>
+          <Typography className="i-s2" color="text.secondary" sx={{ mb: 6 }}>{t("landing.subtitle")}</Typography>
 
-          <Paper variant="outlined" sx={{ p: { xs: 4, sm: 6 }, borderRadius: 3 }}>
+          <Paper className="i-s3" variant="outlined" sx={{ p: { xs: 4, sm: 6 }, borderRadius: 3 }}>
             <Tabs
               value={tab}
               onChange={(_, v: Tab) => {

@@ -3,19 +3,32 @@ from collections.abc import Iterator
 from contextlib import contextmanager
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
+from fastapi import (
+    APIRouter,
+    Depends,
+    File,
+    Form,
+    HTTPException,
+    Query,
+    Response,
+    UploadFile,
+    status,
+)
 
-from app.ai.base import AdapterError, TextParser
-from app.ai.registry import get_text_parser
+from app.ai.base import AdapterError, ImageParser, TextParser
+from app.ai.registry import get_image_parser, get_text_parser
+from app.config import get_settings
 from app.deps import CurrentUser, DbSession
 from app.models.enums import UsageKind
+from app.schemas.common import validate_timezone
 from app.schemas.entry import EntryCreate, EntryOut, EntryUpdate
 from app.schemas.parse import ParseTextRequest, ParseTextResponse
-from app.services import entry_service, parse_service, usage_service
+from app.services import entry_service, image_check, parse_service, usage_service
 
 router = APIRouter(prefix="/entries", tags=["entries"])
 
 Parser = Annotated[TextParser, Depends(get_text_parser)]
+PhotoParser = Annotated[ImageParser, Depends(get_image_parser)]
 MonthParam = Annotated[str | None, Query(pattern=r"^\d{4}-(0[1-9]|1[0-2])$")]
 CurrencyParam = Annotated[str | None, Query(pattern=r"^[A-Za-z]{3}$")]
 
@@ -60,6 +73,17 @@ def api_errors() -> Iterator[None]:
                 "message": f"Entry limit reached ({exc.limit}). Delete some entries to add more.",
             },
         ) from None
+    except image_check.EmptyImage:
+        raise HTTPException(422, "The photo was empty. Please try again.") from None
+    except image_check.UnsupportedImage:
+        raise HTTPException(
+            status.HTTP_415_UNSUPPORTED_MEDIA_TYPE, "Please use a JPEG, PNG or WebP photo."
+        ) from None
+    except image_check.ImageTooLarge as exc:
+        raise HTTPException(
+            413,
+            f"That photo is too large (the limit is {exc.limit // (1024 * 1024)} MB).",
+        ) from None
     except parse_service.NotAnExpense:
         raise HTTPException(
             422, "I couldn't find an expense amount in that. Try e.g. 'Lunch $12 cash'."
@@ -93,6 +117,26 @@ def create_entry_from_text(
     """Typed text -> AI -> saved entry."""
     with api_errors():
         return entry_service.create_from_text(db, user, parser, body.text, body.timezone)
+
+
+@router.post("/photo", response_model=EntryOut, status_code=status.HTTP_201_CREATED)
+def create_entry_from_photo(
+    user: CurrentUser,
+    db: DbSession,
+    parser: PhotoParser,
+    file: Annotated[UploadFile, File()],
+    timezone: Annotated[str | None, Form()] = None,
+):
+    """Receipt photo -> AI -> saved entry (source "photo"). The photo itself is never stored."""
+    try:
+        validate_timezone(timezone)
+    except ValueError:
+        raise HTTPException(422, "Unknown timezone.") from None
+    limit = get_settings().max_photo_bytes
+    with api_errors():
+        data = file.file.read(limit + 1)  # one byte more than allowed, so "too large" is detectable
+        mime = image_check.check_photo(data, limit)
+        return entry_service.create_from_photo(db, user, parser, data, mime, timezone)
 
 
 @router.post("/manual", response_model=EntryOut, status_code=status.HTTP_201_CREATED)

@@ -1,4 +1,4 @@
-from app.ai.registry import get_text_parser
+from app.ai.registry import get_image_parser, get_text_parser
 from app.main import app
 
 
@@ -10,6 +10,10 @@ def signup(client, email="me@example.com", password="correct horse battery"):
 
 def use_parser(parser):
     app.dependency_overrides[get_text_parser] = lambda: parser
+
+
+def use_image_parser(parser):
+    app.dependency_overrides[get_image_parser] = lambda: parser
 
 
 def manual_payload(**overrides):

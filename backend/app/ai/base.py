@@ -29,3 +29,9 @@ class RawModelOutput:
 
 class TextParser(Protocol):
     def complete(self, text: str, ctx: ParseContext) -> RawModelOutput: ...
+
+
+class ImageParser(Protocol):
+    """Reads one receipt photo. Same contract as TextParser: raw JSON text back, no validation."""
+
+    def complete_image(self, image: bytes, mime: str, ctx: ParseContext) -> RawModelOutput: ...

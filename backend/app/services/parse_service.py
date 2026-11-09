@@ -1,9 +1,10 @@
 import datetime as dt
 import json
+from collections.abc import Callable
 from dataclasses import dataclass
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
-from app.ai.base import ParseContext, TextParser
+from app.ai.base import ImageParser, ParseContext, RawModelOutput, TextParser
 from app.models import User
 from app.schemas.parse import ParsedEntry
 
@@ -36,8 +37,8 @@ def build_context(user: User, timezone: str | None = None) -> ParseContext:
     )
 
 
-def parse_text(
-    parser: TextParser, text: str, ctx: ParseContext, max_attempts: int = 2
+def _validated(
+    ask: Callable[[], RawModelOutput], ctx: ParseContext, max_attempts: int
 ) -> ParseOutcome:
     """Ask the model, validate the answer, retry once if it was unusable.
 
@@ -45,7 +46,7 @@ def parse_text(
     """
     last_error: Exception | None = None
     for _ in range(max_attempts):
-        output = parser.complete(text, ctx)
+        output = ask()
         try:
             data = json.loads(output.text)
             if not isinstance(data, dict):
@@ -62,3 +63,15 @@ def parse_text(
             continue
         return ParseOutcome(entry=entry, raw=data, model_used=output.model)
     raise ParseFailed("model output stayed invalid") from last_error
+
+
+def parse_text(
+    parser: TextParser, text: str, ctx: ParseContext, max_attempts: int = 2
+) -> ParseOutcome:
+    return _validated(lambda: parser.complete(text, ctx), ctx, max_attempts)
+
+
+def parse_image(
+    parser: ImageParser, image: bytes, mime: str, ctx: ParseContext, max_attempts: int = 2
+) -> ParseOutcome:
+    return _validated(lambda: parser.complete_image(image, mime, ctx), ctx, max_attempts)

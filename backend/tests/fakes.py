@@ -31,3 +31,18 @@ class FakeParser:
         if isinstance(answer, Exception):
             raise answer
         return RawModelOutput(text=answer, model="fake-model")
+
+
+class FakeImageParser:
+    """Returns scripted answers for receipt photos and records how it was called."""
+
+    def __init__(self, *answers: str | Exception) -> None:
+        self._answers = list(answers)
+        self.calls: list[tuple[bytes, str, ParseContext]] = []
+
+    def complete_image(self, image: bytes, mime: str, ctx: ParseContext) -> RawModelOutput:
+        self.calls.append((image, mime, ctx))
+        answer = self._answers.pop(0) if len(self._answers) > 1 else self._answers[0]
+        if isinstance(answer, Exception):
+            raise answer
+        return RawModelOutput(text=answer, model="fake-vision-model")

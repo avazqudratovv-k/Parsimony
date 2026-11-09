@@ -14,6 +14,7 @@ dependencies = [
     "itsdangerous>=2.2",
     "google-genai>=3.0",
     "tzdata>=2024.1",
+    "python-multipart>=0.0.9",
 ]
 
 [project.optional-dependencies]

@@ -173,3 +173,10 @@
 - Typed entries still call the model, so the typed global cap protects the Gemini free quota. Values are settings (`TEXT_DAILY_CAP_*`).
 - New error codes `typed_limit_account` / `typed_limit_global` with their own translated messages.
 - Receipt photos are deleted right after they are read; only the extracted entry is kept (privacy, less storage). Photos use the same Gemini key.
+
+## Day 11: receipt photos (backend)
+- `POST /api/entries/photo` (multipart: `file`, optional `timezone`): photo -> Gemini -> validated JSON -> saved entry with `source = "photo"`. Costs one smart add; uses the same validation and one retry as typed entries.
+- The photo is held in memory only and never written to disk or the database, so there is nothing to delete later (the `attachments` table stays unused for photos). Only the entry the model read is kept.
+- The real file type is detected from the first bytes (JPEG, PNG, WebP), not the label the browser sends. Limit 8 MB (`MAX_PHOTO_BYTES`). Checks run before a smart add is spent: file type, size, entry room, timezone.
+- The receipt prompt asks for the final total paid (not a subtotal), the printed date and currency, and forbids card numbers, names, addresses and phone numbers in the note. Text written on the photo is treated as data, not instructions.
+- `GEMINI_VISION_MODEL` is optional; empty means the text model is used (it accepts images). Not yet tested against the real Gemini API: the first real test is on the server once the frontend exists (Day 12).

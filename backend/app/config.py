@@ -14,6 +14,10 @@ class Settings(BaseSettings):
     secret_key: str = "change-me"
     gemini_api_key: str = ""
     gemini_text_model: str = "gemini-3.5-flash-lite"
+    # Model that reads receipt photos. Empty means: use the text model (it accepts images).
+    gemini_vision_model: str = ""
+    # Largest receipt photo accepted. The app shrinks photos before sending, so this is generous.
+    max_photo_bytes: int = 8 * 1024 * 1024
     session_max_age_seconds: int = 7 * 24 * 3600
 
     # "Smart adds" (receipt photo, voice) are capped per day, reset at 00:00 UTC.

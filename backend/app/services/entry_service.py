@@ -4,7 +4,7 @@ import uuid
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from app.ai.base import TextParser
+from app.ai.base import ImageParser, TextParser
 from app.config import get_settings
 from app.models import Entry, User
 from app.models.enums import UsageKind
@@ -47,6 +47,7 @@ def _save(
     confidence: float,
     model_used: str,
     ai_output: dict | None,
+    source: str = "text",
 ) -> Entry:
     entry = Entry(
         user_id=user.id,
@@ -57,7 +58,7 @@ def _save(
         currency=data.currency,
         category=data.category.value,
         payment_method=data.payment_method.value,
-        source="text",
+        source=source,
         raw_input=raw_input,
         confidence=confidence,
         model_used=model_used,
@@ -85,6 +86,34 @@ def create_from_text(
         confidence=outcome.entry.confidence,
         model_used=outcome.model_used,
         ai_output=outcome.raw,
+    )
+
+
+def create_from_photo(
+    db: Session,
+    user: User,
+    parser: ImageParser,
+    image: bytes,
+    mime: str,
+    timezone: str | None,
+) -> Entry:
+    """Receipt photo -> model -> validated JSON -> saved entry. Costs one smart add.
+
+    The photo stays in memory: it is not saved anywhere, only the entry the model read from it.
+    """
+    _check_room(db, user)  # before the AI call, so a full account never spends a smart add
+    usage_service.consume(db, user, UsageKind.VISION)
+    ctx = parse_service.build_context(user, timezone)
+    outcome = parse_service.parse_image(parser, image, mime, ctx)
+    return _save(
+        db,
+        user,
+        outcome.entry,
+        raw_input=None,
+        confidence=outcome.entry.confidence,
+        model_used=outcome.model_used,
+        ai_output=outcome.raw,
+        source="photo",
     )
 
 

@@ -149,3 +149,10 @@ export function uncertainWords(t: TFn, lang: Lang, entries: Entry[]): string {
   const fields = [...new Set(entries.filter(needsCheck).flatMap((e) => e.uncertain ?? []))];
   return fields.filter((f) => f in names).map((f) => names[f].toLocaleLowerCase(lang)).join(", ");
 }
+
+// One amount per currency, "$50.00 + ₩150,000". Used for a day and for a purchase with several items.
+export function totalLabel(items: Entry[], lang: Lang): string {
+  const sums = new Map<string, number>();
+  for (const e of items) sums.set(e.currency, (sums.get(e.currency) ?? 0) + Number(e.amount));
+  return [...sums].map(([cur, sum]) => formatMoney((Math.round(sum * 100) / 100).toFixed(2), cur, lang)).join(" + ");
+}

@@ -382,6 +382,18 @@ describe("checking what the AI was unsure about", () => {
     expect(calls.find((c) => c.method === "PATCH")!.body).toEqual({ confirmed: true });
   });
 
+  it("lists the items of one purchase as a single row with the total", async () => {
+    const part = (id: string, note: string, amount: string) => ({
+      ...ENTRY, id, merchant: "GS25", note, amount, group_id: "grp", confidence: 0.5, uncertain: ["category"],
+    });
+    signedInApi({}, [part("a", "Milk", "2.00"), part("b", "Shampoo", "5.50")]);
+    renderApp("/app");
+    const card = within(await screen.findByRole("region", { name: "Needs a check" }));
+    expect(card.getAllByRole("listitem")).toHaveLength(1);
+    expect(card.getByText("$7.50")).toBeInTheDocument();
+    expect(card.getByText("Not sure about: category")).toBeInTheDocument();
+  });
+
   it("an entry the user has confirmed is no longer flagged", async () => {
     signedInApi({}, [{ ...UNSURE, confirmed: true }]);
     renderApp("/app");

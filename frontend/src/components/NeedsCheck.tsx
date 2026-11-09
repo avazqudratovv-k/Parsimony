@@ -1,6 +1,6 @@
 import { Box, Paper, Typography } from "@mui/material";
 import type { Entry } from "../api/types";
-import { fill, formatMoney, needsCheck, uncertainWords } from "../lib/format";
+import { fill, needsCheck, totalLabel, uncertainWords } from "../lib/format";
 import { useI18n } from "../i18n";
 import { useTokens } from "../theme";
 import { Icon } from "./Icon";
@@ -9,7 +9,10 @@ import { Icon } from "./Icon";
 export function NeedsCheck({ entries, onOpen }: { entries: Entry[]; onOpen: (id: string) => void }) {
   const { t, lang } = useI18n();
   const c = useTokens();
-  const flagged = entries.filter(needsCheck);
+  // Items of one purchase are one row: they share one AI answer and are checked together.
+  const rows = new Map<string, Entry[]>();
+  for (const e of entries.filter(needsCheck)) rows.set(e.group_id ?? e.id, [...(rows.get(e.group_id ?? e.id) ?? []), e]);
+  const flagged = [...rows.values()];
   if (flagged.length === 0) return null;
   return (
     <Paper variant="outlined" component="section" aria-label={t("check.title")} sx={{ p: 4, borderRadius: 3 }}>
@@ -22,8 +25,10 @@ export function NeedsCheck({ entries, onOpen }: { entries: Entry[]; onOpen: (id:
       </Box>
       <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>{t("check.help")}</Typography>
       <Box component="ul" sx={{ listStyle: "none", m: 0, mt: 2, p: 0 }}>
-        {flagged.slice(0, 5).map((e) => (
-          <li key={e.id}>
+        {flagged.slice(0, 5).map((group) => {
+          const e = group[0];
+          return (
+          <li key={e.group_id ?? e.id}>
             <Box
               component="button"
               type="button"
@@ -35,18 +40,19 @@ export function NeedsCheck({ entries, onOpen }: { entries: Entry[]; onOpen: (id:
             >
               <Box sx={{ minWidth: 0 }}>
                 <Typography noWrap sx={{ fontSize: 14 }}>{e.merchant ?? e.note ?? t("entry.noMerchant")}</Typography>
-                {uncertainWords(t, lang, [e]) && (
+                {uncertainWords(t, lang, group) && (
                   <Typography noWrap sx={{ fontSize: 12, color: c.warn }}>
-                    {fill(t("check.notSure"), { fields: uncertainWords(t, lang, [e]) })}
+                    {fill(t("check.notSure"), { fields: uncertainWords(t, lang, group) })}
                   </Typography>
                 )}
               </Box>
               <Typography sx={{ fontSize: 14, fontWeight: 500, fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap" }}>
-                {formatMoney(e.amount, e.currency, lang)}
+                {totalLabel(group, lang)}
               </Typography>
             </Box>
           </li>
-        ))}
+          );
+        })}
       </Box>
     </Paper>
   );

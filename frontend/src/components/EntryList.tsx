@@ -4,9 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
 import { useDeleteEntry } from "../api/entries";
 import type { Entry } from "../api/types";
-import type { Lang } from "../i18n";
 import {
-  categoryLabel, currentDate, fill, formatDay, formatMoney, formatTime, needsCheck, paymentLabel, shiftDate, uncertainWords,
+  categoryLabel, currentDate, fill, formatDay, formatMoney, formatTime, needsCheck, totalLabel, paymentLabel, shiftDate, uncertainWords,
 } from "../lib/format";
 import { useI18n } from "../i18n";
 import { DESKTOP, useTokens } from "../theme";
@@ -16,12 +15,6 @@ import { Icon } from "./Icon";
 import { useToast } from "./Toast";
 
 // One day's total per currency, e.g. "$54.70" or "₩15,000 + $18.00" when a day mixes currencies.
-function dayTotal(items: Entry[], lang: Lang): string {
-  const sums = new Map<string, number>();
-  for (const e of items) sums.set(e.currency, (sums.get(e.currency) ?? 0) + Number(e.amount));
-  return [...sums].map(([cur, sum]) => formatMoney((Math.round(sum * 100) / 100).toFixed(2), cur, lang)).join(" + ");
-}
-
 const SOURCE_ICON = { text: "keyboard", voice: "mic", photo: "camera" } as const;
 
 const REVEAL = 88; // px of the red Delete button revealed by a swipe
@@ -119,7 +112,7 @@ function EntryRow({ group, timeZone, desktop, onOpen, onDelete, onActions }: Row
     formatTime(entry.created_at, timeZone),
   ].filter(Boolean) as string[];
   const source = (entry.source in SOURCE_ICON ? entry.source : "text") as keyof typeof SOURCE_ICON;
-  const amount = multi ? dayTotal(group, lang) : formatMoney(entry.amount, entry.currency, lang); // one total per currency
+  const amount = multi ? totalLabel(group, lang) : formatMoney(entry.amount, entry.currency, lang); // one total per currency
   const biggest = [...group].sort((a, b) => Number(b.amount) - Number(a.amount))[0];
   const tap = (id: string) => () => {
     if (g.current.suppressClick) { g.current.suppressClick = false; return; }
@@ -362,7 +355,7 @@ export function EntryList({ query, isCurrentMonth, timeZone, onOpen }: Props) {
                 {fill(t(count === 1 ? "chart.count.one" : "chart.count.other"), { count })}
                 {" · "}
                 <strong style={{ color: c.ink, fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>
-                  {fill(t("day.total"), { amount: dayTotal(g.items, lang) })}
+                  {fill(t("day.total"), { amount: totalLabel(g.items, lang) })}
                 </strong>
               </span>
             </Box>

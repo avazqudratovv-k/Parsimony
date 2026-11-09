@@ -1,15 +1,14 @@
 import datetime as dt
 import secrets
 from decimal import Decimal
-from pathlib import Path
 
-from sqlalchemy import delete, func, select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.config import get_settings
 from app.core.clock import utcnow
-from app.models import Attachment, Entry, UsageCounter, User
-from app.services import parse_service
+from app.models import Entry, User
+from app.services import account_service, parse_service
 from app.services.demo_data import SAMPLE_ENTRIES
 
 DEMO_EMAIL_DOMAIN = "demo.parsimony.invalid"  # .invalid can never be a real address
@@ -96,18 +95,5 @@ def delete_expired_demo_users(db: Session, now: dt.datetime | None = None) -> in
     if not expired:
         return 0
 
-    file_paths = list(db.scalars(select(Attachment.path).where(Attachment.user_id.in_(expired))))
-    db.execute(delete(UsageCounter).where(UsageCounter.scope.in_([f"u:{i}" for i in expired])))
-    # Entries and attachments go too, through the database's ON DELETE CASCADE.
-    db.execute(delete(User).where(User.id.in_(expired)))
-    db.commit()
-    _remove_files(file_paths)
+    account_service.delete_users(db, expired)
     return len(expired)
-
-
-def _remove_files(relative_paths: list[str]) -> None:
-    root = Path(get_settings().upload_dir).resolve()
-    for relative in relative_paths:
-        target = (root / relative).resolve()
-        if root in target.parents:  # never delete outside the upload folder
-            target.unlink(missing_ok=True)

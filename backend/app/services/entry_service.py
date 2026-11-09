@@ -18,9 +18,13 @@ class EntryLimitReached(Exception):
         self.limit = limit
 
 
-def _check_room(db: Session, user: User) -> None:
+def entry_limit(user: User) -> int:
     settings = get_settings()
-    limit = settings.max_entries_demo if user.is_demo else settings.max_entries_user
+    return settings.max_entries_demo if user.is_demo else settings.max_entries_user
+
+
+def _check_room(db: Session, user: User) -> None:
+    limit = entry_limit(user)
     count = db.scalar(select(func.count()).select_from(Entry).where(Entry.user_id == user.id))
     if (count or 0) >= limit:
         raise EntryLimitReached(limit)

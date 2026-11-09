@@ -29,3 +29,12 @@ class UsageStatus(BaseModel):
     used: int
     limit: int
     resets_at: dt.datetime
+
+
+class Overview(BaseModel):
+    """Everything-so-far numbers for the My page screen. No currency conversion."""
+
+    total_entries: int
+    entry_limit: int
+    first_date: dt.date | None  # the oldest entry's date, None when there are no entries
+    totals: list[CurrencyTotal]  # all-time spending per currency, biggest first

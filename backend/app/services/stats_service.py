@@ -4,8 +4,8 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.models import Entry, User
-from app.schemas.stats import CategoryTotal, CurrencyTotal, MonthlyStats
-from app.services.entry_service import month_bounds
+from app.schemas.stats import CategoryTotal, CurrencyTotal, MonthlyStats, Overview
+from app.services.entry_service import entry_limit, month_bounds
 
 
 def monthly_stats(db: Session, user: User, month: str, currency: str | None) -> MonthlyStats:
@@ -43,4 +43,20 @@ def monthly_stats(db: Session, user: User, month: str, currency: str | None) -> 
         count=sum(c.count for c in by_category),
         by_category=by_category,
         currencies=currencies,
+    )
+
+
+def overview(db: Session, user: User) -> Overview:
+    rows = db.execute(
+        select(Entry.currency, func.sum(Entry.amount), func.count())
+        .where(Entry.user_id == user.id)
+        .group_by(Entry.currency)
+        .order_by(func.sum(Entry.amount).desc())
+    ).all()
+    first = db.scalar(select(func.min(Entry.date)).where(Entry.user_id == user.id))
+    return Overview(
+        total_entries=sum(n for _, _, n in rows),
+        entry_limit=entry_limit(user),
+        first_date=first,
+        totals=[CurrencyTotal(currency=c, total=t, count=n) for c, t, n in rows],
     )

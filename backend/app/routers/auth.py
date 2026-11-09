@@ -6,8 +6,8 @@ from app.config import get_settings
 from app.core.rate_limit import demo_limiter, login_limiter, signup_limiter
 from app.core.security import create_session_token
 from app.deps import SESSION_COOKIE, CurrentUser, DbSession
-from app.schemas.auth import DemoRequest, LoginRequest, SignupRequest, UserOut
-from app.services import auth_service, demo_service
+from app.schemas.auth import DemoRequest, LoginRequest, SignupRequest, UserOut, UserUpdate
+from app.services import account_service, auth_service, demo_service
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -78,3 +78,17 @@ def logout() -> Response:
 @router.get("/me", response_model=UserOut)
 def me(user: CurrentUser):
     return user
+
+
+@router.patch("/me", response_model=UserOut)
+def update_me(body: UserUpdate, user: CurrentUser, db: DbSession):
+    return account_service.update_settings(db, user, body.default_currency, body.timezone)
+
+
+@router.delete("/me", status_code=status.HTTP_204_NO_CONTENT)
+def delete_me(user: CurrentUser, db: DbSession) -> Response:
+    """Delete the account and everything in it: entries, usage counters, uploaded files."""
+    account_service.delete_account(db, user)
+    response = Response(status_code=status.HTTP_204_NO_CONTENT)
+    response.delete_cookie(SESSION_COOKIE, path="/")
+    return response

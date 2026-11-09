@@ -94,3 +94,13 @@
 - Logo: icon files from the design system (rounded green square with italic "p."), PNGs rendered from the SVG.
   The wordmark is live text in Newsreader Italic. The service worker and offline support come on Day 12.
 - Fonts are self-hosted through `@fontsource` (Inter, Newsreader italic, Noto Sans KR) so no request goes to Google.
+
+## My page (backend)
+- A third screen, "My page" (`/me`), opened from the add bar: all-time overview, settings, log out, delete account.
+- `GET /api/stats/overview`: entry count, the entry limit, the oldest entry date and all-time totals per currency
+  (never converted). Month views stay on `/stats/monthly`; today's AI use stays on `/usage`.
+- `PATCH /api/auth/me`: only default currency (3 letters, upper-cased) and timezone (IANA name). Email and
+  password changes are deliberately left out of v1: they need re-authentication and a reset flow.
+- `DELETE /api/auth/me`: removes the account, entries, usage counters and uploaded files, and clears the cookie.
+  It shares `account_service.delete_users` with the demo cleanup, so there is one deletion path to get right.
+  The "type delete to confirm" step is a frontend safeguard; SameSite=Lax cookies already stop cross-site requests.

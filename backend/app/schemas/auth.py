@@ -34,3 +34,17 @@ class UserOut(BaseModel):
     default_currency: str
     timezone: str
     expires_at: dt.datetime | None
+
+
+class UserUpdate(BaseModel):
+    """My page edits. Leave a field out to keep it as it is."""
+
+    default_currency: str | None = Field(default=None, pattern=r"^[A-Za-z]{3}$")
+    timezone: str | None = None
+
+    _check_timezone = field_validator("timezone")(validate_timezone)
+
+    @field_validator("default_currency")
+    @classmethod
+    def _upper(cls, value: str | None) -> str | None:
+        return value.upper() if value else value

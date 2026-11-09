@@ -4,7 +4,7 @@ from typing import Annotated
 from fastapi import APIRouter, Query
 
 from app.deps import CurrentUser, DbSession
-from app.schemas.stats import MonthlyStats, UsageStatus
+from app.schemas.stats import MonthlyStats, Overview, UsageStatus
 from app.services import parse_service, stats_service, usage_service
 
 router = APIRouter(tags=["stats"])
@@ -22,6 +22,12 @@ def monthly(
         today: dt.date = parse_service.build_context(user).today
         month = today.strftime("%Y-%m")
     return stats_service.monthly_stats(db, user, month, currency)
+
+
+@router.get("/stats/overview", response_model=Overview)
+def overview(user: CurrentUser, db: DbSession):
+    """All-time numbers for the My page screen."""
+    return stats_service.overview(db, user)
 
 
 @router.get("/usage", response_model=UsageStatus)

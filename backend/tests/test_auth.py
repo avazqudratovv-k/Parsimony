@@ -73,3 +73,12 @@ def test_signup_is_rate_limited(client):
     for i in range(5):
         assert signup(client, email=f"user{i}@example.com").status_code == 201
     assert signup(client, email="user99@example.com").status_code == 429
+
+
+def test_rate_limit_scale_raises_the_limit(client, monkeypatch):
+    # Only the browser tests turn this up; with scale 2 the sixth sign-up still works.
+    from app.config import get_settings
+
+    monkeypatch.setattr(get_settings(), "rate_limit_scale", 2)
+    for i in range(6):
+        assert signup(client, email=f"scaled{i}@example.com").status_code == 201

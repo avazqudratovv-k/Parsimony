@@ -1,9 +1,10 @@
 import { Alert, Box, Button, Divider, Paper, Tab, Tabs, TextField, Typography } from "@mui/material";
 import { useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import { ApiError } from "../api/client";
 import { useDemo, useLogin, useSignup } from "../api/auth";
+import { clearExpiredNotice, peekExpiredNotice } from "../lib/session";
 import { TopBar } from "../components/TopBar";
 import { useT } from "../i18n";
 import type { TFn } from "../i18n";
@@ -29,6 +30,9 @@ export function authErrorMessage(e: unknown, t: TFn, tab: Tab): string {
 export function LandingPage() {
   const t = useT();
   const navigate = useNavigate();
+  // Read once, then forget, so the notice shows a single time after a session ends.
+  const [expiredNotice] = useState(peekExpiredNotice);
+  useEffect(() => clearExpiredNotice, []);
   const [tab, setTab] = useState<Tab>("signup");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -108,6 +112,7 @@ export function LandingPage() {
                 error={!!errors.password}
                 helperText={errors.password ?? (tab === "signup" ? t("auth.passwordHint") : undefined)}
               />
+              {expiredNotice && !serverError && <Alert severity="info">{t("session.expired")}</Alert>}
               {serverError && (
                 <Alert severity="error" role="alert">
                   {authErrorMessage(serverError, t, serverTab)}

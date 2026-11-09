@@ -1,5 +1,5 @@
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import { Alert, Autocomplete, Box, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, LinearProgress, Paper, Skeleton, TextField, Typography } from "@mui/material";
+import { Alert, Autocomplete, Avatar, Box, Button, Chip, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, LinearProgress, Paper, Skeleton, TextField, Typography } from "@mui/material";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
@@ -8,8 +8,9 @@ import { meQuery, useDeleteMe, useLogout, useUpdateMe } from "../api/auth";
 import { useOverview, useUsage } from "../api/entries";
 import { DemoBanner } from "../components/DemoBanner";
 import { TopBar } from "../components/TopBar";
-import { fill, formatDate, formatMoney } from "../lib/format";
+import { fill, formatDate, formatMoney, normalizeWord } from "../lib/format";
 import { useI18n } from "../i18n";
+import { tokens } from "../theme";
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
@@ -47,6 +48,7 @@ export function MePage() {
   const logout = useLogout();
   const deleteMe = useDeleteMe();
 
+  const [name, setName] = useState(user?.display_name ?? "");
   const [currency, setCurrency] = useState(user?.default_currency ?? "USD");
   const [timezone, setTimezone] = useState(user?.timezone ?? "UTC");
   const [currencyError, setCurrencyError] = useState<string | null>(null);
@@ -55,14 +57,25 @@ export function MePage() {
   const [typed, setTyped] = useState("");
 
   if (!user) return null;
-  const dirty = currency !== user.default_currency || timezone !== user.timezone;
+  const nameChanged = name.trim() !== (user.display_name ?? "");
+  const dirty = nameChanged || currency !== user.default_currency || timezone !== user.timezone;
+  const shownName = user.display_name ?? user.email.split("@")[0];
+  const initial = (Array.from(shownName)[0] ?? "?").toUpperCase();
   const word = t("me.delete.word");
+  // The translated word works, and so does plain English "delete" on any keyboard.
+  const accepted = [normalizeWord(word), "delete"];
 
   function save() {
+    if (!user) return;
     setSaved(false);
     if (!/^[A-Za-z]{3}$/.test(currency.trim())) return setCurrencyError(t("me.error.currency"));
     setCurrencyError(null);
-    updateMe.mutate({ default_currency: currency.trim().toUpperCase(), timezone }, { onSuccess: () => setSaved(true) });
+    // Send only what changed.
+    const changes: { default_currency?: string; timezone?: string; display_name?: string | null } = {};
+    if (nameChanged) changes.display_name = name.trim() || null;
+    if (currency.trim().toUpperCase() !== user.default_currency) changes.default_currency = currency.trim().toUpperCase();
+    if (timezone !== user.timezone) changes.timezone = timezone;
+    updateMe.mutate(changes, { onSuccess: () => setSaved(true) });
   }
 
   const o = overview.data;
@@ -76,13 +89,32 @@ export function MePage() {
           <Typography variant="h1" component="h1">{t("me.title")}</Typography>
         </Box>
 
+        <Paper variant="outlined" component="section" aria-label={t("me.account")} sx={{ p: { xs: 4, sm: 6 }, borderRadius: 3, display: "flex", alignItems: "center", gap: 4 }}>
+          <Avatar
+            aria-hidden
+            sx={(theme) => ({ width: 64, height: 64, fontSize: 28, fontWeight: 600, bgcolor: tokens[theme.palette.mode].accentSoft, color: "primary.main" })}
+          >
+            {initial}
+          </Avatar>
+          <Box sx={{ minWidth: 0 }}>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 2, flexWrap: "wrap" }}>
+              <Typography variant="h2" component="p" sx={{ overflowWrap: "anywhere" }}>{shownName}</Typography>
+              {user.is_demo && <Chip size="small" label={t("me.demoChip")} />}
+            </Box>
+            <Typography variant="body2" color="text.secondary" sx={{ overflowWrap: "anywhere" }}>{user.email}</Typography>
+          </Box>
+        </Paper>
+
         <Section title={t("me.overview")}>
           {overview.isPending || !o ? (
             <Skeleton variant="rounded" height={120} />
           ) : (
-            <Box sx={{ display: "grid", gap: 4 }}>
+            <Box sx={{ display: "grid", gap: 4, gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)" } }}>
               <Box>
-                <Stat label={t("me.entries")}>{fill(t("me.entriesOf"), { count: o.total_entries, limit: o.entry_limit })}</Stat>
+                <Stat label={t("me.entries")}>
+                  {o.total_entries}{" "}
+                  <Typography component="span" color="text.secondary" sx={{ fontWeight: 400 }}>/ {o.entry_limit}</Typography>
+                </Stat>
                 <LinearProgress variant="determinate" value={Math.min(100, (o.total_entries / o.entry_limit) * 100)} sx={{ mt: 2, height: 6, borderRadius: 3 }} />
               </Box>
               {o.first_date && <Stat label={t("me.since")}>{formatDate(o.first_date, lang, true)}</Stat>}
@@ -93,12 +125,24 @@ export function MePage() {
                   o.totals.map((c) => <Box key={c.currency}>{formatMoney(c.total, c.currency, lang)}</Box>)
                 )}
               </Stat>
-              {usage.data && <Stat label={t("me.aiToday")}>{fill(t("me.entriesOf"), { count: usage.data.used, limit: usage.data.limit })}</Stat>}
+              {usage.data && (
+                <Stat label={t("me.aiToday")}>
+                  {usage.data.used}{" "}
+                  <Typography component="span" color="text.secondary" sx={{ fontWeight: 400 }}>/ {usage.data.limit}</Typography>
+                </Stat>
+              )}
             </Box>
           )}
         </Section>
 
         <Section title={t("me.settings")}>
+          <TextField
+            label={t("me.displayName")}
+            value={name}
+            onChange={(e) => { setName(e.target.value); setSaved(false); }}
+            helperText={t("me.displayNameHelp")}
+            slotProps={{ htmlInput: { maxLength: 80 } }}
+          />
           <TextField
             label={t("me.currency")}
             value={currency}
@@ -122,9 +166,6 @@ export function MePage() {
         </Section>
 
         <Section title={t("me.account")}>
-          <Stat label={t("me.signedInAs")}>
-            <Box sx={{ overflowWrap: "anywhere", fontSize: 15 }}>{user.email}</Box>
-          </Stat>
           {user.is_demo && <Alert severity="warning">{t("me.demoAccount")}</Alert>}
           <Box>
             <Button variant="outlined" disabled={logout.isPending} onClick={() => logout.mutate(undefined, { onSuccess: () => navigate({ to: "/" }) })}>
@@ -141,7 +182,7 @@ export function MePage() {
         <DialogTitle id="del-title">{t("me.delete.title")}</DialogTitle>
         <DialogContent sx={{ display: "grid", gap: 4 }}>
           <DialogContentText>{t("me.delete.body")}</DialogContentText>
-          <TextField autoFocus label={t("me.delete.type")} value={typed} onChange={(e) => setTyped(e.target.value)} autoComplete="off" />
+          <TextField autoFocus label={fill(t("me.delete.type"), { word })} value={typed} onChange={(e) => setTyped(e.target.value)} autoComplete="off" />
           {deleteMe.isError && <Alert severity="error" role="alert">{t("me.delete.error")}</Alert>}
         </DialogContent>
         <DialogActions sx={{ px: 6, pb: 4, gap: 2 }}>
@@ -149,7 +190,7 @@ export function MePage() {
           <Button
             color="error"
             variant="contained"
-            disabled={typed.trim().toLowerCase() !== word.toLowerCase() || deleteMe.isPending}
+            disabled={!accepted.includes(normalizeWord(typed)) || deleteMe.isPending}
             onClick={() => deleteMe.mutate(undefined, { onSuccess: () => navigate({ to: "/" }) })}
           >
             {t("me.delete.confirm")}

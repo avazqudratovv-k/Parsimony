@@ -82,7 +82,7 @@ def me(user: CurrentUser):
 
 @router.patch("/me", response_model=UserOut)
 def update_me(body: UserUpdate, user: CurrentUser, db: DbSession):
-    return account_service.update_settings(db, user, body.default_currency, body.timezone)
+    return account_service.update_settings(db, user, body.model_dump(exclude_unset=True))
 
 
 @router.delete("/me", status_code=status.HTTP_204_NO_CONTENT)

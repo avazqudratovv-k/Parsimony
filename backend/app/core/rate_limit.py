@@ -3,6 +3,8 @@ from collections import defaultdict, deque
 
 from fastapi import HTTPException, Request, status
 
+from app.config import get_settings
+
 
 class RateLimiter:
     """Sliding-window limit per client IP, kept in memory.
@@ -22,7 +24,8 @@ class RateLimiter:
         hits = self._hits[key]
         while hits and now - hits[0] > self.window_seconds:
             hits.popleft()
-        if len(hits) >= self.max_calls:
+        # RATE_LIMIT_SCALE exists only so browser tests (many sign-ups from one IP) are not blocked.
+        if len(hits) >= self.max_calls * get_settings().rate_limit_scale:
             raise HTTPException(
                 status_code=status.HTTP_429_TOO_MANY_REQUESTS,
                 detail="Too many attempts. Please try again later.",

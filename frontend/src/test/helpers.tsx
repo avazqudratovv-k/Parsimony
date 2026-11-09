@@ -1,7 +1,8 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClientProvider } from "@tanstack/react-query";
 import { RouterProvider } from "@tanstack/react-router";
 import { render } from "@testing-library/react";
 import { vi } from "vitest";
+import { createQueryClient } from "../lib/session";
 import { I18nProvider } from "../i18n";
 import type { Lang } from "../i18n";
 import { createAppRouter, memoryHistory } from "../router";
@@ -10,6 +11,7 @@ import { AppThemeProvider } from "../theme";
 export const USER = {
   id: "11111111-1111-1111-1111-111111111111",
   email: "me@example.com",
+  display_name: null,
   is_demo: false,
   default_currency: "USD",
   timezone: "Asia/Seoul",
@@ -25,7 +27,10 @@ export function mockApi(routes: Record<string, Handler | { status: number; body?
     const url = String(input);
     const method = init?.method ?? "GET";
     calls.push({ url, method, body: init?.body ? JSON.parse(String(init.body)) : undefined });
-    const route = routes[`${method} ${url}`];
+    const exact = `${method} ${url}`;
+    // A key ending in "*" matches any URL with that prefix (e.g. "GET /api/entries?*").
+    const wild = Object.keys(routes).find((k) => k.endsWith("*") && exact.startsWith(k.slice(0, -1)));
+    const route = routes[exact] ?? (wild ? routes[wild] : undefined);
     if (!route) throw new Error(`Unmocked request: ${method} ${url}`);
     const r = typeof route === "function" ? route(url, init) : route;
     return new Response(r.body === undefined ? null : JSON.stringify(r.body), { status: r.status });
@@ -35,7 +40,7 @@ export function mockApi(routes: Record<string, Handler | { status: number; body?
 }
 
 export function renderApp(path: string, lang: Lang = "en") {
-  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  const queryClient = createQueryClient(() => void router.navigate({ to: "/" }), false);
   const router = createAppRouter(queryClient, memoryHistory(path));
   const utils = render(
     <QueryClientProvider client={queryClient}>
@@ -78,11 +83,21 @@ export const OVERVIEW = {
   ],
 };
 
+export const MONTHLY = {
+  month: "2026-11",
+  currency: "USD",
+  total: "6.50",
+  count: 1,
+  by_category: [{ category: "food_drink", total: "6.50", count: 1 }],
+  currencies: [{ currency: "USD", total: "6.50", count: 1 }],
+};
+
 /** Signed in, with the dashboard's data endpoints answered. Pass extras to override or add routes. */
 export function signedInApi(extra: Record<string, Handler | { status: number; body?: unknown }> = {}, entries: unknown[] = [ENTRY]) {
   return mockApi({
     "GET /api/auth/me": { status: 200, body: USER },
-    "GET /api/entries?limit=100": { status: 200, body: entries },
+    "GET /api/entries?*": { status: 200, body: entries },
+    "GET /api/stats/monthly?*": { status: 200, body: MONTHLY },
     "GET /api/usage": { status: 200, body: USAGE },
     "GET /api/stats/overview": { status: 200, body: OVERVIEW },
     ...extra,

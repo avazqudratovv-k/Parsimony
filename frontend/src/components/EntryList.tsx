@@ -53,9 +53,9 @@ function EntryRow({ entry, onOpen }: { entry: Entry; onOpen: () => void }) {
   );
 }
 
-export function EntryList() {
+export function EntryList({ month, isCurrentMonth }: { month: string; isCurrentMonth: boolean }) {
   const t = useI18n().t;
-  const { data, isPending, isError, refetch } = useEntries();
+  const { data, isPending, isError, refetch } = useEntries(month);
   const [openId, setOpenId] = useState<string | null>(null);
   const open = data?.find((e) => e.id === openId) ?? null;
 
@@ -72,6 +72,9 @@ export function EntryList() {
         {t("list.error")}
       </Alert>
     );
+  }
+  if (data.length === 0 && !isCurrentMonth) {
+    return <Typography color="text.secondary" sx={{ textAlign: "center", py: 8 }}>{t("list.empty.month")}</Typography>;
   }
   if (data.length === 0) {
     return (

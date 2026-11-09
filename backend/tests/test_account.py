@@ -142,8 +142,20 @@ def test_overview_totals_per_currency_across_all_months(client):
     assert body["total_entries"] == 3
     assert body["first_date"] == "2026-09-03"
     assert body["entry_limit"] == get_settings().max_entries_user
-    assert body["totals"][0] == {"currency": "KRW", "total": "9000.00", "count": 1}
-    assert body["totals"][1] == {"currency": "USD", "total": "15.50", "count": 2}
+    # default currency (USD) first, then the rest
+    assert body["totals"][0] == {"currency": "USD", "total": "15.50", "count": 2}
+    assert body["totals"][1] == {"currency": "KRW", "total": "9000.00", "count": 1}
+
+
+def test_overview_orders_default_currency_first_then_most_entries(client):
+    signup(client)
+    add_manual(client, amount=1, currency="EUR")
+    add_manual(client, amount=1, currency="KRW")
+    add_manual(client, amount=1, currency="KRW")
+    add_manual(client, amount=500, currency="USD")  # biggest amount, but only a default by setting
+    client.patch("/api/auth/me", json={"default_currency": "EUR"})
+    codes = [t["currency"] for t in client.get("/api/stats/overview").json()["totals"]]
+    assert codes == ["EUR", "KRW", "USD"]
 
 
 def test_overview_for_an_empty_account(client):
@@ -167,3 +179,40 @@ def test_overview_only_counts_own_entries_and_shows_demo_limit(client):
     assert body["total_entries"] == 15  # the sample data only
     client.post("/api/auth/logout")
     assert client.get("/api/stats/overview").status_code == 401
+
+
+# ---- display name -----------------------------------------------------------------------
+
+
+def test_new_accounts_have_no_display_name(client):
+    assert signup(client)["display_name"] is None
+
+
+def test_set_trim_and_clear_the_display_name(client):
+    signup(client)
+    r = client.patch("/api/auth/me", json={"display_name": "  Avaz  "})
+    assert r.json()["display_name"] == "Avaz"
+    assert client.get("/api/auth/me").json()["display_name"] == "Avaz"
+    assert client.patch("/api/auth/me", json={"display_name": ""}).json()["display_name"] is None
+    client.patch("/api/auth/me", json={"display_name": "Avaz"})
+    assert client.patch("/api/auth/me", json={"display_name": None}).json()["display_name"] is None
+
+
+def test_other_edits_keep_the_display_name(client):
+    signup(client)
+    client.patch("/api/auth/me", json={"display_name": "Avaz"})
+    r = client.patch("/api/auth/me", json={"default_currency": "KRW"})
+    assert r.json()["display_name"] == "Avaz"
+
+
+def test_display_name_length_is_capped(client):
+    signup(client)
+    assert client.patch("/api/auth/me", json={"display_name": "x" * 81}).status_code == 422
+    assert client.patch("/api/auth/me", json={"display_name": "x" * 80}).status_code == 200
+
+
+def test_null_currency_is_ignored_not_saved(client):
+    signup(client)
+    r = client.patch("/api/auth/me", json={"default_currency": None, "timezone": None})
+    assert r.status_code == 200
+    assert r.json()["default_currency"] == "USD"

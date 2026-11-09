@@ -12,6 +12,7 @@ import { meQuery } from "./api/auth";
 import { AppPage } from "./routes/AppPage";
 import { LandingPage } from "./routes/LandingPage";
 import { MePage } from "./routes/MePage";
+import { ErrorScreen } from "./components/ErrorScreen";
 import { NotFound } from "./routes/NotFound";
 
 type RouterContext = { queryClient: QueryClient };
@@ -56,7 +57,7 @@ const meRoute = createRoute({
 const routeTree = rootRoute.addChildren([landingRoute, appRoute, meRoute]);
 
 export function createAppRouter(queryClient: QueryClient, history?: RouterHistory) {
-  return createRouter({ routeTree, context: { queryClient }, history, defaultPreload: "intent" });
+  return createRouter({ routeTree, context: { queryClient }, history, defaultPreload: "intent", defaultErrorComponent: ErrorScreen });
 }
 
 export const memoryHistory = (path: string) => createMemoryHistory({ initialEntries: [path] });

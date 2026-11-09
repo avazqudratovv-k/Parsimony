@@ -29,6 +29,9 @@ class Settings(BaseSettings):
     max_entries_user: int = 1000
     max_entries_demo: int = 100
 
+    # Multiplies the sign-up/login/demo rate limits. Keep at 1; only browser (e2e) tests raise it.
+    rate_limit_scale: int = 1
+
     # Where uploaded files live (receipt photos, voice clips) from Day 11 on.
     upload_dir: str = "/srv/uploads"
 

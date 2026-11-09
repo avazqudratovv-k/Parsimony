@@ -2,6 +2,7 @@
 export type User = {
   id: string;
   email: string;
+  display_name: string | null;
   is_demo: boolean;
   default_currency: string;
   timezone: string;
@@ -51,4 +52,14 @@ export type Overview = {
   entry_limit: number;
   first_date: string | null;
   totals: CurrencyTotal[];
+};
+
+export type CategoryTotal = { category: string; total: string; count: number };
+export type MonthlyStats = {
+  month: string; // YYYY-MM
+  currency: string;
+  total: string;
+  count: number;
+  by_category: CategoryTotal[];
+  currencies: CurrencyTotal[];
 };

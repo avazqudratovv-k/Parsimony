@@ -51,12 +51,14 @@ def overview(db: Session, user: User) -> Overview:
         select(Entry.currency, func.sum(Entry.amount), func.count())
         .where(Entry.user_id == user.id)
         .group_by(Entry.currency)
-        .order_by(func.sum(Entry.amount).desc())
     ).all()
     first = db.scalar(select(func.min(Entry.date)).where(Entry.user_id == user.id))
+    # Currencies can't be ranked by amount (no conversion), so: the default currency first,
+    # then the one with the most entries, then alphabetically so the order never jumps around.
+    ordered = sorted(rows, key=lambda r: (r[0] != user.default_currency, -r[2], r[0]))
     return Overview(
         total_entries=sum(n for _, _, n in rows),
         entry_limit=entry_limit(user),
         first_date=first,
-        totals=[CurrencyTotal(currency=c, total=t, count=n) for c, t, n in rows],
+        totals=[CurrencyTotal(currency=c, total=t, count=n) for c, t, n in ordered],
     )

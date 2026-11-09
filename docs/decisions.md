@@ -119,3 +119,37 @@
 - My page `/me`: overview, settings (default currency, time zone), log out and "Delete my account" (type `delete`
   to confirm, the same English word in every language so it is easy to type on any keyboard).
 - The logo is the "Receipt" design from the design system (cream receipt with a torn edge, green P).
+
+## My page: profile
+- Profile block at the top of My page: a round avatar with the first letter of the display name (or of the email),
+  the name, the email, and a "Demo" chip for demo accounts. No photo upload: it would need file storage, size
+  and content checks and moderation for little gain.
+- `users.display_name` (optional, 80 characters, migration `a1f3c9d2b7e4`), editable under Settings. Empty or
+  null clears it and the page falls back to the part of the email before the @.
+- Deliberately NOT added: phone number (nothing in the app uses it, and a public demo should hold as little
+  personal data as possible) and a username (the email already identifies the account).
+- Overview totals are never converted, so they can't be ranked by amount. Order: the default currency first, then
+  the currency with the most entries, then alphabetical.
+- The delete confirmation word is translated (delete / 삭제 / oʻchirish). Plain English "delete" is accepted in
+  every language and any kind of apostrophe counts as the same one, so it works on any keyboard.
+- Migrations are excluded from ruff: they are generated and should stay as Alembic wrote them.
+
+## Day 9: chart, errors, browser tests
+- Chart: one horizontal bar per category for ONE month in ONE currency (no conversion). Single accent colour, thin
+  bars with rounded ends, the value written at the end of each bar, tooltip on hover. The same numbers are in a
+  hidden `<table>` so screen readers (and the tests) get the data. Currency tabs appear only when the month uses
+  more than one currency and change only the chart; moving to another month resets them.
+- Month controls: previous/next, "next" is off on the current month. "This month" uses the user's saved time zone,
+  not the browser's. The entry list shows the same month as the chart (`GET /entries?month=`), and adding an entry
+  jumps back to the current month because a new entry is dated today.
+- Expired session: a 401 from any request while the app thinks the user is signed in clears the cached user and
+  returns to the landing page with one notice. A wrong password also returns 401 but nobody is signed in then, so
+  it is left alone.
+- Crash screen: a translated "Something went wrong / Reload" page for rendering errors (router default error component).
+- Browser tests (Playwright, `frontend/e2e/`): Try demo + Fix this + log out, sign-up/reload/log out/log in, wrong
+  password, month controls, language switch, not-found. They never add an entry, because that calls the AI model;
+  adding is covered by unit tests with a fake API. The demo account starts with sample entries, which is what makes
+  Fix this testable without the AI.
+- `RATE_LIMIT_SCALE` (default 1) multiplies the sign-up/login/demo limits. Only the browser tests raise it, since
+  they sign up many times from one address. Never set it in production.
+- Unit tests pin "today" (only `Date`, via fake timers) to 2026-11-09 so month tests do not depend on the calendar.

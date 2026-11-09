@@ -36,5 +36,9 @@ ml/**/checkpoints/
 .idea/
 .vscode/
 
-# Files delivered by Claude chat
+# Playwright
+test-results/
+playwright-report/
+
+# Delivery copies from Claude
 Claude outputs/

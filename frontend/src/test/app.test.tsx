@@ -1,7 +1,7 @@
 import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
-import { USER, mockApi, renderApp, signedInApi } from "./helpers";
+import { MONTHLY, USER, mockApi, renderApp, signedInApi } from "./helpers";
 
 const signedOut = { "GET /api/auth/me": { status: 401, body: { detail: "Not signed in" } } };
 
@@ -85,7 +85,8 @@ describe("sign-in page", () => {
     mockApi({
       ...signedOut,
       "POST /api/auth/demo": { status: 201, body: { ...USER, is_demo: true, email: "demo-1@demo.invalid" } },
-      "GET /api/entries?limit=100": { status: 200, body: [] },
+      "GET /api/entries?*": { status: 200, body: [] },
+      "GET /api/stats/monthly?*": { status: 200, body: { ...MONTHLY, total: "0.00", count: 0, by_category: [], currencies: [] } },
       "GET /api/usage": { status: 200, body: { used: 0, limit: 10, resets_at: "2026-11-10T00:00:00Z" } },
     });
     const { router } = renderApp("/");

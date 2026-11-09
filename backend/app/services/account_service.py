@@ -10,14 +10,17 @@ from app.config import get_settings
 from app.models import Attachment, UsageCounter, User
 
 
-def update_settings(
-    db: Session, user: User, default_currency: str | None, timezone: str | None
-) -> User:
-    """Change the account's default currency and/or timezone. None means "leave as is"."""
-    if default_currency is not None:
-        user.default_currency = default_currency
-    if timezone is not None:
-        user.timezone = timezone
+def update_settings(db: Session, user: User, changes: dict) -> User:
+    """Apply My page edits. Only the keys present in `changes` are touched.
+
+    default_currency and timezone can't be cleared (a null is ignored); display_name can.
+    """
+    if changes.get("default_currency") is not None:
+        user.default_currency = changes["default_currency"]
+    if changes.get("timezone") is not None:
+        user.timezone = changes["timezone"]
+    if "display_name" in changes:
+        user.display_name = changes["display_name"]
     db.commit()
     db.refresh(user)
     return user

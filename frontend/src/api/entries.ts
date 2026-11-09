@@ -1,19 +1,29 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "./client";
 import { browserTimezone } from "./auth";
-import type { Entry, EntryUpdate, Overview, UsageStatus } from "./types";
+import type { Entry, EntryUpdate, MonthlyStats, Overview, UsageStatus } from "./types";
 
 // One place to say "the numbers changed": every list, total and counter refetches.
 function useRefreshData() {
   const qc = useQueryClient();
   return () =>
     Promise.all(
-      ["entries", "overview", "usage"].map((key) => qc.invalidateQueries({ queryKey: [key] })),
+      ["entries", "stats", "overview", "usage"].map((key) => qc.invalidateQueries({ queryKey: [key] })),
     );
 }
 
-export const useEntries = () =>
-  useQuery({ queryKey: ["entries"], queryFn: () => api<Entry[]>("/entries?limit=100") });
+export const useEntries = (month: string) =>
+  useQuery({
+    queryKey: ["entries", month],
+    queryFn: () => api<Entry[]>(`/entries?month=${month}&limit=100`),
+  });
+
+export const useMonthlyStats = (month: string, currency: string | null) =>
+  useQuery({
+    queryKey: ["stats", month, currency],
+    queryFn: () => api<MonthlyStats>(`/stats/monthly?month=${month}${currency ? `&currency=${currency}` : ""}`),
+    placeholderData: (previous) => previous, // keep the old chart on screen while the next month loads
+  });
 
 export const useUsage = () =>
   useQuery({ queryKey: ["usage"], queryFn: () => api<UsageStatus>("/usage") });

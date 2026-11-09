@@ -64,7 +64,7 @@ export function useLogout() {
 export function useUpdateMe() {
   const setMe = useSetMe();
   return useMutation({
-    mutationFn: (v: { default_currency?: string; timezone?: string }) =>
+    mutationFn: (v: { default_currency?: string; timezone?: string; display_name?: string | null }) =>
       api<User>("/auth/me", { method: "PATCH", body: v }),
     onSuccess: setMe,
   });

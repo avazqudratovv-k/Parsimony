@@ -21,6 +21,8 @@ class User(Base):
     email: Mapped[str] = mapped_column(String(320), unique=True, index=True)
     # NULL for demo accounts, which have no password.
     password_hash: Mapped[str | None] = mapped_column(String(255))
+    # Optional name shown on the My page screen. NULL means "use the email".
+    display_name: Mapped[str | None] = mapped_column(String(80))
     is_demo: Mapped[bool] = mapped_column(Boolean, default=False)
     default_currency: Mapped[str] = mapped_column(String(3), default="USD")
     timezone: Mapped[str] = mapped_column(String(64), default="UTC")

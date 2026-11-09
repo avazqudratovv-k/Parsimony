@@ -30,6 +30,7 @@ class UserOut(BaseModel):
 
     id: uuid.UUID
     email: str
+    display_name: str | None
     is_demo: bool
     default_currency: str
     timezone: str
@@ -41,8 +42,15 @@ class UserUpdate(BaseModel):
 
     default_currency: str | None = Field(default=None, pattern=r"^[A-Za-z]{3}$")
     timezone: str | None = None
+    # Send "" or null to clear it.
+    display_name: str | None = Field(default=None, max_length=80)
 
     _check_timezone = field_validator("timezone")(validate_timezone)
+
+    @field_validator("display_name")
+    @classmethod
+    def _clean_name(cls, value: str | None) -> str | None:
+        return (value or "").strip() or None
 
     @field_validator("default_currency")
     @classmethod

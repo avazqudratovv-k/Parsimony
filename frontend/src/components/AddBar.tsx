@@ -11,7 +11,7 @@ import { fill } from "../lib/format";
 import { useT } from "../i18n";
 
 // Docked at the bottom on phones, at the top of the list on desktop (as in the design).
-export function AddBar() {
+export function AddBar({ onAdded }: { onAdded?: () => void }) {
   const t = useT();
   const theme = useTheme();
   const docked = useMediaQuery(theme.breakpoints.down("sm"));
@@ -23,7 +23,7 @@ export function AddBar() {
     e.preventDefault();
     const value = text.trim();
     if (!value || add.isPending) return;
-    add.mutate(value, { onSuccess: () => setText("") });
+    add.mutate(value, { onSuccess: () => { setText(""); onAdded?.(); } });
   }
 
   const bar = (
@@ -52,6 +52,7 @@ export function AddBar() {
           disabled={add.isPending}
           sx={{ flex: 1, px: 2, fontSize: 15 }}
         />
+        {(text.trim() || add.isPending) && (
         <IconButton
           type="submit"
           aria-label={t("add.send")}
@@ -60,6 +61,7 @@ export function AddBar() {
         >
           <ArrowUpwardIcon />
         </IconButton>
+        )}
       </Paper>
       {usage && (
         <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 1, textAlign: "center" }}>

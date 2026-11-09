@@ -196,3 +196,8 @@
 - Gemini does the transcription (same key, no extra server or model to run on the 2-CPU box). The clip is held in memory only, never stored, like receipt photos.
 - Not built: the design's "We'll add" preview card. It needs a parse-without-save step; the saved entry already appears in the list with "Fix this".
 - A confirmed voice entry also passes through the typed-entry pool (hidden fair-use cap), which is fine: it keeps one rule for all text that reaches the parser.
+
+## Toasts and manual entry
+
+- After a typed or voice entry a toast says what was added, with Undo. Undo deletes the exact entry that was just created, so it needs no extra backend. Deleting an entry has no undo yet (re-creating it would lose its source and original words).
+- When the AI cannot read typed text (422), the error offers "Enter manually": the same form as "Fix this", pre-filled with what was typed, saved through the existing `/entries/manual` endpoint. No smart add is used, so it works even when the daily limit is used up.

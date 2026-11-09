@@ -2,6 +2,7 @@ import { Alert, Box, Button, CircularProgress, Dialog, DialogContent, DialogTitl
 import { keyframes } from "@mui/material/styles";
 import { useEffect, useRef, useState } from "react";
 import { useAddEntry, useTranscribe } from "../api/entries";
+import type { Entry } from "../api/types";
 import { MAX_SECONDS, startRecording } from "../lib/audio";
 import type { Recorder } from "../lib/audio";
 import { addErrorMessage, voiceErrorMessage } from "../lib/errors";
@@ -12,7 +13,7 @@ const pulse = keyframes`0%,100%{transform:scaleY(.35)}50%{transform:scaleY(1)}`;
 const clock = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 
 /** Voice flow (design 5a/5b): record, write it down, let the user fix the words, then save. */
-export function VoiceDialog({ onClose, onAdded }: { onClose: () => void; onAdded: () => void }) {
+export function VoiceDialog({ onClose, onAdded }: { onClose: () => void; onAdded: (entry: Entry) => void }) {
   const t = useT();
   const transcribe = useTranscribe();
   const add = useAddEntry();
@@ -120,7 +121,7 @@ export function VoiceDialog({ onClose, onAdded }: { onClose: () => void; onAdded
             <Box sx={{ display: "grid", gap: 2 }}>
               <Button
                 variant="contained" startIcon={<Icon name="check" size={18} />} disabled={!text.trim() || add.isPending}
-                onClick={() => add.mutate({ text: text.trim(), source: "voice" }, { onSuccess: () => { onAdded(); onClose(); } })}
+                onClick={() => add.mutate({ text: text.trim(), source: "voice" }, { onSuccess: (entry) => { onAdded(entry); onClose(); } })}
               >
                 {t("voice.add")}
               </Button>

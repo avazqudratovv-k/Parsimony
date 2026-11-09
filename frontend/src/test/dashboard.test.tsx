@@ -116,6 +116,58 @@ describe("add bar", () => {
   });
 });
 
+describe("toasts and manual entry", () => {
+  it("shows 'Added ...' after a typed entry, and Undo deletes exactly that entry", async () => {
+    const NEW = { ...ENTRY, id: "n1", merchant: "Kimbap House", amount: "4.00" };
+    const calls = signedInApi({
+      "POST /api/entries": { status: 201, body: NEW },
+      "DELETE /api/entries/n1": { status: 204 },
+    });
+    renderApp("/app");
+    const user = userEvent.setup();
+    await user.type(await screen.findByLabelText("Describe an expense"), "kimbap 4 dollars");
+    await user.click(screen.getByRole("button", { name: "Add" }));
+    expect(await screen.findByText("Added Kimbap House $4.00")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Undo" }));
+    expect(await screen.findByText("Removed")).toBeInTheDocument();
+    expect(calls.some((c) => c.method === "DELETE" && c.url === "/api/entries/n1")).toBe(true);
+  });
+
+  it("offers 'Enter manually' when the AI can't read the text, and saves without the AI", async () => {
+    const MANUAL = { ...ENTRY, id: "m1", merchant: null, note: "weird thing", amount: "9.00", source: "manual" };
+    const calls = signedInApi({
+      "POST /api/entries": { status: 422, body: { detail: "x" } },
+      "POST /api/entries/manual": { status: 201, body: MANUAL },
+    });
+    renderApp("/app");
+    const user = userEvent.setup();
+    await user.type(await screen.findByLabelText("Describe an expense"), "weird thing");
+    await user.click(screen.getByRole("button", { name: "Add" }));
+    await user.click(await screen.findByRole("button", { name: "Enter manually" }));
+    const dialog = await screen.findByRole("dialog", { name: "Enter it manually" });
+    expect(within(dialog).getByLabelText("Note")).toHaveValue("weird thing"); // keeps what was typed
+    expect(within(dialog).queryByRole("button", { name: /Delete/ })).not.toBeInTheDocument();
+    await user.click(within(dialog).getByRole("button", { name: "Add entry" }));
+    expect(await within(dialog).findByText("Enter an amount above 0.")).toBeInTheDocument(); // amount is required
+    await user.type(within(dialog).getByLabelText("Amount"), "9");
+    await user.click(within(dialog).getByRole("button", { name: "Add entry" }));
+    expect(await screen.findByText("Entry added")).toBeInTheDocument();
+    const post = calls.find((c) => c.url === "/api/entries/manual")!;
+    expect(post.body).toMatchObject({ amount: "9", note: "weird thing", category: "other", payment_method: "unknown" });
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+  });
+
+  it("does not offer 'Enter manually' for other failures", async () => {
+    signedInApi({ "POST /api/entries": { status: 502, body: { detail: "x" } } });
+    renderApp("/app");
+    const user = userEvent.setup();
+    await user.type(await screen.findByLabelText("Describe an expense"), "lunch");
+    await user.click(screen.getByRole("button", { name: "Add" }));
+    await screen.findByRole("alert");
+    expect(screen.queryByRole("button", { name: "Enter manually" })).not.toBeInTheDocument();
+  });
+});
+
 describe("receipt photo", () => {
   const PHOTO = { ...ENTRY, id: "p1", merchant: "GS25", note: null, amount: "4800.00", currency: "KRW", category: "groceries", source: "photo", raw_input: null, confidence: 0.9 };
   const pick = async (name = "r.jpg", type = "image/jpeg") => {

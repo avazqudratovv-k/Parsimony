@@ -6,6 +6,7 @@ import { createQueryClient } from "../lib/session";
 import { I18nProvider } from "../i18n";
 import type { Lang } from "../i18n";
 import { createAppRouter, memoryHistory } from "../router";
+import { ToastProvider } from "../components/Toast";
 import { AppThemeProvider } from "../theme";
 
 export const USER = {
@@ -47,7 +48,9 @@ export function renderApp(path: string, lang: Lang = "en") {
     <QueryClientProvider client={queryClient}>
       <I18nProvider initial={lang}>
         <AppThemeProvider>
-          <RouterProvider router={router} />
+          <ToastProvider>
+            <RouterProvider router={router} />
+          </ToastProvider>
         </AppThemeProvider>
       </I18nProvider>
     </QueryClientProvider>,

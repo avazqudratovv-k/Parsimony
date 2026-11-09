@@ -9,6 +9,7 @@ import { createRoot } from "react-dom/client";
 import { I18nProvider } from "./i18n";
 import { createQueryClient } from "./lib/session";
 import { createAppRouter } from "./router";
+import { ToastProvider } from "./components/Toast";
 import { AppThemeProvider } from "./theme";
 
 const queryClient = createQueryClient(() => void router.navigate({ to: "/" }));
@@ -19,7 +20,9 @@ createRoot(document.getElementById("root")!).render(
     <QueryClientProvider client={queryClient}>
       <I18nProvider>
         <AppThemeProvider>
-          <RouterProvider router={router} />
+          <ToastProvider>
+            <RouterProvider router={router} />
+          </ToastProvider>
         </AppThemeProvider>
       </I18nProvider>
     </QueryClientProvider>

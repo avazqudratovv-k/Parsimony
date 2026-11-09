@@ -1,21 +1,32 @@
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import PersonOutlineIcon from "@mui/icons-material/PersonOutlineOutlined";
-import { Alert, Box, IconButton, InputBase, ListItemIcon, Menu, MenuItem, Paper, Tooltip, Typography, useMediaQuery } from "@mui/material";
+import { Alert, Box, Button, IconButton, InputBase, ListItemIcon, Menu, MenuItem, Paper, Tooltip, Typography, useMediaQuery } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { Link } from "@tanstack/react-router";
 import { useRef, useState } from "react";
 import type { ChangeEvent, FormEvent } from "react";
-import { useAddEntry, useUsage } from "../api/entries";
+import { useQuery } from "@tanstack/react-query";
+import { meQuery } from "../api/auth";
+import { ApiError } from "../api/client";
+import { useAddEntry, useDeleteEntry, useUsage } from "../api/entries";
+import type { Entry } from "../api/types";
 import { addErrorMessage } from "../lib/errors";
-import { fill } from "../lib/format";
-import { useT } from "../i18n";
+import { currentDate, fill, formatMoney } from "../lib/format";
+import { useI18n, useT } from "../i18n";
+import { FixDialog } from "./FixDialog";
 import { Icon } from "./Icon";
 import { ReceiptDialog } from "./ReceiptDialog";
+import { useToast } from "./Toast";
 import { VoiceDialog } from "./VoiceDialog";
 
 // Docked at the bottom on phones, at the top of the list on desktop (as in the design).
 export function AddBar({ onAdded }: { onAdded?: () => void }) {
   const t = useT();
+  const { lang } = useI18n();
+  const toast = useToast();
+  const remove = useDeleteEntry();
+  const { data: me } = useQuery(meQuery);
+  const [manual, setManual] = useState(false);
   const theme = useTheme();
   const docked = useMediaQuery(theme.breakpoints.down("sm"));
   const [text, setText] = useState("");
@@ -33,19 +44,41 @@ export function AddBar({ onAdded }: { onAdded?: () => void }) {
     if (f) setPhoto(f);
   }
 
+  // "Added Taxi ₩12,000 · Undo": undo is exact, it deletes the entry that was just created.
+  function announce(entry: Entry) {
+    const what = `${entry.merchant ?? entry.note ?? ""} ${formatMoney(entry.amount, entry.currency, lang)}`.trim();
+    toast({
+      message: fill(t("toast.addedWhat"), { what }),
+      action: { label: t("toast.undo"), onClick: () => remove.mutate(entry.id, { onSuccess: () => toast({ message: t("toast.removed") }) }) },
+    });
+  }
+
   function onSubmit(e: FormEvent) {
     e.preventDefault();
     const value = text.trim();
     if (!value || add.isPending) return;
-    add.mutate(value, { onSuccess: () => { setText(""); onAdded?.(); } });
+    add.mutate(value, { onSuccess: (entry) => { setText(""); onAdded?.(); announce(entry); } });
   }
 
   const bar = (
     <Box sx={{ width: "100%" }}>
-      {voice && <VoiceDialog onClose={() => setVoice(false)} onAdded={() => onAdded?.()} />}
+      {voice && <VoiceDialog onClose={() => setVoice(false)} onAdded={(entry) => { onAdded?.(); announce(entry); }} />}
+      {manual && me && (
+        <FixDialog
+          draft={{ note: text.trim(), currency: me.default_currency, date: currentDate(me.timezone) }}
+          onClose={() => { setManual(false); add.reset(); setText(""); onAdded?.(); }}
+        />
+      )}
       {photo && <ReceiptDialog file={photo} onClose={() => { setPhoto(null); onAdded?.(); }} />}
       {add.isError && (
-        <Alert severity="error" role="alert" onClose={() => add.reset()} sx={{ mb: 2 }}>
+        <Alert
+          severity="error" role="alert" onClose={() => add.reset()} sx={{ mb: 2 }}
+          action={add.error instanceof ApiError && add.error.status === 422 && (
+            <Button color="inherit" size="small" onClick={() => setManual(true)} sx={{ fontWeight: 600, whiteSpace: "nowrap" }}>
+              {t("manual.action")}
+            </Button>
+          )}
+        >
           {addErrorMessage(add.error, t)}
         </Alert>
       )}

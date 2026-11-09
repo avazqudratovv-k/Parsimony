@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "./client";
 import { browserTimezone } from "./auth";
 import { prepareReceipt } from "../lib/photo";
-import type { Entry, EntryUpdate, MonthlyStats, Overview, UsageStatus } from "./types";
+import type { Category, Entry, EntryUpdate, PaymentMethod, MonthlyStats, Overview, UsageStatus } from "./types";
 
 // One place to say "the numbers changed": every list, total and counter refetches.
 function useRefreshData() {
@@ -69,6 +69,25 @@ export function useTranscribe() {
       return api<{ text: string }>("/entries/transcribe", { method: "POST", form });
     },
     onSettled: () => qc.invalidateQueries({ queryKey: ["usage"] }), // every clip counts as a smart add
+  });
+}
+
+export type ManualEntry = {
+  date: string;
+  merchant: string | null;
+  note: string | null;
+  amount: string;
+  currency: string;
+  category: Category;
+  payment_method: PaymentMethod;
+};
+
+/** Enter an expense by hand: no AI, so it never uses a smart add. */
+export function useCreateManual() {
+  const refresh = useRefreshData();
+  return useMutation({
+    mutationFn: (entry: ManualEntry) => api<Entry>("/entries/manual", { method: "POST", body: entry }),
+    onSuccess: refresh,
   });
 }
 

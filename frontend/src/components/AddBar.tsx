@@ -1,6 +1,6 @@
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import PersonOutlineIcon from "@mui/icons-material/PersonOutlineOutlined";
-import { Alert, Box, Button, IconButton, InputBase, ListItemIcon, Menu, MenuItem, Paper, Tooltip, Typography, useMediaQuery } from "@mui/material";
+import { Alert, Box, Button, IconButton, InputBase, ListItemIcon, Menu, MenuItem, Tooltip, Typography, useMediaQuery } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { Link } from "@tanstack/react-router";
 import { useRef, useState } from "react";
@@ -13,6 +13,7 @@ import type { Category, Entry, EntryCreated } from "../api/types";
 import { addErrorMessage } from "../lib/errors";
 import { currentDate, fill, formatMoney } from "../lib/format";
 import { useI18n, useT } from "../i18n";
+import { useTokens } from "../theme";
 import { FixDialog } from "./FixDialog";
 import { Icon } from "./Icon";
 import { ReceiptDialog } from "./ReceiptDialog";
@@ -21,7 +22,15 @@ import { VoiceDialog } from "./VoiceDialog";
 
 // Docked at the bottom on phones, at the top of the list on desktop (as in the design).
 // onAdded gets the new entry so the page can show the month it belongs to (a receipt can be from last year).
+// A square, bordered button (44 x 48), as the design draws My page, voice and photo.
+const boxButton = (c: ReturnType<typeof useTokens>) => ({
+  width: 44, height: 48, borderRadius: "12px", border: `1px solid ${c.lineStrong}`, bgcolor: c.surface, color: c.ink,
+  "&:hover": { bgcolor: c.sunken },
+  "&.Mui-disabled": { color: c.inkFaint, bgcolor: c.sunken, borderColor: c.line },
+});
+
 export function AddBar({ onAdded }: { onAdded?: (entry?: Entry) => void }) {
+  const c = useTokens();
   const t = useT();
   const { lang } = useI18n();
   const toast = useToast();
@@ -99,45 +108,49 @@ export function AddBar({ onAdded }: { onAdded?: (entry?: Entry) => void }) {
           {addErrorMessage(add.error, t)}
         </Alert>
       )}
-      <Paper
-        component="form"
-        onSubmit={onSubmit}
-        variant="outlined"
-        sx={{ display: "flex", alignItems: "center", gap: 1, p: 1, borderRadius: 999 }}
-      >
+      <Box component="form" onSubmit={onSubmit} sx={{ display: "flex", alignItems: "center", gap: "6px" }}>
         <Tooltip title={t("add.myPage")}>
-          <IconButton component={Link} to="/me" aria-label={t("add.myPage")} sx={{ width: 44, height: 44 }}>
+          <IconButton component={Link} to="/me" aria-label={t("add.myPage")} sx={boxButton(c)}>
             <PersonOutlineIcon />
           </IconButton>
         </Tooltip>
-        <InputBase
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          placeholder={t("add.placeholder")}
-          inputProps={{ "aria-label": t("add.label"), maxLength: 500 }}
-          disabled={add.isPending}
-          sx={{ flex: 1, px: 2, fontSize: 15 }}
-        />
-        {(text.trim() || add.isPending) && (
-        <IconButton
-          type="submit"
-          aria-label={t("add.send")}
-          disabled={!text.trim() || add.isPending}
-          sx={{ width: 44, height: 44, bgcolor: "primary.main", color: "primary.contrastText", "&:hover": { bgcolor: "primary.dark" }, "&.Mui-disabled": { bgcolor: "action.disabledBackground" } }}
+        {/* The field is its own bordered box; the send button lives inside it (as in the design). */}
+        <Box
+          sx={{
+            flex: 1, minWidth: 0, display: "flex", alignItems: "center", gap: 0.5, minHeight: 48, pl: "10px", pr: 1, bgcolor: c.surface,
+            border: `1px solid ${c.lineStrong}`, borderRadius: "12px",
+            "&:focus-within": { borderColor: c.accent, outline: `2px solid ${c.focus}`, outlineOffset: 1 },
+          }}
         >
-          <ArrowUpwardIcon />
-        </IconButton>
-        )}
+          <InputBase
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            placeholder={t("add.placeholder")}
+            inputProps={{ "aria-label": t("add.label"), maxLength: 500 }}
+            disabled={add.isPending}
+            sx={{ flex: 1, minWidth: 0, fontSize: 14 }}
+          />
+          {(text.trim() || add.isPending) && (
+            <IconButton
+              type="submit"
+              aria-label={t("add.send")}
+              disabled={!text.trim() || add.isPending}
+              sx={{ width: 40, height: 40, borderRadius: "9px", bgcolor: "primary.main", color: "primary.contrastText", "&:hover": { bgcolor: "primary.dark" }, "&.Mui-disabled": { bgcolor: "action.disabledBackground" } }}
+            >
+              <ArrowUpwardIcon />
+            </IconButton>
+          )}
+        </Box>
         <Tooltip title={t("add.voice")}>
           <span>
-            <IconButton aria-label={t("add.voice")} disabled={add.isPending || !!photo || voice} onClick={() => setVoice(true)} sx={{ width: 44, height: 44 }}>
+            <IconButton aria-label={t("add.voice")} disabled={add.isPending || !!photo || voice} onClick={() => setVoice(true)} sx={boxButton(c)}>
               <Icon name="mic" size={22} />
             </IconButton>
           </span>
         </Tooltip>
         <Tooltip title={t("add.photo")}>
           <span>
-            <IconButton aria-label={t("add.photo")} disabled={add.isPending || !!photo} onClick={(e) => setMenuAnchor(e.currentTarget)} sx={{ width: 44, height: 44 }}>
+            <IconButton aria-label={t("add.photo")} disabled={add.isPending || !!photo} onClick={(e) => setMenuAnchor(e.currentTarget)} sx={boxButton(c)}>
               <Icon name="camera" size={22} />
             </IconButton>
           </span>
@@ -153,7 +166,7 @@ export function AddBar({ onAdded }: { onAdded?: (entry?: Entry) => void }) {
         {/* "capture" asks a phone for the camera directly; without it the phone shows its photo picker. */}
         <input ref={cameraInput} type="file" accept="image/*" capture="environment" hidden data-testid="camera-input" onChange={onPick} />
         <input ref={libraryInput} type="file" accept="image/*" hidden data-testid="photo-input" onChange={onPick} />
-      </Paper>
+      </Box>
       {/* Always take the same height, so the bar never grows when the number arrives. */}
       <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 1, textAlign: "center", minHeight: "1.5em", lineHeight: 1.5 }}>
         {usage ? fill(t("add.usage"), { left: Math.max(0, usage.limit - usage.used), limit: usage.limit }) : "\u00a0"}

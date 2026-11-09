@@ -1,5 +1,6 @@
 from functools import lru_cache
 
+from pydantic import model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -12,6 +13,13 @@ class Settings(BaseSettings):
     database_url: str = "postgresql+psycopg://parsimony:change-me-locally@db:5432/parsimony"
     secret_key: str = "change-me"
     gemini_api_key: str = ""
+    session_max_age_seconds: int = 7 * 24 * 3600
+
+    @model_validator(mode="after")
+    def _require_real_secret_in_production(self) -> "Settings":
+        if self.app_env == "production" and self.secret_key in {"", "change-me"}:
+            raise ValueError("SECRET_KEY must be set to a random value in production")
+        return self
 
 
 @lru_cache

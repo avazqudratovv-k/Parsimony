@@ -35,3 +35,6 @@ ml/**/checkpoints/
 .DS_Store
 .idea/
 .vscode/
+
+# Files delivered by Claude chat
+Claude outputs/

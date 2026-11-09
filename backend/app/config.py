@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     database_url: str = "postgresql+psycopg://parsimony:change-me-locally@db:5432/parsimony"
     secret_key: str = "change-me"
     gemini_api_key: str = ""
+    gemini_text_model: str = "gemini-3.5-flash-lite"
     session_max_age_seconds: int = 7 * 24 * 3600
 
     @model_validator(mode="after")

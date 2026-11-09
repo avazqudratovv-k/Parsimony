@@ -28,3 +28,19 @@
   looks like the same IP, so Day 10 must read `X-Forwarded-For`.
 - In production the app refuses to start with the default `SECRET_KEY`.
 - Tests run on in-memory SQLite with foreign keys on; Alembic migrations are checked against Postgres.
+
+## Day 4
+- Adapters only return the model's raw JSON text (`ai/base.py`). Validation, the single retry and the
+  "not an expense" rule live in `services/parse_service.py`, so the fine-tuned model gets the same checks.
+- The model is asked for `amount: 0` when the text isn't an expense; that is reported to the user and not
+  retried. Bad JSON or a failed validation (wrong enum, future date, bad currency) is retried once.
+- Messy-but-harmless values are normalized, not rejected (currency case, amount rounded to 2 decimals).
+- The prompt carries today's date, the timezone and the default currency. User text goes in as data, not
+  instructions, and the output is schema-constrained, so prompt injection can't do more than produce a
+  wrong entry that fails validation.
+- `ENTRY_JSON_SCHEMA` is built from the enums so prompt, schema and database can't drift apart. Gemini's
+  structured output ignores length limits, so Pydantic enforces them.
+- Default model `gemini-3.5-flash-lite` (set `GEMINI_TEXT_MODEL` to change it). Not yet exercised against
+  the live API.
+- `POST /api/entries/parse` previews only and needs login. Daily AI-call caps arrive on Day 5, before any
+  public deploy.

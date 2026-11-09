@@ -9,7 +9,7 @@ describe("routing", () => {
   it("shows the sign-in page when signed out", async () => {
     mockApi(signedOut);
     renderApp("/");
-    expect(await screen.findByRole("heading", { name: "Track spending without the typing" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: /Say it, snap it or type it/ })).toBeInTheDocument();
   });
 
   it("sends a signed-out visitor from /app back to /", async () => {
@@ -111,13 +111,13 @@ describe("language and theme", () => {
     const user = userEvent.setup();
     await user.click(await screen.findByRole("button", { name: "Change language" }));
     await user.click(screen.getByRole("menuitemradio", { name: /한국어/ }));
-    expect(await screen.findByRole("heading", { name: "타이핑 없이 지출을 기록하세요" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: /말하고, 찍고, 입력하세요/ })).toBeInTheDocument();
     expect(document.documentElement.lang).toBe("ko");
     expect(localStorage.getItem("parsimony.lang")).toBe("ko");
 
     await user.click(screen.getByRole("button", { name: "언어 변경" }));
     await user.click(screen.getByRole("menuitemradio", { name: /Oʻzbekcha/ }));
-    expect(await screen.findByRole("heading", { name: "Xarajatlarni yozmasdan kuzating" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: /Ayting, suratga oling/ })).toBeInTheDocument();
     expect(document.documentElement.lang).toBe("uz");
   });
 

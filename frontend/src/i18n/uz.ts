@@ -3,9 +3,8 @@ import type { Dict } from "./en";
 // Uzbek, Latin script, with the proper modifier letter ʻ (U+02BB) in oʻ and gʻ.
 export const uz: Dict = {
   "brand.name": "Parsimony",
-  "landing.title": "Xarajatlarni yozmasdan kuzating",
-  "landing.subtitle":
-    "Yozing, ayting yoki chek rasmini oling. Parsimony uni tartibli yozuvga aylantiradi.",
+  "landing.title": "Ayting, suratga oling yoki yozing.",
+  "landing.subtitle": "Bir qator matn, ovozli xabar yoki chekni tartibli yozuvga aylantiradigan xarajatlar daftari.",
   "auth.tab.signup": "Roʻyxatdan oʻtish",
   "auth.tab.login": "Kirish",
   "auth.email": "Email",
@@ -13,7 +12,15 @@ export const uz: Dict = {
   "auth.passwordHint": "Kamida 8 ta belgi",
   "auth.submit.signup": "Hisob yaratish",
   "auth.submit.login": "Kirish",
-  "auth.or": "yoki",
+  "landing.title2": "Hisobni biz yuritamiz.",
+  "landing.f.type": "Yozish",
+  "landing.f.voice": "Ovoz",
+  "landing.f.photo": "Chek surati",
+  "landing.sample.1": "Doʻkon · Karta",
+  "landing.sample.2": "Taksi",
+  "landing.sample.2m": "Ovozli xabar · Naqd",
+  "landing.sample.3m": "Chek surati · Karta",
+  "auth.or": "yoki elektron pochta bilan",
   "auth.tryDemo": "Mehmon sifatida sinash",
   "auth.demoNote": "Namuna ma’lumotlar, roʻyxatdan oʻtish shart emas. 7 kundan keyin oʻzi oʻchadi.",
   "auth.error.email": "Toʻgʻri email manzilini kiriting.",

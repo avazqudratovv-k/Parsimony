@@ -214,3 +214,8 @@
 - Toasts now match the Claude Design "Parsimony Toasts" file: icon, message, optional Undo, dismiss button, and a thin bar showing the time left (it pauses on hover; reduced motion uses a plain timer).
 - The chat placeholder is shorter so it is not cut off on a phone.
 - The My page code is loaded only when opened. The main script is about 205 kB gzipped (React, MUI, router and query), which is fine for this app, so the size warning stays as a note, not a setting to hide it.
+
+## Landing page
+
+- The landing page follows the Claude Design opening: the headline, then a big "Try it as a guest" button (so a visitor can look around in one tap), a row of the three ways to add (type, voice, receipt photo), a small sample list, and the email form below ("or use your email"). On a desktop it is two columns.
+- `frontend/vercel.json` lets the frontend run on Vercel while the API stays on the server: `/api/*` is forwarded to the server, so the browser still sees one site and the session cookie stays same-origin.

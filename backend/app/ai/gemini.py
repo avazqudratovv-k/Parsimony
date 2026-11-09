@@ -17,6 +17,16 @@ REQUEST_TIMEOUT_MS = 20_000
 IMAGE_TIMEOUT_MS = 30_000
 
 
+def _log_failure(exc: Exception) -> None:
+    """Say why a call failed (key, quota, bad schema, timeout) without logging the message text."""
+    logger.warning(
+        "Gemini request failed: %s code=%s status=%s",
+        type(exc).__name__,
+        getattr(exc, "code", None),
+        getattr(exc, "status", None),
+    )
+
+
 def _generate(client: genai.Client, model: str, contents, system: str) -> RawModelOutput:
     """One Gemini call that must answer with JSON. Any failure becomes AdapterError."""
     try:
@@ -32,7 +42,7 @@ def _generate(client: genai.Client, model: str, contents, system: str) -> RawMod
             ),
         )
     except Exception as exc:  # network, quota, timeout, bad key...
-        logger.warning("Gemini request failed: %s", type(exc).__name__)
+        _log_failure(exc)
         raise AdapterError("The AI service is unavailable") from exc
 
     if not response.text:
@@ -86,6 +96,6 @@ class GeminiTranscriber:
                 ),
             )
         except Exception as exc:
-            logger.warning("Gemini transcription failed: %s", type(exc).__name__)
+            _log_failure(exc)
             raise AdapterError("The AI service is unavailable") from exc
         return RawModelOutput(text=(response.text or "").strip(), model=self._model)

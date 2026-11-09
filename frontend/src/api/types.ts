@@ -23,6 +23,7 @@ export type Entry = {
   merchant: string | null;
   merchant_domain?: string | null; // only set when logos are switched on
   group_id?: string | null; // items of one purchase share it
+  uncertain?: string[]; // what the AI said it guessed: amount, currency, date, category, merchant, payment_method
   note: string | null;
   amount: string; // "6.50"
   currency: string;

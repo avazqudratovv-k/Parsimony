@@ -1,6 +1,6 @@
 import { Box, Paper, Typography } from "@mui/material";
 import type { Entry } from "../api/types";
-import { LOW_CONFIDENCE, formatMoney } from "../lib/format";
+import { LOW_CONFIDENCE, fill, formatMoney, uncertainWords } from "../lib/format";
 import { useI18n } from "../i18n";
 import { useTokens } from "../theme";
 import { Icon } from "./Icon";
@@ -33,7 +33,14 @@ export function NeedsCheck({ entries, onOpen }: { entries: Entry[]; onOpen: (id:
                 cursor: "pointer", borderRadius: 1.5, "&:focus-visible": { outline: `2px solid ${c.focus}`, outlineOffset: 2 },
               }}
             >
-              <Typography noWrap sx={{ fontSize: 14 }}>{e.merchant ?? e.note ?? t("entry.noMerchant")}</Typography>
+              <Box sx={{ minWidth: 0 }}>
+                <Typography noWrap sx={{ fontSize: 14 }}>{e.merchant ?? e.note ?? t("entry.noMerchant")}</Typography>
+                {uncertainWords(t, lang, [e]) && (
+                  <Typography noWrap sx={{ fontSize: 12, color: c.warn }}>
+                    {fill(t("check.notSure"), { fields: uncertainWords(t, lang, [e]) })}
+                  </Typography>
+                )}
+              </Box>
               <Typography sx={{ fontSize: 14, fontWeight: 500, fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap" }}>
                 {formatMoney(e.amount, e.currency, lang)}
               </Typography>

@@ -6,7 +6,7 @@ import { useDeleteEntry } from "../api/entries";
 import type { Entry } from "../api/types";
 import type { Lang } from "../i18n";
 import {
-  LOW_CONFIDENCE, categoryLabel, currentDate, fill, formatDay, formatMoney, formatTime, paymentLabel, shiftDate,
+  LOW_CONFIDENCE, categoryLabel, currentDate, fill, formatDay, formatMoney, formatTime, paymentLabel, shiftDate, uncertainWords,
 } from "../lib/format";
 import { useI18n } from "../i18n";
 import { DESKTOP, useTokens } from "../theme";
@@ -109,6 +109,7 @@ function EntryRow({ group, timeZone, desktop, onOpen, onDelete, onActions }: Row
   function cancel() { cancelPress(); g.current.active = false; g.current.swiping = false; setDragging(false); setOffset(0); }
 
   const checkThis = group.some((e) => e.confidence < LOW_CONFIDENCE && !e.user_corrected);
+  const uncertain = checkThis ? uncertainWords(t, lang, group) : "";
   const title = entry.merchant ?? entry.note ?? t("entry.noMerchant");
   const meta = [
     entry.merchant && !multi ? entry.note : null,
@@ -215,7 +216,7 @@ function EntryRow({ group, timeZone, desktop, onOpen, onDelete, onActions }: Row
           {checkThis ? (
             <Box component="span" sx={{ display: "inline-flex", alignItems: "center", gap: 1, fontSize: 12, fontWeight: 600, color: c.warn }}>
               <Icon name="alert" size={14} />
-              {t("entry.checkThis")}
+              {uncertain ? fill(t("entry.checkFields"), { fields: uncertain }) : t("entry.checkThis")}
             </Box>
           ) : (
             <Box

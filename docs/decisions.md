@@ -254,3 +254,12 @@ Several items bought in one go (milk, shampoo, chocolate at GS25) are saved as s
 - Tapping an item opens that item for editing. Swipe or long-press deletes the whole purchase, and the Undo toast restores all of it.
 - "Make it one" in the add toast is still available for people who prefer a single entry.
 - Grouping is done in the browser from `group_id`, so monthly totals and charts still count each item under its own category.
+
+## "Needs a check" says what to check
+
+A single confidence number could only say "unsure". The model now also returns `uncertain`, a list of field names it had to guess (amount, currency, date, category, merchant, payment_method). Only names from that fixed list are accepted; anything else is dropped, so a bad answer never fails a parse and the app never shows free text from the model.
+
+- No new column: the list is read back from `ai_output`, which already stores exactly what the model returned.
+- The list row says "Check: amount, date", the Needs a check card says "Not sure about: ...", and the Fix form shows the same sentence plus a warning-coloured "Please check" under each guessed field.
+- Entries saved before this change have no list, so they keep the plain "Check this".
+- The warm tint on a row only means "needs a check". It disappears once the user edits the entry.

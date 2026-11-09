@@ -4,7 +4,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Field, field_validator
 
-from app.models.enums import Category, PaymentMethod
+from app.models.enums import UNCERTAIN_FIELDS, Category, PaymentMethod
 from app.schemas.common import validate_timezone
 from app.schemas.entry import EntryCreate, NormalizedFields
 
@@ -38,6 +38,16 @@ class ParsedEntry(EntryCreate):
 
     payment_method: PaymentMethod  # the model must state it ("unknown" if not mentioned)
     confidence: float = Field(ge=0, le=1)
+    # Which parts the model guessed. Unknown names are dropped instead of failing the whole parse.
+    uncertain: list[str] = Field(default_factory=list)
+
+    @field_validator("uncertain", mode="before")
+    @classmethod
+    def _known_fields(cls, value):
+        if not isinstance(value, list):
+            return []
+        seen = [v for v in value if v in UNCERTAIN_FIELDS]
+        return list(dict.fromkeys(seen))
 
     @field_validator("merchant_domain", mode="before")
     @classmethod

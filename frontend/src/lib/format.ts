@@ -1,6 +1,6 @@
 import type { Lang, TFn } from "../i18n";
 import { CATEGORIES, PAYMENT_METHODS } from "../api/types";
-import type { Category, PaymentMethod } from "../api/types";
+import type { Category, Entry, PaymentMethod } from "../api/types";
 
 const LOCALES: Record<Lang, string> = { en: "en-US", ko: "ko-KR", uz: "uz-Latn-UZ" };
 
@@ -135,4 +135,14 @@ export function formatMonthName(month: string, lang: Lang): string {
   if (lang === "uz") return UZ_MONTHS[m - 1].toLowerCase();
   if (lang === "ko") return `${m}월`;
   return new Intl.DateTimeFormat(LOCALES[lang], { month: "long", timeZone: "UTC" }).format(new Date(Date.UTC(y, m - 1, 1)));
+}
+
+// What the AI said it guessed, as words in the user's language ("amount, date"). Empty when unknown.
+export function uncertainWords(t: TFn, lang: Lang, entries: Entry[]): string {
+  const names: Record<string, string> = {
+    amount: t("fix.amount"), currency: t("fix.currency"), date: t("fix.date"),
+    category: t("fix.category"), merchant: t("fix.merchant"), payment_method: t("fix.payment"),
+  };
+  const fields = [...new Set(entries.filter((e) => !e.user_corrected).flatMap((e) => e.uncertain ?? []))];
+  return fields.filter((f) => f in names).map((f) => names[f].toLocaleLowerCase(lang)).join(", ");
 }

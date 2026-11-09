@@ -5,8 +5,8 @@ import type { FormEvent } from "react";
 import { useCreateManual, useDeleteEntry, useUpdateEntry } from "../api/entries";
 import { CATEGORIES, PAYMENT_METHODS } from "../api/types";
 import type { Category, Entry, EntryUpdate, PaymentMethod } from "../api/types";
-import { categoryLabel, paymentLabel } from "../lib/format";
-import { useT } from "../i18n";
+import { categoryLabel, fill, paymentLabel, uncertainWords } from "../lib/format";
+import { useI18n } from "../i18n";
 import { useToast } from "./Toast";
 
 type Errors = Partial<Record<"amount" | "currency" | "date", string>>;
@@ -18,7 +18,7 @@ export type Draft = { note: string; currency: string; date: string };
  * With a `draft` instead of an entry it is the "Enter manually" form: the same fields, saved as a new entry.
  */
 export function FixDialog({ entry, draft, onClose }: { entry?: Entry; draft?: Draft; onClose: () => void }) {
-  const t = useT();
+  const { t, lang } = useI18n();
   const toast = useToast();
   const creating = !entry;
   const create = useCreateManual();
@@ -35,6 +35,9 @@ export function FixDialog({ entry, draft, onClose }: { entry?: Entry; draft?: Dr
   const [note, setNote] = useState(entry?.note ?? draft?.note ?? "");
   const [errors, setErrors] = useState<Errors>({});
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const guessed = new Set(entry && !entry.user_corrected ? entry.uncertain ?? [] : []);
+  const notSure = entry && !entry.user_corrected ? uncertainWords(t, lang, [entry]) : "";
+  const hint = (field: string, error?: string) => error ?? (guessed.has(field) ? t("fix.checkField") : undefined);
   const busy = update.isPending || remove.isPending || create.isPending;
 
   function onSubmit(e: FormEvent) {
@@ -80,6 +83,9 @@ export function FixDialog({ entry, draft, onClose }: { entry?: Entry; draft?: Dr
       <Box component="form" onSubmit={onSubmit} noValidate sx={{ display: "flex", flexDirection: "column", minHeight: 0, flex: 1 }}>
         <DialogTitle id="fix-title">{creating ? t("manual.title") : t("fix.title")}</DialogTitle>
         <DialogContent sx={{ display: "grid", gap: 4, pt: "8px !important" }}>
+          {notSure && (
+            <Alert severity="warning">{fill(t("fix.notSure"), { fields: notSure })}</Alert>
+          )}
           {entry?.raw_input && (
             <Box sx={(th) => ({ p: 3, borderRadius: 3, bgcolor: th.palette.mode === "dark" ? "#2B302D" : "#F1EDE5" })}>
               <Typography variant="caption" color="text.secondary">{t("fix.youSaid")}</Typography>
@@ -89,17 +95,17 @@ export function FixDialog({ entry, draft, onClose }: { entry?: Entry; draft?: Dr
             </Box>
           )}
           <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 3 }}>
-            <TextField label={t("fix.amount")} value={amount} onChange={(e) => setAmount(e.target.value)} error={!!errors.amount} helperText={errors.amount} slotProps={{ htmlInput: { inputMode: "decimal" } }} />
-            <TextField label={t("fix.currency")} value={currency} onChange={(e) => setCurrency(e.target.value.toUpperCase())} error={!!errors.currency} helperText={errors.currency} slotProps={{ htmlInput: { maxLength: 3 } }} />
+            <TextField label={t("fix.amount")} value={amount} onChange={(e) => setAmount(e.target.value)} error={!!errors.amount} helperText={hint("amount", errors.amount)} color={guessed.has("amount") ? "warning" : undefined} focused={guessed.has("amount") && !errors.amount ? true : undefined} slotProps={{ htmlInput: { inputMode: "decimal" } }} />
+            <TextField label={t("fix.currency")} value={currency} onChange={(e) => setCurrency(e.target.value.toUpperCase())} error={!!errors.currency} helperText={hint("currency", errors.currency)} color={guessed.has("currency") ? "warning" : undefined} focused={guessed.has("currency") && !errors.currency ? true : undefined} slotProps={{ htmlInput: { maxLength: 3 } }} />
           </Box>
-          <TextField label={t("fix.date")} type="date" value={date} onChange={(e) => setDate(e.target.value)} error={!!errors.date} helperText={errors.date} slotProps={{ inputLabel: { shrink: true } }} />
-          <TextField select label={t("fix.category")} value={category} onChange={(e) => setCategory(e.target.value)}>
+          <TextField label={t("fix.date")} type="date" value={date} onChange={(e) => setDate(e.target.value)} error={!!errors.date} helperText={hint("date", errors.date)} color={guessed.has("date") ? "warning" : undefined} focused={guessed.has("date") && !errors.date ? true : undefined} slotProps={{ inputLabel: { shrink: true } }} />
+          <TextField select label={t("fix.category")} value={category} onChange={(e) => setCategory(e.target.value)} helperText={hint("category")} color={guessed.has("category") ? "warning" : undefined} focused={guessed.has("category") || undefined}>
             {CATEGORIES.map((c) => <MenuItem key={c} value={c}>{categoryLabel(t, c)}</MenuItem>)}
           </TextField>
-          <TextField select label={t("fix.payment")} value={payment} onChange={(e) => setPayment(e.target.value)}>
+          <TextField select label={t("fix.payment")} value={payment} onChange={(e) => setPayment(e.target.value)} helperText={hint("payment_method")} color={guessed.has("payment_method") ? "warning" : undefined} focused={guessed.has("payment_method") || undefined}>
             {PAYMENT_METHODS.map((m) => <MenuItem key={m} value={m}>{paymentLabel(t, m)}</MenuItem>)}
           </TextField>
-          <TextField label={t("fix.merchant")} value={merchant} onChange={(e) => setMerchant(e.target.value)} slotProps={{ htmlInput: { maxLength: 200 } }} />
+          <TextField label={t("fix.merchant")} value={merchant} onChange={(e) => setMerchant(e.target.value)} helperText={hint("merchant")} color={guessed.has("merchant") ? "warning" : undefined} focused={guessed.has("merchant") || undefined} slotProps={{ htmlInput: { maxLength: 200 } }} />
           <TextField label={t("fix.note")} value={note} onChange={(e) => setNote(e.target.value)} slotProps={{ htmlInput: { maxLength: 500 } }} />
           {(update.isError || remove.isError || create.isError) && <Alert severity="error" role="alert">{t("fix.error.generic")}</Alert>}
         </DialogContent>

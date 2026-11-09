@@ -821,6 +821,18 @@ describe("needs a check", () => {
     expect(await screen.findByRole("dialog")).toBeInTheDocument();
   });
 
+  it("says what exactly the AI was unsure about, in the list, the check card and the Fix form", async () => {
+    signedInApi({}, [ENTRY, { ...LOW, uncertain: ["amount", "date"] }]);
+    renderApp("/app");
+    const card = within(await screen.findByRole("region", { name: "Needs a check" }));
+    expect(card.getByText("Not sure about: amount, date")).toBeInTheDocument();
+    expect(screen.getByText("Check: amount, date")).toBeInTheDocument();
+    await userEvent.setup().click(card.getByRole("button", { name: /CGV/ }));
+    const dialog = within(await screen.findByRole("dialog"));
+    expect(dialog.getByText("The AI wasn't sure about: amount, date. Please check.")).toBeInTheDocument();
+    expect(dialog.getAllByText("Please check")).toHaveLength(2);
+  });
+
   it("is not shown when everything looks right", async () => {
     signedInApi();
     renderApp("/app");

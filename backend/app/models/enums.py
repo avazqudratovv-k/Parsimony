@@ -37,3 +37,7 @@ class UsageKind(StrEnum):
     TEXT = "text"
     VISION = "vision"
     AUDIO = "audio"
+
+
+# The parts of an entry the model can say it was unsure about. Shown to the user, never free text.
+UNCERTAIN_FIELDS = ("amount", "currency", "date", "category", "merchant", "payment_method")

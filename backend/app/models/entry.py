@@ -21,6 +21,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db import Base
+from app.models.enums import UNCERTAIN_FIELDS
 from app.models.user import User
 
 
@@ -58,3 +59,11 @@ class Entry(Base):
     )
 
     user: Mapped[User] = relationship(back_populates="entries")
+
+    @property
+    def uncertain(self) -> list[str]:
+        """The fields the model said it guessed, read back from what it returned."""
+        raw = (self.ai_output or {}).get("uncertain")
+        if not isinstance(raw, list):
+            return []
+        return [f for f in dict.fromkeys(raw) if f in UNCERTAIN_FIELDS]

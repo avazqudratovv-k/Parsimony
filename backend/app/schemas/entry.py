@@ -86,6 +86,7 @@ class EntryOut(BaseModel):
     updated_at: dt.datetime
     merchant_domain: str | None = None
     group_id: uuid.UUID | None = None
+    uncertain: list[str] = []  # what the AI guessed; empty once the user has corrected the entry
 
 
 class EntryCreated(EntryOut):

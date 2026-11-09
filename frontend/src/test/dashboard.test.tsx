@@ -436,6 +436,12 @@ describe("one purchase, several items", () => {
     expect(screen.getByText(/2 items/)).toBeInTheDocument();
   });
 
+  it("shows both ways of paying when the items were paid differently", async () => {
+    signedInApi({}, [{ ...MILK, payment_method: "card" }, { ...SHAMPOO, payment_method: "cash" }]);
+    renderApp("/app");
+    expect(await screen.findByText(/Card \+ Cash/)).toBeInTheDocument();
+  });
+
   it("tapping one item opens that item", async () => {
     signedInApi({}, [MILK, SHAMPOO]);
     renderApp("/app");

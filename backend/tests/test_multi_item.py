@@ -89,3 +89,24 @@ def test_no_amount_says_so_with_a_code_the_app_can_translate(client):
     response = post(client, "1 dish and 1 fork at Dyson")
     assert response.status_code == 422
     assert response.json()["detail"]["code"] == "no_amount"
+
+
+def test_each_item_keeps_its_own_way_of_paying(client):
+    signup(client)
+    items = [
+        {"note": "Bag", "amount": 15, "category": "shopping", "payment_method": "card"},
+        {"note": "Wallet", "amount": 30, "category": "shopping", "payment_method": "cash"},
+    ]
+    use_parser(FakeParser(answer(amount=45, items=items, payment_method="cash")))
+    response = post(client, "bag 15 card, wallet 30 cash")
+
+    assert response.status_code == 201
+    listed = {e["note"]: e["payment_method"] for e in client.get("/api/entries").json()}
+    assert listed == {"Bag": "card", "Wallet": "cash"}
+
+
+def test_an_item_without_its_own_payment_uses_the_purchases(client):
+    signup(client)
+    use_parser(FakeParser(answer(payment_method="card")))
+    post(client)
+    assert {e["payment_method"] for e in client.get("/api/entries").json()} == {"card"}

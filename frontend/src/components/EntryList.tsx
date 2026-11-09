@@ -111,10 +111,11 @@ function EntryRow({ group, timeZone, desktop, onOpen, onDelete, onActions }: Row
   const checkThis = group.some((e) => e.confidence < LOW_CONFIDENCE && !e.user_corrected);
   const uncertain = checkThis ? uncertainWords(t, lang, group) : "";
   const title = entry.merchant ?? entry.note ?? t("entry.noMerchant");
+  const payments = [...new Set(group.map((e) => e.payment_method).filter((m) => m !== "unknown"))].map((m) => paymentLabel(t, m)).join(" + ");
   const meta = [
     entry.merchant && !multi ? entry.note : null,
     multi && checkThis ? fill(t("entry.items"), { count: group.length }) : null, // else it sits under the total
-    entry.payment_method !== "unknown" ? paymentLabel(t, entry.payment_method) : null,
+    payments || null,
     formatTime(entry.created_at, timeZone),
   ].filter(Boolean) as string[];
   const source = (entry.source in SOURCE_ICON ? entry.source : "text") as keyof typeof SOURCE_ICON;

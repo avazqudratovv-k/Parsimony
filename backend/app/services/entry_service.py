@@ -135,7 +135,7 @@ def create_from_text(
             amount=item.amount,
             currency=entry.currency,
             category=item.category,
-            payment_method=entry.payment_method,
+            payment_method=item.payment_method or entry.payment_method,
         )
         saved.append(
             _save(

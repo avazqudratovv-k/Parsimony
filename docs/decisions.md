@@ -263,3 +263,7 @@ A single confidence number could only say "unsure". The model now also returns `
 - The list row says "Check: amount, date", the Needs a check card says "Not sure about: ...", and the Fix form shows the same sentence plus a warning-coloured "Please check" under each guessed field.
 - Entries saved before this change have no list, so they keep the plain "Check this".
 - The warm tint on a row only means "needs a check". It disappears once the user edits the entry.
+
+## Items can be paid in different ways
+
+"Bag 15 card, wallet 30 cash" is one purchase with two ways of paying, but an entry only had one `payment_method`, so the model flagged it as unsure and one item got the wrong method. Items may now carry their own `payment_method` (optional; the purchase's is used when missing). The grouped card shows every method used, for example "Card + Cash".

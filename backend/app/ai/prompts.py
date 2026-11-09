@@ -26,6 +26,7 @@ ENTRY_JSON_SCHEMA = {
                     "note": {"type": ["string", "null"]},
                     "amount": {"type": "number"},
                     "category": {"type": "string", "enum": [c.value for c in Category]},
+                    "payment_method": {"type": "string", "enum": [p.value for p in PaymentMethod]},
                 },
                 "required": ["note", "amount", "category"],
             },
@@ -72,7 +73,9 @@ the confidence.
 - items: leave this out (or use []) for a normal expense. Fill it only when ONE purchase clearly \
 lists two or more things with their own amounts, and they belong to different categories. Then \
 each item has note, amount and category, and the item amounts add up exactly to amount. \
-category at the top is the category of the biggest item.
+category at the top is the category of the biggest item. If the items were paid in different ways \
+("bag 15 card, wallet 30 cash"), give each item its own payment_method; the top-level \
+payment_method is then the biggest item's. Different ways of paying are not uncertain.
 - confidence: 0 to 1, how sure you are that the whole entry is right. Use below 0.5 when the \
 amount, currency or date had to be guessed.
 - uncertain: the list of fields you had to guess or could not read well, using only these names: \

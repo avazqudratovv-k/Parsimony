@@ -26,6 +26,7 @@ class ParsedItem(NormalizedFields):
     note: str | None = Field(default=None, max_length=500)
     amount: Decimal = Field(gt=0, max_digits=12, decimal_places=2)
     category: Category
+    payment_method: PaymentMethod | None = None  # only when this item was paid differently
 
 
 class ParsedEntry(EntryCreate):

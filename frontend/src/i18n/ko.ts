@@ -48,6 +48,8 @@ export const ko: Dict = {
   "add.error.unavailable": "지금은 AI 서비스를 사용할 수 없어요. 잠시 후 다시 시도해 주세요.",
   "add.error.generic": "추가하지 못했어요. 다시 시도해 주세요.",
   "add.photo": "영수증 사진으로 추가",
+  "add.photo.camera": "사진 찍기",
+  "add.photo.library": "앨범에서 선택",
   "photo.title": "영수증",
   "photo.checkTitle": "영수증 확인",
   "photo.alt": "영수증 사진",

@@ -143,6 +143,16 @@ describe("receipt photo", () => {
     await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
   });
 
+  it("offers the camera and the photo library", async () => {
+    signedInApi();
+    renderApp("/app");
+    const user = userEvent.setup();
+    await user.click(await screen.findByRole("button", { name: "Add from a receipt photo" }));
+    expect(screen.getByRole("menuitem", { name: "Take a photo" })).toBeInTheDocument();
+    expect(screen.getByRole("menuitem", { name: "Choose from library" })).toBeInTheDocument();
+    expect(screen.getByTestId("camera-input")).toHaveAttribute("capture", "environment");
+  });
+
   it("warns when the model was unsure", async () => {
     stubUrls();
     signedInApi({ "POST /api/entries/photo": { status: 201, body: { ...PHOTO, confidence: 0.5 } } });

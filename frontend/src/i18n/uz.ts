@@ -50,6 +50,8 @@ export const uz: Dict = {
   "add.error.unavailable": "AI xizmati hozir ishlamayapti. Qayta urinib koʻring.",
   "add.error.generic": "Qoʻshib boʻlmadi. Qayta urinib koʻring.",
   "add.photo": "Chek rasmidan qoʻshish",
+  "add.photo.camera": "Suratga olish",
+  "add.photo.library": "Galereyadan tanlash",
   "photo.title": "Chek",
   "photo.checkTitle": "Chekni tekshiring",
   "photo.alt": "Chek rasmi",

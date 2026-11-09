@@ -1,10 +1,10 @@
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import PersonOutlineIcon from "@mui/icons-material/PersonOutlineOutlined";
-import { Alert, Box, IconButton, InputBase, Paper, Tooltip, Typography, useMediaQuery } from "@mui/material";
+import { Alert, Box, IconButton, InputBase, ListItemIcon, Menu, MenuItem, Paper, Tooltip, Typography, useMediaQuery } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { Link } from "@tanstack/react-router";
 import { useRef, useState } from "react";
-import type { FormEvent } from "react";
+import type { ChangeEvent, FormEvent } from "react";
 import { useAddEntry, useUsage } from "../api/entries";
 import { addErrorMessage } from "../lib/errors";
 import { fill } from "../lib/format";
@@ -19,9 +19,17 @@ export function AddBar({ onAdded }: { onAdded?: () => void }) {
   const docked = useMediaQuery(theme.breakpoints.down("sm"));
   const [text, setText] = useState("");
   const add = useAddEntry();
-  const fileInput = useRef<HTMLInputElement>(null);
+  const libraryInput = useRef<HTMLInputElement>(null);
+  const cameraInput = useRef<HTMLInputElement>(null);
+  const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
   const [photo, setPhoto] = useState<File | null>(null);
   const { data: usage } = useUsage();
+
+  function onPick(e: ChangeEvent<HTMLInputElement>) {
+    const f = e.target.files?.[0];
+    e.target.value = "";
+    if (f) setPhoto(f);
+  }
 
   function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -69,16 +77,22 @@ export function AddBar({ onAdded }: { onAdded?: () => void }) {
         )}
         <Tooltip title={t("add.photo")}>
           <span>
-            <IconButton aria-label={t("add.photo")} disabled={add.isPending || !!photo} onClick={() => fileInput.current?.click()} sx={{ width: 44, height: 44 }}>
+            <IconButton aria-label={t("add.photo")} disabled={add.isPending || !!photo} onClick={(e) => setMenuAnchor(e.currentTarget)} sx={{ width: 44, height: 44 }}>
               <Icon name="camera" size={22} />
             </IconButton>
           </span>
         </Tooltip>
-        {/* On a phone this opens the camera or the photo library; on desktop, the file picker. */}
-        <input
-          ref={fileInput} type="file" accept="image/jpeg,image/png,image/webp,image/*" hidden data-testid="photo-input"
-          onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ""; if (f) setPhoto(f); }}
-        />
+        <Menu anchorEl={menuAnchor} open={!!menuAnchor} onClose={() => setMenuAnchor(null)}>
+          <MenuItem onClick={() => { setMenuAnchor(null); cameraInput.current?.click(); }}>
+            <ListItemIcon><Icon name="camera" size={20} /></ListItemIcon>{t("add.photo.camera")}
+          </MenuItem>
+          <MenuItem onClick={() => { setMenuAnchor(null); libraryInput.current?.click(); }}>
+            <ListItemIcon><Icon name="upload" size={20} /></ListItemIcon>{t("add.photo.library")}
+          </MenuItem>
+        </Menu>
+        {/* "capture" asks a phone for the camera directly; without it the phone shows its photo picker. */}
+        <input ref={cameraInput} type="file" accept="image/*" capture="environment" hidden data-testid="camera-input" onChange={onPick} />
+        <input ref={libraryInput} type="file" accept="image/*" hidden data-testid="photo-input" onChange={onPick} />
       </Paper>
       {/* Always take the same height, so the bar never grows when the number arrives. */}
       <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 1, textAlign: "center", minHeight: "1.5em", lineHeight: 1.5 }}>

@@ -48,6 +48,8 @@ export const en = {
   "add.error.unavailable": "The AI service is unavailable right now. Please try again.",
   "add.error.generic": "Couldn't add that. Please try again.",
   "add.photo": "Add from a receipt photo",
+  "add.photo.camera": "Take a photo",
+  "add.photo.library": "Choose from library",
   "photo.title": "Receipt",
   "photo.checkTitle": "Check the receipt",
   "photo.alt": "Your receipt photo",

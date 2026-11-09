@@ -4,6 +4,7 @@ import {
   createMemoryHistory,
   createRootRouteWithContext,
   createRoute,
+  lazyRouteComponent,
   createRouter,
   redirect,
 } from "@tanstack/react-router";
@@ -11,7 +12,6 @@ import type { RouterHistory } from "@tanstack/react-router";
 import { meQuery } from "./api/auth";
 import { AppPage } from "./routes/AppPage";
 import { LandingPage } from "./routes/LandingPage";
-import { MePage } from "./routes/MePage";
 import { ErrorScreen } from "./components/ErrorScreen";
 import { NotFound } from "./routes/NotFound";
 
@@ -51,7 +51,7 @@ const meRoute = createRoute({
     const me = await context.queryClient.ensureQueryData(meQuery);
     if (!me) throw redirect({ to: "/" });
   },
-  component: MePage,
+  component: lazyRouteComponent(() => import("./routes/MePage"), "MePage"),
 });
 
 const routeTree = rootRoute.addChildren([landingRoute, appRoute, meRoute]);

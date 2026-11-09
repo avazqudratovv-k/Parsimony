@@ -218,7 +218,7 @@ export function EntryList({ query, isCurrentMonth, timeZone, onOpen }: Props) {
     }, UNDO_MS);
     pending.current.set(id, timer);
     toast({
-      message: t("toast.deleted"),
+      message: t("toast.deleted"), icon: "trash", duration: UNDO_MS,
       action: { label: t("toast.undo"), onClick: () => { window.clearTimeout(pending.current.get(id)); pending.current.delete(id); unhide(id); } },
     });
   }

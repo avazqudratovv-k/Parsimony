@@ -208,3 +208,9 @@
 - **Opening animation** uses only opacity/transform/clip-path (no layout work), plays once per browser session (`sessionStorage`), is skipped by any tap or key, and shrinks to a 150 ms fade under reduced motion.
 - **Phone gestures** (screens under 1024 px only): swipe left reveals a red Delete button (a short swipe snaps back, a very long one deletes), press and hold (~0.5 s) opens an Edit / Delete sheet. Vertical scrolling always wins, and the desktop "Fix this" button is unchanged. Delete is undoable: the entry disappears at once, the request is only sent after a 5-second Undo window (and is flushed if you leave the page), so Undo restores the original entry with its source and raw text intact.
 - **Merchant logos: not built.** They would need an extra AI call per entry (cost), guess brand domains (often wrong) and send merchant names to a third-party logo service (privacy). Initials avatars are the cheap, offline alternative if wanted later.
+
+## Toasts follow the design; smaller polish
+
+- Toasts now match the Claude Design "Parsimony Toasts" file: icon, message, optional Undo, dismiss button, and a thin bar showing the time left (it pauses on hover; reduced motion uses a plain timer).
+- The chat placeholder is shorter so it is not cut off on a phone.
+- The My page code is loaded only when opened. The main script is about 205 kB gzipped (React, MUI, router and query), which is fine for this app, so the size warning stays as a note, not a setting to hide it.

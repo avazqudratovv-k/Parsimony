@@ -72,7 +72,7 @@ export function FixDialog({ entry, draft, onClose }: { entry?: Entry; draft?: Dr
   function onDelete() {
     if (!entry) return;
     if (!confirmDelete) return setConfirmDelete(true);
-    remove.mutate(entry.id, { onSuccess: () => { toast({ message: t("toast.deleted") }); onClose(); } });
+    remove.mutate(entry.id, { onSuccess: () => { toast({ message: t("toast.deleted"), icon: "trash" }); onClose(); } });
   }
 
   return (

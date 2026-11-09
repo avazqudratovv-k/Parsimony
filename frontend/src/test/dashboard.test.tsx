@@ -127,7 +127,7 @@ describe("toasts and manual entry", () => {
     const user = userEvent.setup();
     await user.type(await screen.findByLabelText("Describe an expense"), "kimbap 4 dollars");
     await user.click(screen.getByRole("button", { name: "Add" }));
-    expect(await screen.findByText("Added Kimbap House $4.00")).toBeInTheDocument();
+    expect(await screen.findByText("Added: Kimbap House $4.00")).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Undo" }));
     expect(await screen.findByText("Removed")).toBeInTheDocument();
     expect(calls.some((c) => c.method === "DELETE" && c.url === "/api/entries/n1")).toBe(true);

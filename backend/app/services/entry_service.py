@@ -1,14 +1,29 @@
 import datetime as dt
 import uuid
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.ai.base import TextParser
+from app.config import get_settings
 from app.models import Entry, User
 from app.models.enums import UsageKind
 from app.schemas.entry import EntryCreate
 from app.services import parse_service, usage_service
+
+
+class EntryLimitReached(Exception):
+    def __init__(self, limit: int) -> None:
+        super().__init__(limit)
+        self.limit = limit
+
+
+def _check_room(db: Session, user: User) -> None:
+    settings = get_settings()
+    limit = settings.max_entries_demo if user.is_demo else settings.max_entries_user
+    count = db.scalar(select(func.count()).select_from(Entry).where(Entry.user_id == user.id))
+    if (count or 0) >= limit:
+        raise EntryLimitReached(limit)
 
 
 def month_bounds(month: str) -> tuple[dt.date, dt.date]:
@@ -54,6 +69,7 @@ def create_from_text(
     db: Session, user: User, parser: TextParser, text: str, timezone: str | None
 ) -> Entry:
     """Typed text -> model -> validated JSON -> saved entry. Counts against the daily AI cap."""
+    _check_room(db, user)  # before the AI call, so a full account never spends a cap
     usage_service.consume(db, user, UsageKind.TEXT)
     ctx = parse_service.build_context(user, timezone)
     outcome = parse_service.parse_text(parser, text, ctx)
@@ -70,6 +86,7 @@ def create_from_text(
 
 def create_manual(db: Session, user: User, data: EntryCreate) -> Entry:
     """The fallback when the AI can't read something. No AI call, so no cap."""
+    _check_room(db, user)
     return _save(
         db, user, data, raw_input=None, confidence=1.0, model_used="manual", ai_output=None
     )

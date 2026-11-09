@@ -10,8 +10,12 @@ class EmailAlreadyRegistered(Exception):
     pass
 
 
-def create_user(db: Session, email: str, password: str) -> User:
-    user = User(email=email.lower(), password_hash=hash_password(password))
+def create_user(db: Session, email: str, password: str, timezone: str | None = None) -> User:
+    user = User(
+        email=email.lower(),
+        password_hash=hash_password(password),
+        timezone=timezone or "UTC",
+    )
     db.add(user)
     try:
         db.commit()

@@ -1,8 +1,7 @@
-from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
-
 from pydantic import BaseModel, Field, field_validator
 
 from app.models.enums import PaymentMethod
+from app.schemas.common import validate_timezone
 from app.schemas.entry import EntryCreate
 
 
@@ -26,16 +25,7 @@ class ParseTextRequest(BaseModel):
             raise ValueError("text must not be empty")
         return value
 
-    @field_validator("timezone")
-    @classmethod
-    def _valid_timezone(cls, value: str | None) -> str | None:
-        if value is None:
-            return None
-        try:
-            ZoneInfo(value)
-        except (ZoneInfoNotFoundError, ValueError):
-            raise ValueError("unknown timezone") from None
-        return value
+    _check_timezone = field_validator("timezone")(validate_timezone)
 
 
 class ParseTextResponse(BaseModel):

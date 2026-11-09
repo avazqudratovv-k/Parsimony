@@ -21,8 +21,8 @@ CurrencyParam = Annotated[str | None, Query(pattern=r"^[A-Za-z]{3}$")]
 
 
 @contextmanager
-def ai_errors() -> Iterator[None]:
-    """Turn AI-related failures into clear HTTP errors."""
+def api_errors() -> Iterator[None]:
+    """Turn AI and limit failures into clear HTTP errors."""
     try:
         yield
     except usage_service.DailyLimitReached as exc:
@@ -38,6 +38,14 @@ def ai_errors() -> Iterator[None]:
                 "code": f"daily_limit_{who}",
                 "message": message,
                 "resets_at": exc.resets_at.strftime("%Y-%m-%dT%H:%M:%SZ"),
+            },
+        ) from None
+    except entry_service.EntryLimitReached as exc:
+        raise HTTPException(
+            status.HTTP_409_CONFLICT,
+            {
+                "code": "entry_limit",
+                "message": f"Entry limit reached ({exc.limit}). Delete some entries to add more.",
             },
         ) from None
     except parse_service.NotAnExpense:
@@ -59,7 +67,7 @@ def ai_errors() -> Iterator[None]:
 @router.post("/parse", response_model=ParseTextResponse)
 def parse_entry_text(body: ParseTextRequest, user: CurrentUser, db: DbSession, parser: Parser):
     """Preview what the AI would save. Counts against the daily cap, saves nothing."""
-    with ai_errors():
+    with api_errors():
         usage_service.consume(db, user, UsageKind.TEXT)
         ctx = parse_service.build_context(user, body.timezone)
         outcome = parse_service.parse_text(parser, body.text, ctx)
@@ -71,14 +79,15 @@ def create_entry_from_text(
     body: ParseTextRequest, user: CurrentUser, db: DbSession, parser: Parser
 ):
     """Typed text -> AI -> saved entry."""
-    with ai_errors():
+    with api_errors():
         return entry_service.create_from_text(db, user, parser, body.text, body.timezone)
 
 
 @router.post("/manual", response_model=EntryOut, status_code=status.HTTP_201_CREATED)
 def create_manual_entry(body: EntryCreate, user: CurrentUser, db: DbSession):
     """Enter an expense by hand (no AI call). The fallback when parsing fails."""
-    return entry_service.create_manual(db, user, body)
+    with api_errors():
+        return entry_service.create_manual(db, user, body)
 
 
 @router.get("", response_model=list[EntryOut])

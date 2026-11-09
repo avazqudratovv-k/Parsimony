@@ -30,3 +30,16 @@ def add_manual(client, **overrides):
     response = client.post("/api/entries/manual", json=manual_payload(**overrides))
     assert response.status_code == 201, response.text
     return response.json()
+
+
+def db_session():
+    """A session on the same in-memory database the test client uses."""
+    from app.db import get_db
+
+    return next(app.dependency_overrides[get_db]())
+
+
+def start_demo(client, **body):
+    response = client.post("/api/auth/demo", json=body or None)
+    assert response.status_code == 201, response.text
+    return response.json()

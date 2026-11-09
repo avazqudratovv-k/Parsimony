@@ -32,6 +32,7 @@ Other folders: `frontend/`, `ml/` (data, training, eval), `docs/`, `scripts/`, `
 - Lint/format: `docker compose exec backend ruff check . && docker compose exec backend ruff format .`
 - New migration: `docker compose exec backend alembic revision --autogenerate -m "message"`, review the
   file, then `docker compose exec backend alembic upgrade head`
+- Delete expired demo accounts: `docker compose exec -T backend python -m app.cleanup` (cron it in production)
 - API lives under `/api` (health: `GET /api/health`)
 
 ## Rules
@@ -47,5 +48,5 @@ Other folders: `frontend/`, `ml/` (data, training, eval), `docs/`, `scripts/`, `
 - Small commits with clear messages.
 
 ## Status
-Day 1 skeleton and health check done. Day 2 models and first migration done. Day 3 auth done. Day 4 Gemini text parser done. Day 5 entries CRUD, corrections, daily AI caps and monthly stats done (65 tests).
+Day 1 skeleton and health check done. Day 2 models and first migration done. Day 3 auth done. Day 4 Gemini text parser done. Day 5 entries CRUD, corrections, daily AI caps and monthly stats done. Day 6 demo account (`POST /api/auth/demo`), expiry, cleanup and entry limits done (79 tests). Gemini text parsing verified live.
 Plan: Days 4-6 parser, entries, caps, demo account; 7-9 frontend; 10 deploy; 11-13 photo and voice.

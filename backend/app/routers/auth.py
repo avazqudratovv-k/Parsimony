@@ -3,11 +3,11 @@ import uuid
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 
 from app.config import get_settings
-from app.core.rate_limit import login_limiter, signup_limiter
+from app.core.rate_limit import demo_limiter, login_limiter, signup_limiter
 from app.core.security import create_session_token
 from app.deps import SESSION_COOKIE, CurrentUser, DbSession
-from app.schemas.auth import LoginRequest, SignupRequest, UserOut
-from app.services import auth_service
+from app.schemas.auth import DemoRequest, LoginRequest, SignupRequest, UserOut
+from app.services import auth_service, demo_service
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -33,9 +33,28 @@ def _set_session_cookie(response: Response, user_id: uuid.UUID) -> None:
 )
 def signup(body: SignupRequest, response: Response, db: DbSession):
     try:
-        user = auth_service.create_user(db, body.email, body.password)
+        user = auth_service.create_user(db, body.email, body.password, body.timezone)
     except auth_service.EmailAlreadyRegistered:
         raise HTTPException(status.HTTP_409_CONFLICT, "Email already registered") from None
+    _set_session_cookie(response, user.id)
+    return user
+
+
+@router.post(
+    "/demo",
+    response_model=UserOut,
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(demo_limiter)],
+)
+def start_demo(response: Response, db: DbSession, body: DemoRequest | None = None):
+    """The "Try demo" button: a sandbox account with sample data that deletes itself."""
+    try:
+        user = demo_service.create_demo_user(db, body.timezone if body else None)
+    except demo_service.DemoUnavailable:
+        raise HTTPException(
+            status.HTTP_503_SERVICE_UNAVAILABLE,
+            "The demo is full right now. Please try again later or sign up.",
+        ) from None
     _set_session_cookie(response, user.id)
     return user
 

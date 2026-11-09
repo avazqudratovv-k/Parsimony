@@ -21,6 +21,17 @@ class Settings(BaseSettings):
     ai_daily_cap_demo: int = 10
     ai_daily_cap_global: int = 300
 
+    # Demo accounts: deleted after demo_ttl_days; at most demo_max_active alive at once.
+    demo_ttl_days: int = 7
+    demo_max_active: int = 200
+
+    # Most entries one account may hold (protects the database from abuse).
+    max_entries_user: int = 1000
+    max_entries_demo: int = 100
+
+    # Where uploaded files live (receipt photos, voice clips) from Day 11 on.
+    upload_dir: str = "/srv/uploads"
+
     @model_validator(mode="after")
     def _require_real_secret_in_production(self) -> "Settings":
         if self.app_env == "production" and self.secret_key in {"", "change-me"}:

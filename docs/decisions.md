@@ -61,3 +61,20 @@
 - Money is returned as strings ("6.50") so the frontend never loses precision. Stats group by category in
   ONE currency (no conversion) and list every currency used that month for the currency tabs.
 - Entries are only ever read or changed through the owner's id; another user's entry looks like a 404.
+
+## Day 6
+- "Try demo" is `POST /api/auth/demo`: a passwordless sandbox user (`demo-<random>@demo.parsimony.invalid`),
+  15 made-up sample entries in USD/EUR/KRW with dates relative to today (one low-confidence row), a session
+  cookie, and an `expires_at` 7 days out. Nobody can log into it with a password.
+- Expired demos are rejected on every request (401 "This demo has expired") and deleted by
+  `python -m app.cleanup`, which cascades to entries, attachments and the account's usage counters, and
+  removes attachment files from the upload folder (a no-op until Day 11). Starting a new demo also cleans up
+  first, so growth is bounded even if cron is missing. Deploy day: run the cleanup command from cron daily.
+- Abuse limits: 10 demo starts per hour per IP, at most 200 live demo accounts (then 503 "demo is full"),
+  10 AI entries per demo per day, and at most 100 entries per demo account (1000 per real account, 409
+  `entry_limit`). A full account is refused before it spends an AI call.
+- Sample entries carry `model_used = "sample"` and an `ai_output`, so "Fix this" behaves exactly like it does
+  on real AI entries. The training-data export must skip all demo users and `model_used = "sample"` rows:
+  visitors' corrections are not trustworthy training data.
+- The `.invalid` demo domain also means nobody can sign up with an address that collides with a demo one.
+- Signup and demo accept the browser's timezone, so "yesterday" means the user's yesterday.

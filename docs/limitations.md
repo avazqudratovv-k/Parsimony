@@ -3,6 +3,7 @@
 Kept up to date as the project grows. Items marked (planned) don't exist yet.
 
 - Demo project, not a finance product. Don't upload real receipts; demo accounts are deleted after about 7 days.
+- Demo accounts are shared-nothing sandboxes: they expire after 7 days, hold at most 100 entries and 10 AI entries a day.
 - Single currency per entry; no conversion. Monthly charts are grouped by currency.
 - Model confidence is self-reported by the model and is not calibrated.
 - Auth rate limiting is in memory and per process (fine for one backend process).

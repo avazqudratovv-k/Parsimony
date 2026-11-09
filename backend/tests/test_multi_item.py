@@ -112,7 +112,7 @@ def test_an_item_without_its_own_payment_uses_the_purchases(client):
     assert {e["payment_method"] for e in client.get("/api/entries").json()} == {"card"}
 
 
-def test_items_in_different_currencies_are_kept_as_separate_entries(client):
+def test_items_in_different_currencies_are_kept_and_grouped(client):
     signup(client)
     items = [
         {"note": "Laptop", "amount": 50, "category": "shopping", "currency": "USD"},
@@ -123,4 +123,4 @@ def test_items_in_different_currencies_are_kept_as_separate_entries(client):
 
     listed = {e["note"]: (e["amount"], e["currency"]) for e in client.get("/api/entries").json()}
     assert listed == {"Laptop": ("50.00", "USD"), "MacBook": ("150000.00", "KRW")}
-    assert body["group_id"] is None and body["siblings"][0]["group_id"] is None
+    assert body["group_id"] and body["group_id"] == body["siblings"][0]["group_id"]

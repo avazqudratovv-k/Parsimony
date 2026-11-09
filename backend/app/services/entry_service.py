@@ -84,7 +84,8 @@ def _split_items(db: Session, user: User, entry) -> list:
     """The per-item parts of one purchase, or [] when the entry should simply be saved whole.
 
     Items are used only when there are at least two, they add up to the total (so no money is
-    invented or lost) unless they are in different currencies, and the account has room for all.
+    invented or lost) unless they are in different currencies, and the account has room for
+    all of them.
     """
     items = entry.items
     if len(items) < 2:
@@ -133,8 +134,7 @@ def create_from_text(
             )
         ]
     saved = []
-    # Items in one currency are shown together under one total. Mixed currencies stay separate.
-    group_id = None if _mixed_currencies(entry, items) else uuid.uuid4()
+    group_id = uuid.uuid4()  # the items of this purchase are shown together
     for item in items:
         part = EntryCreate(
             date=entry.date,

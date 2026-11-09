@@ -442,6 +442,13 @@ describe("one purchase, several items", () => {
     expect(await screen.findByText(/Card \+ Cash/)).toBeInTheDocument();
   });
 
+  it("shows one total per currency when the items are in different currencies", async () => {
+    signedInApi({}, [{ ...MILK, currency: "USD", amount: "50.00" }, { ...SHAMPOO, currency: "KRW", amount: "150000.00" }]);
+    renderApp("/app");
+    expect(await screen.findAllByText("$50.00 + ₩150,000")).not.toHaveLength(0);
+    expect(screen.getByRole("button", { name: "Shampoo, ₩150,000" })).toBeInTheDocument();
+  });
+
   it("tapping one item opens that item", async () => {
     signedInApi({}, [MILK, SHAMPOO]);
     renderApp("/app");

@@ -78,7 +78,9 @@ category at the top is the category of the biggest item. If the items were paid 
 ("bag 15 card, wallet 30 cash"), give each item its own payment_method; the top-level \
 payment_method is then the biggest item's. Different ways of paying are not uncertain. If the \
 items are in different currencies ("laptop 50$ cash, macbook 150000 krw card"), give every item \
-its own currency and list every item; never drop one. The amounts then do not need to add up.
+its own currency and list every item; never drop one. The amounts then do not need to add up, \
+and mixed currencies are not uncertain. When items are listed, every item gets its own \
+payment_method if the user said how any of them were paid.
 - confidence: 0 to 1, how sure you are that the whole entry is right. Use below 0.5 when the \
 amount, currency or date had to be guessed.
 - uncertain: the list of fields you had to guess or could not read well, using only these names: \

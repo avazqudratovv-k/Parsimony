@@ -119,8 +119,7 @@ function EntryRow({ group, timeZone, desktop, onOpen, onDelete, onActions }: Row
     formatTime(entry.created_at, timeZone),
   ].filter(Boolean) as string[];
   const source = (entry.source in SOURCE_ICON ? entry.source : "text") as keyof typeof SOURCE_ICON;
-  const total = multi ? (Math.round(group.reduce((sum, e) => sum + Number(e.amount), 0) * 100) / 100).toFixed(2) : entry.amount;
-  const amount = formatMoney(total, entry.currency, lang);
+  const amount = multi ? dayTotal(group, lang) : formatMoney(entry.amount, entry.currency, lang); // one total per currency
   const biggest = [...group].sort((a, b) => Number(b.amount) - Number(a.amount))[0];
   const tap = (id: string) => () => {
     if (g.current.suppressClick) { g.current.suppressClick = false; return; }

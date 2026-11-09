@@ -60,7 +60,7 @@ export function AddBar({ onAdded }: { onAdded?: () => void }) {
       toast({ message: t("toast.saved") });
     };
     toast({
-      action2: all.length > 1 ? { label: t("toast.combine"), onClick: () => { combine().catch(() => {}); } } : undefined,
+      action2: all.length > 1 && new Set(all.map((e) => e.currency)).size === 1 ? { label: t("toast.combine"), onClick: () => { combine().catch(() => {}); } } : undefined,
       message: all.length > 1 ? fill(t("toast.addedMany"), { count: all.length, what }) : fill(t("toast.addedWhat"), { what }),
       action: {
         label: t("toast.undo"),

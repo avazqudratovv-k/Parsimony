@@ -270,4 +270,4 @@ A single confidence number could only say "unsure". The model now also returns `
 
 ## Items in different currencies
 
-"Laptop 50$ cash, MacBook 150,000 KRW card" cannot be one total, and the first version silently kept only one of them. Items may now carry their own currency. When they differ, each item is saved as its own entry (not grouped, no total check), so nothing is dropped; the Needs a check list still flags what the AI guessed.
+"Laptop 50$ cash, MacBook 150,000 KRW card" cannot be one number, and the first version silently kept only one of them. Items may now carry their own currency. When they differ, each item is still its own entry and they share one group, so nothing is dropped and they show together. There is no total check, and the card's total is one amount per currency (for example $50.00 + ₩150,000). "Make it one" is hidden for these because one entry has one currency.

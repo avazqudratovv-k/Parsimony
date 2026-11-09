@@ -40,3 +40,6 @@ ml/**/checkpoints/
 # Playwright
 test-results/
 playwright-report/
+
+# Delivery bundles from Claude (never commit)
+Claude outputs/

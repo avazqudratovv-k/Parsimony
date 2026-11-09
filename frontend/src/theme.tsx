@@ -33,6 +33,7 @@ function buildTheme(scheme: "light" | "dark", lang: string) {
   // Korean text falls back to Noto Sans KR (the design file's choice).
   const fontFamily = `"Inter Variable", "Noto Sans KR", system-ui, -apple-system, "Segoe UI", sans-serif`;
   return createTheme({
+    breakpoints: { values: { xs: 0, sm: 600, md: 900, lg: 1024, xl: 1536 } }, // lg = the design's desktop breakpoint
     cssVariables: false,
     palette: {
       mode: scheme,

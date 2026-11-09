@@ -24,3 +24,43 @@ def test_a_missing_or_malformed_list_means_nothing_to_point_at(client):
     signup(client)
     assert add(client).json()["uncertain"] == []
     assert add(client, uncertain="amount").json()["uncertain"] == []
+
+
+def test_confirming_clears_the_flag_without_calling_it_an_edit(client):
+    signup(client)
+    entry = add(client, confidence=0.4, uncertain=["amount"]).json()
+    assert entry["confirmed"] is False
+
+    done = client.patch(f"/api/entries/{entry['id']}", json={"confirmed": True}).json()
+    assert done["confirmed"] is True
+    assert done["user_corrected"] is False  # nothing was changed, so it is not "edited"
+    assert done["amount"] == entry["amount"]
+
+
+def test_checking_one_item_checks_the_whole_purchase(client):
+    signup(client)
+    items = [
+        {"note": "Milk", "amount": 2000, "category": "groceries"},
+        {"note": "Shampoo", "amount": 5500, "category": "shopping"},
+    ]
+    use_parser(
+        FakeParser(
+            good_json(
+                merchant="GS25",
+                amount=7500,
+                currency="KRW",
+                items=items,
+                confidence=0.4,
+            )
+        )
+    )
+    first = client.post("/api/entries", json={"text": "gs25"}).json()
+    client.patch(f"/api/entries/{first['id']}", json={"confirmed": True})
+    assert all(e["confirmed"] for e in client.get("/api/entries").json())
+
+
+def test_a_real_edit_also_counts_as_checked(client):
+    signup(client)
+    entry = add(client, confidence=0.4).json()
+    done = client.patch(f"/api/entries/{entry['id']}", json={"amount": "7.00"}).json()
+    assert done["confirmed"] is True and done["user_corrected"] is True

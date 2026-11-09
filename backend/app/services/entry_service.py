@@ -2,7 +2,7 @@ import datetime as dt
 import uuid
 from decimal import Decimal
 
-from sqlalchemy import func, select
+from sqlalchemy import func, select, update
 from sqlalchemy.orm import Session
 
 from app.ai.base import ImageParser, TextParser
@@ -224,7 +224,12 @@ def list_entries(
 
 
 def update_entry(db: Session, entry: Entry, changes: dict) -> Entry:
-    """Apply a partial update. A real change to an AI-made entry marks it user_corrected."""
+    """Apply a partial update. A real change to an AI-made entry marks it user_corrected.
+
+    Saving or confirming a purchase also counts as checking all of its items.
+    """
+    changes = dict(changes)
+    confirm = bool(changes.pop("confirmed", False))
     changed = False
     for field, value in changes.items():
         if field in {"category", "payment_method"}:
@@ -238,6 +243,14 @@ def update_entry(db: Session, entry: Entry, changes: dict) -> Entry:
     # can become a training example later. Manual entries have no model answer to correct.
     if changed and entry.ai_output is not None:
         entry.user_corrected = True
+    if confirm or changed:
+        entry.confirmed = True
+        if entry.group_id is not None:
+            db.execute(
+                update(Entry)
+                .where(Entry.user_id == entry.user_id, Entry.group_id == entry.group_id)
+                .values(confirmed=True)
+            )
     db.commit()
     return entry
 

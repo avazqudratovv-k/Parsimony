@@ -5,7 +5,7 @@ import type { FormEvent } from "react";
 import { useCreateManual, useDeleteEntry, useUpdateEntry } from "../api/entries";
 import { CATEGORIES, PAYMENT_METHODS } from "../api/types";
 import type { Category, Entry, EntryUpdate, PaymentMethod } from "../api/types";
-import { categoryLabel, fill, paymentLabel, uncertainWords } from "../lib/format";
+import { categoryLabel, fill, needsCheck, paymentLabel, uncertainWords } from "../lib/format";
 import { useI18n } from "../i18n";
 import { useToast } from "./Toast";
 
@@ -35,8 +35,9 @@ export function FixDialog({ entry, draft, onClose }: { entry?: Entry; draft?: Dr
   const [note, setNote] = useState(entry?.note ?? draft?.note ?? "");
   const [errors, setErrors] = useState<Errors>({});
   const [confirmDelete, setConfirmDelete] = useState(false);
-  const guessed = new Set(entry && !entry.user_corrected ? entry.uncertain ?? [] : []);
-  const notSure = entry && !entry.user_corrected ? uncertainWords(t, lang, [entry]) : "";
+  const flagged = !!entry && needsCheck(entry);
+  const guessed = new Set(flagged ? entry.uncertain ?? [] : []);
+  const notSure = flagged ? uncertainWords(t, lang, [entry]) : "";
   const hint = (field: string, error?: string) => error ?? (guessed.has(field) ? t("fix.checkField") : undefined);
   const busy = update.isPending || remove.isPending || create.isPending;
 
@@ -68,8 +69,13 @@ export function FixDialog({ entry, draft, onClose }: { entry?: Entry; draft?: Dr
     if (payment !== entry.payment_method) changes.payment_method = payment as PaymentMethod;
     if (merchant.trim() !== (entry.merchant ?? "")) changes.merchant = merchant.trim() || null;
     if (note.trim() !== (entry.note ?? "")) changes.note = note.trim() || null;
-    if (Object.keys(changes).length === 0) return onClose();
+    if (Object.keys(changes).length === 0) return flagged ? confirm() : onClose(); // saving = "it is right"
     update.mutate({ id: entry.id, changes }, { onSuccess: () => { toast({ message: t("toast.saved") }); onClose(); } });
+  }
+
+  function confirm() {
+    if (!entry) return;
+    update.mutate({ id: entry.id, changes: { confirmed: true } }, { onSuccess: () => { toast({ message: t("toast.checked") }); onClose(); } });
   }
 
   function onDelete() {
@@ -83,8 +89,10 @@ export function FixDialog({ entry, draft, onClose }: { entry?: Entry; draft?: Dr
       <Box component="form" onSubmit={onSubmit} noValidate sx={{ display: "flex", flexDirection: "column", minHeight: 0, flex: 1 }}>
         <DialogTitle id="fix-title">{creating ? t("manual.title") : t("fix.title")}</DialogTitle>
         <DialogContent sx={{ display: "grid", gap: 4, pt: "8px !important" }}>
-          {notSure && (
-            <Alert severity="warning">{fill(t("fix.notSure"), { fields: notSure })}</Alert>
+          {flagged && (
+            <Alert severity="warning" action={<Button color="inherit" size="small" onClick={confirm} disabled={busy}>{t("fix.looksRight")}</Button>}>
+              {notSure ? fill(t("fix.notSure"), { fields: notSure }) : t("photo.lowConfidence")}
+            </Alert>
           )}
           {entry?.raw_input && (
             <Box sx={(th) => ({ p: 3, borderRadius: 3, bgcolor: th.palette.mode === "dark" ? "#2B302D" : "#F1EDE5" })}>

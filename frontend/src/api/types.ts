@@ -34,6 +34,7 @@ export type Entry = {
   confidence: number;
   model_used: string;
   user_corrected: boolean;
+  confirmed?: boolean; // the user checked it, so it no longer needs a check
   created_at: string;
   updated_at: string;
 };
@@ -49,6 +50,7 @@ export type EntryUpdate = Partial<{
   currency: string;
   category: Category;
   payment_method: PaymentMethod;
+  confirmed: boolean;
 }>;
 
 export type UsageStatus = { used: number; limit: number; resets_at: string };

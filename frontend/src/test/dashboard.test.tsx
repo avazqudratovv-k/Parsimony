@@ -359,6 +359,38 @@ describe("voice", () => {
   });
 });
 
+describe("checking what the AI was unsure about", () => {
+  const UNSURE = { ...ENTRY, id: "e1", confidence: 0.5, uncertain: ["amount"] };
+
+  it("saving without changes tells the server it is right, and nothing else", async () => {
+    const calls = signedInApi({ "PATCH /api/entries/e1": { status: 200, body: { ...UNSURE, confirmed: true } } }, [UNSURE]);
+    renderApp("/app");
+    const user = userEvent.setup();
+    await user.click(await screen.findByRole("button", { name: "Blue Bottle, $6.50" }));
+    await user.click(within(await screen.findByRole("dialog")).getByRole("button", { name: "Save" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    expect(calls.find((c) => c.method === "PATCH")!.body).toEqual({ confirmed: true });
+  });
+
+  it("the 'It's right' button confirms without touching the form", async () => {
+    const calls = signedInApi({ "PATCH /api/entries/e1": { status: 200, body: { ...UNSURE, confirmed: true } } }, [UNSURE]);
+    renderApp("/app");
+    const user = userEvent.setup();
+    await user.click(await screen.findByRole("button", { name: "Blue Bottle, $6.50" }));
+    await user.click(within(await screen.findByRole("dialog")).getByRole("button", { name: "It's right" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    expect(calls.find((c) => c.method === "PATCH")!.body).toEqual({ confirmed: true });
+  });
+
+  it("an entry the user has confirmed is no longer flagged", async () => {
+    signedInApi({}, [{ ...UNSURE, confirmed: true }]);
+    renderApp("/app");
+    await screen.findByText("Blue Bottle");
+    expect(screen.queryByText("Check: amount")).not.toBeInTheDocument();
+    expect(screen.queryByRole("region", { name: "Needs a check" })).not.toBeInTheDocument();
+  });
+});
+
 describe("Fix this", () => {
   it("sends only the changed fields", async () => {
     const calls = signedInApi({ "PATCH /api/entries/e1": { status: 200, body: { ...ENTRY, amount: "7.00", user_corrected: true } } });

@@ -99,6 +99,8 @@ export const en = {
   "entry.checkFields": "Check: {fields}",
   "check.notSure": "Not sure about: {fields}",
   "fix.notSure": "The AI wasn't sure about: {fields}. Please check.",
+  "fix.looksRight": "It's right",
+  "toast.checked": "Marked as checked",
   "fix.checkField": "Please check",
   "entry.edited": "Edited",
   "entry.edit": "Edit",

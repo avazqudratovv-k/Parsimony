@@ -57,6 +57,7 @@ class EntryUpdate(NormalizedFields):
     currency: str | None = Field(default=None, pattern=CURRENCY_PATTERN)
     category: Category | None = None
     payment_method: PaymentMethod | None = None
+    confirmed: bool | None = None  # true = "I checked it, it is right"; changes nothing else
 
     @model_validator(mode="after")
     def _required_fields_cannot_be_null(self):
@@ -82,6 +83,7 @@ class EntryOut(BaseModel):
     confidence: float
     model_used: str
     user_corrected: bool
+    confirmed: bool = False
     created_at: dt.datetime
     updated_at: dt.datetime
     merchant_domain: str | None = None

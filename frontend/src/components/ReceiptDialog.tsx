@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { useAddPhoto } from "../api/entries";
 import type { Entry } from "../api/types";
 import { photoErrorMessage } from "../lib/errors";
-import { LOW_CONFIDENCE, categoryLabel, formatDate, formatMoney, paymentLabel } from "../lib/format";
+import { categoryLabel, needsCheck, formatDate, formatMoney, paymentLabel } from "../lib/format";
 import { useI18n, useT } from "../i18n";
 import { FixDialog } from "./FixDialog";
 import { Icon } from "./Icon";
@@ -78,7 +78,7 @@ export function ReceiptDialog({ file, onClose }: { file: File; onClose: () => vo
                 </Typography>
               </Box>
             </Box>
-            {entry.confidence < LOW_CONFIDENCE && <Alert severity="warning">{t("photo.lowConfidence")}</Alert>}
+            {needsCheck(entry) && <Alert severity="warning">{t("photo.lowConfidence")}</Alert>}
             <Box component="dl" sx={{ m: 0, display: "grid", gridTemplateColumns: "auto 1fr", columnGap: 3, rowGap: 1.5, fontSize: 14 }}>
               {[
                 [t("fix.date"), formatDate(entry.date, lang, true)],

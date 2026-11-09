@@ -99,6 +99,8 @@ export const ko: Dict = {
   "entry.checkFields": "확인: {fields}",
   "check.notSure": "확신 없음: {fields}",
   "fix.notSure": "AI가 확신하지 못한 부분: {fields}. 확인해 주세요.",
+  "fix.looksRight": "맞아요",
+  "toast.checked": "확인했어요",
   "fix.checkField": "확인해 주세요",
   "entry.edited": "수정됨",
   "entry.edit": "수정",

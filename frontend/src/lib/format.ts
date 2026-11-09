@@ -55,6 +55,9 @@ export const fill = (text: string, values: Record<string, string | number>): str
 
 export const LOW_CONFIDENCE = 0.75;
 
+// The AI was unsure and the user has not looked at it yet (opening and saving it counts as looking).
+export const needsCheck = (e: Entry): boolean => e.confidence < LOW_CONFIDENCE && !e.user_corrected && !e.confirmed;
+
 /** For comparing a typed confirm word: lower case, and every kind of apostrophe counts as the same one. */
 export const normalizeWord = (text: string): string =>
   text.trim().toLowerCase().replace(/[ʻʼ‘’`´]/g, "'");
@@ -143,6 +146,6 @@ export function uncertainWords(t: TFn, lang: Lang, entries: Entry[]): string {
     amount: t("fix.amount"), currency: t("fix.currency"), date: t("fix.date"),
     category: t("fix.category"), merchant: t("fix.merchant"), payment_method: t("fix.payment"),
   };
-  const fields = [...new Set(entries.filter((e) => !e.user_corrected).flatMap((e) => e.uncertain ?? []))];
+  const fields = [...new Set(entries.filter(needsCheck).flatMap((e) => e.uncertain ?? []))];
   return fields.filter((f) => f in names).map((f) => names[f].toLocaleLowerCase(lang)).join(", ");
 }

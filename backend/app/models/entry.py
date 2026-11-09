@@ -16,6 +16,7 @@ from sqlalchemy import (
     String,
     Text,
     Uuid,
+    false,
     func,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -50,6 +51,8 @@ class Entry(Base):
     # Exactly what the model returned, kept so corrections can become training pairs.
     ai_output: Mapped[dict | None] = mapped_column(JSON)
     user_corrected: Mapped[bool] = mapped_column(Boolean, default=False)
+    # The user opened it and said it is right (or fixed it), so "needs a check" goes away.
+    confirmed: Mapped[bool] = mapped_column(Boolean, default=False, server_default=false())
 
     created_at: Mapped[dt.datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()

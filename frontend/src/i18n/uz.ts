@@ -100,6 +100,8 @@ export const uz: Dict = {
   "entry.checkFields": "Tekshiring: {fields}",
   "check.notSure": "Ishonchsiz: {fields}",
   "fix.notSure": "AI ishonch hosil qilmagan joylar: {fields}. Tekshirib chiqing.",
+  "fix.looksRight": "Toʻgʻri",
+  "toast.checked": "Tekshirildi",
   "fix.checkField": "Tekshirib chiqing",
   "entry.edited": "Tahrirlangan",
   "entry.edit": "Tahrirlash",

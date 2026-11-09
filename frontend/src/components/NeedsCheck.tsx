@@ -1,6 +1,6 @@
 import { Box, Paper, Typography } from "@mui/material";
 import type { Entry } from "../api/types";
-import { LOW_CONFIDENCE, fill, formatMoney, uncertainWords } from "../lib/format";
+import { fill, formatMoney, needsCheck, uncertainWords } from "../lib/format";
 import { useI18n } from "../i18n";
 import { useTokens } from "../theme";
 import { Icon } from "./Icon";
@@ -9,7 +9,7 @@ import { Icon } from "./Icon";
 export function NeedsCheck({ entries, onOpen }: { entries: Entry[]; onOpen: (id: string) => void }) {
   const { t, lang } = useI18n();
   const c = useTokens();
-  const flagged = entries.filter((e) => e.confidence < LOW_CONFIDENCE && !e.user_corrected);
+  const flagged = entries.filter(needsCheck);
   if (flagged.length === 0) return null;
   return (
     <Paper variant="outlined" component="section" aria-label={t("check.title")} sx={{ p: 4, borderRadius: 3 }}>

@@ -6,7 +6,7 @@ import { useDeleteEntry } from "../api/entries";
 import type { Entry } from "../api/types";
 import type { Lang } from "../i18n";
 import {
-  LOW_CONFIDENCE, categoryLabel, currentDate, fill, formatDay, formatMoney, formatTime, paymentLabel, shiftDate, uncertainWords,
+  categoryLabel, currentDate, fill, formatDay, formatMoney, formatTime, needsCheck, paymentLabel, shiftDate, uncertainWords,
 } from "../lib/format";
 import { useI18n } from "../i18n";
 import { DESKTOP, useTokens } from "../theme";
@@ -108,7 +108,7 @@ function EntryRow({ group, timeZone, desktop, onOpen, onDelete, onActions }: Row
   }
   function cancel() { cancelPress(); g.current.active = false; g.current.swiping = false; setDragging(false); setOffset(0); }
 
-  const checkThis = group.some((e) => e.confidence < LOW_CONFIDENCE && !e.user_corrected);
+  const checkThis = group.some(needsCheck);
   const uncertain = checkThis ? uncertainWords(t, lang, group) : "";
   const title = entry.merchant ?? entry.note ?? t("entry.noMerchant");
   const payments = [...new Set(group.map((e) => e.payment_method).filter((m) => m !== "unknown"))].map((m) => paymentLabel(t, m)).join(" + ");

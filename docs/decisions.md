@@ -271,3 +271,12 @@ A single confidence number could only say "unsure". The model now also returns `
 ## Items in different currencies
 
 "Laptop 50$ cash, MacBook 150,000 KRW card" cannot be one number, and the first version silently kept only one of them. Items may now carry their own currency. When they differ, each item is still its own entry and they share one group, so nothing is dropped and they show together. There is no total check, and the card's total is one amount per currency (for example $50.00 + ₩150,000). "Make it one" is hidden for these because one entry has one currency.
+
+## The user can say "it is right"
+
+A flag that never goes away is useless: the app cannot know the user checked it. Entries now have a `confirmed` flag (migration `d9a4c6e12b73`), kept apart from `user_corrected` so a checked-but-unchanged entry is not labelled "Edited" and `user_corrected` still means "the AI was wrong here".
+
+- The Fix form has an "It's right" button, and Save with no changes counts as confirming. Both send `{confirmed: true}`.
+- A real edit also counts as checked.
+- Checking one item checks the whole purchase, because its items share one AI answer.
+- The rule lives in one place (`needsCheck` in `lib/format.ts`) and is used by the list, the Needs a check card, the Fix form and the photo dialog.

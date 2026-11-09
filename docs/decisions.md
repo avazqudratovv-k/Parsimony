@@ -44,3 +44,20 @@
   the live API.
 - `POST /api/entries/parse` previews only and needs login. Daily AI-call caps arrive on Day 5, before any
   public deploy.
+
+## Day 5
+- `POST /api/entries` takes text and saves an entry (AI). `POST /api/entries/manual` saves one by hand with
+  no AI call, so a failed parse is never a dead end. `POST /api/entries/parse` still only previews.
+- "Fix this" is `PATCH /api/entries/{id}`: only the fields sent change. A real change to an AI-made entry
+  sets `user_corrected`; the model's original answer stays in `ai_output`, so (input, model answer,
+  corrected row) can become a training example later. A patch that changes nothing is not a correction.
+- Daily AI caps (UTC days): 30 per account, 10 per demo account, 300 for the whole app (settings, all
+  overridable by environment variables). Preview and create share one counter. Failed calls count,
+  because they can still cost money. Manual entries never count.
+- The cap check is not locked, so simultaneous requests can overshoot by a few calls; the provider-side
+  spend limit is the hard stop. The counter itself is an atomic upsert (Postgres and SQLite branches).
+- Hitting a cap returns 429 with `{code, message, resets_at}` (`daily_limit_account` or
+  `daily_limit_global`) so the UI can show the right message. `GET /api/usage` gives used/limit/reset.
+- Money is returned as strings ("6.50") so the frontend never loses precision. Stats group by category in
+  ONE currency (no conversion) and list every currency used that month for the currency tabs.
+- Entries are only ever read or changed through the owner's id; another user's entry looks like a 404.

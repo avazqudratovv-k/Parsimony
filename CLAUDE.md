@@ -47,5 +47,5 @@ Other folders: `frontend/`, `ml/` (data, training, eval), `docs/`, `scripts/`, `
 - Small commits with clear messages.
 
 ## Status
-Day 1 skeleton and health check done. Day 2 models and first migration done. Day 3 auth done. Day 4 Gemini text parser (`POST /api/entries/parse`, preview only) done.
+Day 1 skeleton and health check done. Day 2 models and first migration done. Day 3 auth done. Day 4 Gemini text parser done. Day 5 entries CRUD, corrections, daily AI caps and monthly stats done (65 tests).
 Plan: Days 4-6 parser, entries, caps, demo account; 7-9 frontend; 10 deploy; 11-13 photo and voice.

@@ -11,6 +11,7 @@ import type { RouterHistory } from "@tanstack/react-router";
 import { meQuery } from "./api/auth";
 import { AppPage } from "./routes/AppPage";
 import { LandingPage } from "./routes/LandingPage";
+import { MePage } from "./routes/MePage";
 import { NotFound } from "./routes/NotFound";
 
 type RouterContext = { queryClient: QueryClient };
@@ -42,7 +43,17 @@ const appRoute = createRoute({
   component: AppPage,
 });
 
-const routeTree = rootRoute.addChildren([landingRoute, appRoute]);
+const meRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/me",
+  beforeLoad: async ({ context }) => {
+    const me = await context.queryClient.ensureQueryData(meQuery);
+    if (!me) throw redirect({ to: "/" });
+  },
+  component: MePage,
+});
+
+const routeTree = rootRoute.addChildren([landingRoute, appRoute, meRoute]);
 
 export function createAppRouter(queryClient: QueryClient, history?: RouterHistory) {
   return createRouter({ routeTree, context: { queryClient }, history, defaultPreload: "intent" });

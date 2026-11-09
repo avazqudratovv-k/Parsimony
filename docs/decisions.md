@@ -104,3 +104,18 @@
 - `DELETE /api/auth/me`: removes the account, entries, usage counters and uploaded files, and clears the cookie.
   It shares `account_service.delete_users` with the demo cleanup, so there is one deletion path to get right.
   The "type delete to confirm" step is a frontend safeguard; SameSite=Lax cookies already stop cross-site requests.
+
+## Dashboard and My page (frontend)
+- Dashboard `/app`: add bar (type, press Add; mic and camera arrive on Days 12-13), the latest 100 entries, the
+  AI counter ("3 of 30 AI entries used today") and a My page button in the bar. On phones the bar is docked to the
+  bottom of the screen; on desktop it sits above the list. The chart and month controls come on Day 9.
+- Typed text goes to `POST /api/entries` directly (no preview step): one tap, one entry. If the AI can't read it, the
+  text stays in the box and an error explains why in the user's language.
+- "Fix this": a full-screen sheet on phones, a dialog on desktop. It shows the original words ("You said"), sends
+  only the changed fields (so an untouched entry is never marked "Edited") and needs two taps to delete.
+- Entries below 0.75 confidence that nobody has corrected show a "Check this" chip.
+- Money and dates use `Intl` with the active language (`$6.50`, `₩9,000`, `11월 9일`). Amounts stay strings in the
+  data and are only turned into numbers for display.
+- My page `/me`: overview, settings (default currency, time zone), log out and "Delete my account" (type `delete`
+  to confirm, the same English word in every language so it is easy to type on any keyboard).
+- The logo is the "Receipt" design from the design system (cream receipt with a torn edge, green P).

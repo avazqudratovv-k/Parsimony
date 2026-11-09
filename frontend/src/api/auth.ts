@@ -60,3 +60,23 @@ export function useLogout() {
     },
   });
 }
+
+export function useUpdateMe() {
+  const setMe = useSetMe();
+  return useMutation({
+    mutationFn: (v: { default_currency?: string; timezone?: string }) =>
+      api<User>("/auth/me", { method: "PATCH", body: v }),
+    onSuccess: setMe,
+  });
+}
+
+export function useDeleteMe() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => api<void>("/auth/me", { method: "DELETE" }),
+    onSuccess: () => {
+      qc.clear();
+      qc.setQueryData(meQuery.queryKey, null);
+    },
+  });
+}

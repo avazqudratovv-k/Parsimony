@@ -1,7 +1,7 @@
 import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
-import { USER, mockApi, renderApp } from "./helpers";
+import { USER, mockApi, renderApp, signedInApi } from "./helpers";
 
 const signedOut = { "GET /api/auth/me": { status: 401, body: { detail: "Not signed in" } } };
 
@@ -20,7 +20,7 @@ describe("routing", () => {
   });
 
   it("sends a signed-in visitor from / to /app", async () => {
-    mockApi({ "GET /api/auth/me": { status: 200, body: USER } });
+    signedInApi();
     const { router } = renderApp("/");
     await screen.findByRole("heading", { name: "Your expenses" });
     expect(router.state.location.pathname).toBe("/app");
@@ -85,6 +85,8 @@ describe("sign-in page", () => {
     mockApi({
       ...signedOut,
       "POST /api/auth/demo": { status: 201, body: { ...USER, is_demo: true, email: "demo-1@demo.invalid" } },
+      "GET /api/entries?limit=100": { status: 200, body: [] },
+      "GET /api/usage": { status: 200, body: { used: 0, limit: 10, resets_at: "2026-11-10T00:00:00Z" } },
     });
     const { router } = renderApp("/");
     await userEvent.setup().click(await screen.findByRole("button", { name: "Try demo" }));
@@ -99,17 +101,6 @@ describe("sign-in page", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent("demo is full");
   });
 
-  it("logs out and goes back to /", async () => {
-    mockApi({
-      "GET /api/auth/me": { status: 200, body: USER },
-      "POST /api/auth/logout": { status: 204 },
-    });
-    const { router } = renderApp("/app");
-    const user = userEvent.setup();
-    await user.click(await screen.findByRole("button", { name: "Menu" }));
-    await user.click(screen.getByRole("menuitem", { name: "Log out" }));
-    await waitFor(() => expect(router.state.location.pathname).toBe("/"));
-  });
 });
 
 describe("language and theme", () => {
@@ -143,7 +134,7 @@ describe("language and theme", () => {
 
 describe("brand", () => {
   it("shows a capital-P wordmark that links home", async () => {
-    mockApi({ "GET /api/auth/me": { status: 200, body: USER } });
+    signedInApi();
     renderApp("/app");
     const link = await screen.findByRole("link", { name: "Parsimony" });
     expect(link).toHaveAttribute("href", "/");

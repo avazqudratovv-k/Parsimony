@@ -8,8 +8,8 @@ import type { ChangeEvent, FormEvent } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { meQuery } from "../api/auth";
 import { ApiError } from "../api/client";
-import { useAddEntry, useDeleteEntry, useUsage } from "../api/entries";
-import type { EntryCreated } from "../api/types";
+import { useAddEntry, useDeleteEntry, useUpdateEntry, useUsage } from "../api/entries";
+import type { Category, EntryCreated } from "../api/types";
 import { addErrorMessage } from "../lib/errors";
 import { currentDate, fill, formatMoney } from "../lib/format";
 import { useI18n, useT } from "../i18n";
@@ -25,6 +25,7 @@ export function AddBar({ onAdded }: { onAdded?: () => void }) {
   const { lang } = useI18n();
   const toast = useToast();
   const remove = useDeleteEntry();
+  const update = useUpdateEntry();
   const { data: me } = useQuery(meQuery);
   const [manual, setManual] = useState(false);
   const theme = useTheme();
@@ -50,7 +51,16 @@ export function AddBar({ onAdded }: { onAdded?: () => void }) {
     const total = all.reduce((sum, e) => sum + Number(e.amount), 0);
     const shown = all.length > 1 ? (Math.round(total * 100) / 100).toFixed(2) : created.amount;
     const what = `${created.merchant ?? created.note ?? ""} ${formatMoney(shown, created.currency, lang)}`.trim();
+    // One purchase that was split by item can be turned back into a single entry with the total.
+    const combine = async () => {
+      const biggest = [...all].sort((a, b) => Number(b.amount) - Number(a.amount))[0];
+      const note = all.map((e) => e.note).filter(Boolean).join(", ") || null;
+      await update.mutateAsync({ id: created.id, changes: { amount: shown, note, category: biggest.category as Category } });
+      await Promise.all(all.slice(1).map((e) => remove.mutateAsync(e.id)));
+      toast({ message: t("toast.saved") });
+    };
     toast({
+      action2: all.length > 1 ? { label: t("toast.combine"), onClick: () => { combine().catch(() => {}); } } : undefined,
       message: all.length > 1 ? fill(t("toast.addedMany"), { count: all.length, what }) : fill(t("toast.addedWhat"), { what }),
       action: {
         label: t("toast.undo"),

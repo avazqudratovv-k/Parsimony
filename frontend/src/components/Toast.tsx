@@ -9,6 +9,8 @@ type IconName = "check" | "trash" | "info" | "alert";
 type ToastInput = {
   message: string;
   action?: { label: string; onClick: () => void };
+  /** A second button, shown before the main one (for example "Make it one" next to Undo). */
+  action2?: { label: string; onClick: () => void };
   icon?: IconName;
   /** How long it stays, in ms. The thin bar at the bottom shows the time left. */
   duration?: number;
@@ -73,15 +75,15 @@ export function ToastProvider({ children }: { children: ReactNode }) {
           >
             <Box sx={{ color: accent, display: "flex", flex: "none" }}><Icon name={toast.icon ?? "check"} size={20} /></Box>
             <Box sx={{ flex: 1, minWidth: 0, py: "8px" }}>{toast.message}</Box>
-            {toast.action && (
+            {[toast.action2, toast.action].map((a) => a && (
               <Box
-                component="button" type="button"
-                onClick={() => { toast.action!.onClick(); hide(); }}
+                key={a.label} component="button" type="button"
+                onClick={() => { a.onClick(); hide(); }}
                 sx={{ font: "inherit", fontWeight: 600, color: accent, bgcolor: "transparent", border: 0, minHeight: 44, px: "10px", borderRadius: "8px", cursor: "pointer", whiteSpace: "nowrap" }}
               >
-                {toast.action.label}
+                {a.label}
               </Box>
-            )}
+            ))}
             <Box
               component="button" type="button" aria-label={t("toast.dismiss")} onClick={hide}
               sx={{ width: 40, height: 44, border: 0, bgcolor: "transparent", color: c.toastMuted, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "8px", cursor: "pointer", flex: "none" }}

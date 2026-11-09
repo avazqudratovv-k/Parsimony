@@ -104,7 +104,11 @@ def api_errors() -> Iterator[None]:
         raise HTTPException(422, "I couldn't hear any words. Please try again.") from None
     except parse_service.NotAnExpense:
         raise HTTPException(
-            422, "I couldn't find an expense amount in that. Try e.g. 'Lunch $12 cash'."
+            422,
+            {
+                "code": "no_amount",
+                "message": "I couldn't find an amount. Say how much it cost, like 'Lunch $12'.",
+            },
         ) from None
     except parse_service.ParseFailed:
         raise HTTPException(422, "I couldn't read that expense. Try rephrasing it.") from None

@@ -150,6 +150,33 @@ describe("toasts and manual entry", () => {
     await waitFor(() => expect(calls.filter((c) => c.method === "DELETE").map((c) => c.url).sort()).toEqual(["/api/entries/m1", "/api/entries/m2"]));
   });
 
+  it("'Make it one' turns a split purchase back into a single entry with the total", async () => {
+    const A = { ...ENTRY, id: "m1", merchant: "GS25", note: "Milk", amount: "2.00", category: "groceries" };
+    const B = { ...ENTRY, id: "m2", merchant: "GS25", note: "Shampoo", amount: "5.50", category: "shopping" };
+    const calls = signedInApi({
+      "POST /api/entries": { status: 201, body: { ...A, siblings: [B] } },
+      "PATCH /api/entries/m1": { status: 200, body: { ...A, amount: "7.50" } },
+      "DELETE /api/entries/m2": { status: 204 },
+    });
+    renderApp("/app");
+    const user = userEvent.setup();
+    await user.type(await screen.findByLabelText("Describe an expense"), "gs25 milk 2 shampoo 5.50");
+    await user.click(screen.getByRole("button", { name: "Add" }));
+    await user.click(await screen.findByRole("button", { name: "Make it one" }));
+    await waitFor(() => expect(calls.some((c) => c.method === "DELETE" && c.url === "/api/entries/m2")).toBe(true));
+    const patch = calls.find((c) => c.method === "PATCH")!;
+    expect(patch.body).toMatchObject({ amount: "7.50", note: "Milk, Shampoo", category: "shopping" });
+  });
+
+  it("tells you the amount is missing, instead of a vague error", async () => {
+    signedInApi({ "POST /api/entries": { status: 422, body: { detail: { code: "no_amount", message: "x" } } } });
+    renderApp("/app");
+    const user = userEvent.setup();
+    await user.type(await screen.findByLabelText("Describe an expense"), "1 dish and 1 fork at Dyson");
+    await user.click(screen.getByRole("button", { name: "Add" }));
+    expect(await screen.findByText(/couldn't find an amount\. Say how much it cost/)).toBeInTheDocument();
+  });
+
   it("offers 'Enter manually' when the AI can't read the text, and saves without the AI", async () => {
     const MANUAL = { ...ENTRY, id: "m1", merchant: null, note: "weird thing", amount: "9.00", source: "manual" };
     const calls = signedInApi({

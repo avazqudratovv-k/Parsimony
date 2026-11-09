@@ -25,10 +25,11 @@ export function ExportMenu({ month, entries }: { month: string; entries: Entry[]
   }
 
   return (
-    <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 3, mb: -1 }}>
+    <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 4, mb: -1 }}>
       <Button
-        size="small" startIcon={<Icon name="upload" size={16} />} aria-haspopup="menu" disabled={entries.length === 0}
-        onClick={(e) => setAnchor(e.currentTarget)} sx={{ color: c.inkMuted }}
+        variant="outlined" startIcon={<Icon name="upload" size={18} />} aria-haspopup="menu" disabled={entries.length === 0}
+        onClick={(e) => setAnchor(e.currentTarget)}
+        sx={{ color: c.ink, borderColor: c.lineStrong, bgcolor: c.surface, minHeight: 40, px: 3.5, fontWeight: 600, "&:hover": { borderColor: c.ink, bgcolor: c.surface } }}
       >
         {t("export.button")}
       </Button>

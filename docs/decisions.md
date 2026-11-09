@@ -240,3 +240,9 @@
 ## Home-screen install
 
 - The manifest and icons were already part of the app (`public/manifest.webmanifest`, standalone display, 192/512/maskable icons), so Chrome offers "Install app" on Android and iPhone can use "Add to Home Screen". Nothing more was needed.
+
+## Clearer "no amount" message, and "Make it one"
+
+- When the text has no amount, the server answers with the code `no_amount` and the app says so plainly ("I couldn't find an amount. Say how much it cost, like “Coffee 6.50 card”."), for typed text, voice and receipt photos.
+- When one purchase was split by item, the toast offers **Make it one**: it turns the entries back into a single entry with the total, the notes joined, and the category of the biggest item.
+- The Export button is an outlined button in the ink colour, so it can be seen.

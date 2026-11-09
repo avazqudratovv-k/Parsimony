@@ -11,6 +11,7 @@ export function addErrorMessage(e: unknown, t: TFn): string {
     if (e.code === "typed_limit_account") return t("add.error.typedUser");
     if (e.code === "typed_limit_global") return t("add.error.typedGlobal");
     if (e.code === "entry_limit") return t("add.error.entryLimit");
+    if (e.code === "no_amount") return t("add.error.noAmount");
     if (e.status === 422) return t("add.error.unreadable");
     if (e.status === 502 || e.status === 503) return t("add.error.unavailable");
   }
@@ -25,6 +26,7 @@ export function voiceErrorMessage(e: unknown, t: TFn): string {
     return t("voice.error.failed");
   }
   if (e instanceof ApiError) {
+    if (e.code === "no_amount") return t("add.error.noAmount");
     if (e.status === 422) return t("voice.error.noSpeech");
     if (e.status === 413) return t("voice.error.long");
   }
@@ -36,6 +38,7 @@ export function photoErrorMessage(e: unknown, t: TFn): string {
   if (e instanceof ApiError) {
     if (e.status === 415) return t("photo.error.type");
     if (e.status === 413) return t("photo.error.size");
+    if (e.code === "no_amount") return t("photo.error.noAmount");
     if (e.status === 422) return t("photo.error.unreadable");
   }
   return addErrorMessage(e, t);

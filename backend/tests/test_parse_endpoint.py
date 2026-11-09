@@ -82,7 +82,7 @@ def test_not_an_expense_gives_422(client):
     use_parser(FakeParser(good_json(amount=0)))
     response = parse(client, text="hello")
     assert response.status_code == 422
-    assert "amount" in response.json()["detail"]
+    assert response.json()["detail"]["code"] == "no_amount"
 
 
 def test_model_down_gives_502(client):

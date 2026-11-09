@@ -70,3 +70,11 @@ def test_a_normal_entry_still_has_no_siblings(client):
     signup(client)
     use_parser(FakeParser(good_json(date="2026-10-15")))
     assert post(client, "coffee").json()["siblings"] == []
+
+
+def test_no_amount_says_so_with_a_code_the_app_can_translate(client):
+    signup(client)
+    use_parser(FakeParser(good_json(amount=0)))
+    response = post(client, "1 dish and 1 fork at Dyson")
+    assert response.status_code == 422
+    assert response.json()["detail"]["code"] == "no_amount"

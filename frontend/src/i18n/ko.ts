@@ -246,4 +246,6 @@ export const ko: Dict = {
   "receipt.close": "닫기",
   "receipt.save": "이미지 저장",
   "receipt.saveError": "이미지를 저장하지 못했어요.",
+  "entry.hideItems": "항목 접기",
+  "entry.showItems": "항목 펼치기",
 };

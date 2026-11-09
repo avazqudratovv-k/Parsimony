@@ -247,4 +247,6 @@ export const uz: Dict = {
   "receipt.close": "Yopish",
   "receipt.save": "Rasmni saqlash",
   "receipt.saveError": "Rasmni saqlab boʻlmadi.",
+  "entry.hideItems": "Elementlarni yashirish",
+  "entry.showItems": "Elementlarni koʻrsatish",
 };

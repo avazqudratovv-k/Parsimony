@@ -246,6 +246,8 @@ export const en = {
   "receipt.close": "Close",
   "receipt.save": "Save image",
   "receipt.saveError": "Couldn't save the image.",
+  "entry.hideItems": "Hide items",
+  "entry.showItems": "Show items",
 } as const;
 
 export type Dict = { [K in keyof typeof en]: string };

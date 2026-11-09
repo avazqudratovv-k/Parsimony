@@ -996,3 +996,18 @@ describe("the month-end receipt", () => {
     expect(await screen.findByRole("dialog", { name: "MONTH-END RECEIPT" })).toBeInTheDocument();
   });
 });
+
+describe("a purchase with several items", () => {
+  it("can be folded to its total and opened again", async () => {
+    const part = (id: string, note: string, amount: string) => ({ ...ENTRY, id, merchant: "GS25", note, amount, group_id: "grp" });
+    signedInApi({}, [part("a", "Milk", "2.00"), part("b", "Shampoo", "5.50")]);
+    renderApp("/app");
+    const user = userEvent.setup();
+    expect(await screen.findByRole("button", { name: "Milk, $2.00" })).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Hide items" }));
+    expect(screen.queryByRole("button", { name: "Milk, $2.00" })).not.toBeInTheDocument();
+    expect(screen.getAllByText("$7.50").length).toBeGreaterThan(0); // the total stays
+    await user.click(screen.getByRole("button", { name: "Show items" }));
+    expect(screen.getByRole("button", { name: "Milk, $2.00" })).toBeInTheDocument();
+  });
+});

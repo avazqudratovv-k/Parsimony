@@ -148,6 +148,7 @@ function EntryRow({ group, timeZone, desktop, onOpen, onDelete, onActions }: Row
   }
   function cancel() { cancelPress(); g.current.active = false; g.current.swiping = false; setDragging(false); setOffset(0); }
 
+  const [itemsOpen, setItemsOpen] = useState(true); // a purchase with several items can be folded to its total
   const checkThis = group.some(needsCheck);
   const reduced = useReducedMotion();
   // Clearing a "Check this" row stamps it, then the flag turns into a small Checked mark for good.
@@ -244,7 +245,20 @@ function EntryRow({ group, timeZone, desktop, onOpen, onDelete, onActions }: Row
               <Typography variant="body2" color="text.secondary" sx={{ fontSize: 12 }}>{fill(t("entry.items"), { count: group.length })}</Typography>
             )}
           </Box>
+          <Box
+            component="button" type="button" aria-expanded={itemsOpen} aria-label={t(itemsOpen ? "entry.hideItems" : "entry.showItems")}
+            onClick={() => { if (g.current.suppressClick) { g.current.suppressClick = false; return; } setItemsOpen((v) => !v); }}
+            sx={{
+              all: "unset", cursor: "pointer", flexShrink: 0, width: 36, height: 44, mr: -2, display: "grid", placeItems: "center", color: c.inkMuted, borderRadius: 1.5,
+              "&:hover": { bgcolor: c.sunken }, "&:focus-visible": { outline: `2px solid ${c.focus}`, outlineOffset: 2 },
+            }}
+          >
+            <Box sx={{ display: "flex", transform: itemsOpen ? "rotate(180deg)" : "none", transition: reduced ? "none" : "transform 180ms ease-out" }}>
+              <Icon name="chev-down" size={20} />
+            </Box>
+          </Box>
         </Box>
+        {itemsOpen && (
         <Box component="ul" sx={{ listStyle: "none", m: 0, mt: 2, p: 0, ml: "52px", borderLeft: `2px solid ${c.line}` }}>
           {group.map((it) => {
             const label = it.note ?? categoryLabel(t, it.category);
@@ -266,6 +280,7 @@ function EntryRow({ group, timeZone, desktop, onOpen, onDelete, onActions }: Row
             );
           })}
         </Box>
+        )}
       </Box>
       ) : (
       <Box

@@ -140,6 +140,9 @@ export function formatMonthName(month: string, lang: Lang): string {
   return new Intl.DateTimeFormat(LOCALES[lang], { month: "long", timeZone: "UTC" }).format(new Date(Date.UTC(y, m - 1, 1)));
 }
 
+/** The AI was unsure and the person has since checked it (fixed it or said it is right): it wears the "Checked" mark. */
+export const wasChecked = (e: Entry): boolean => e.confidence < LOW_CONFIDENCE && (e.user_corrected || !!e.confirmed);
+
 // What the AI said it guessed, as words in the user's language ("amount, date"). Empty when unknown.
 export function uncertainWords(t: TFn, lang: Lang, entries: Entry[]): string {
   const names: Record<string, string> = {

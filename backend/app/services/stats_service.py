@@ -21,6 +21,8 @@ def monthly_stats(db: Session, user: User, month: str, currency: str | None) -> 
     ).all()
     currencies = [CurrencyTotal(currency=c, total=t, count=n) for c, t, n in currency_rows]
 
+    active_days = db.scalar(select(func.count(func.distinct(Entry.date))).where(*in_month)) or 0
+
     if currency:
         chosen = currency.upper()  # may have no entries this month: the UI then shows zeros
     elif user.default_currency in {c.currency for c in currencies} or not currencies:
@@ -43,6 +45,7 @@ def monthly_stats(db: Session, user: User, month: str, currency: str | None) -> 
         count=sum(c.count for c in by_category),
         by_category=by_category,
         currencies=currencies,
+        active_days=active_days,
     )
 
 

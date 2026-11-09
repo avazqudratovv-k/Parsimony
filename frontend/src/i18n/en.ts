@@ -233,6 +233,19 @@ export const en = {
   "chart.showFewer": "Show fewer",
   "check.title": "Needs a check",
   "check.help": "Entries the AI wasn't sure about. Fix them to confirm.",
+  "entry.stamp": "CHECKED",
+  "entry.checked": "Checked",
+  "receipt.title": "Month-end receipt",
+  "receipt.open": "Month-end receipt",
+  "receipt.entries": "Entries",
+  "receipt.days": "Days with spending",
+  "receipt.top": "Top category",
+  "receipt.totals": "Total by currency",
+  "receipt.vs": "vs {month} ({currency})",
+  "receipt.closed": "Closed {date} · not converted",
+  "receipt.close": "Close",
+  "receipt.save": "Save image",
+  "receipt.saveError": "Couldn't save the image.",
 } as const;
 
 export type Dict = { [K in keyof typeof en]: string };

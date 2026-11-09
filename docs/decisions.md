@@ -284,3 +284,17 @@ A flag that never goes away is useless: the app cannot know the user checked it.
 ## After adding, show the month of the new entry
 
 Adding used to jump back to the current month. A receipt photo (or "Oct 5 lunch") is often dated in another month, so the new entry looked like it had not been saved. Adding by text, voice, photo or the manual form now opens the month of the entry that was just created.
+
+## The final design pass: receipt details
+
+The design system's last update added eight small touches. They all follow one idea: the app is a ledger and a receipt.
+
+- **Torn receipt edge** on the chart card, a CSS mask (no image), so it works in light and dark.
+- **Ledger margin line**, 1 px at 63 px, drawn on every row (not on the list), because a row that slides to show Delete must stay opaque.
+- **Serif moments**: the month title, the monthly total and the empty-state heading use Newsreader italic. Everything else stays Inter / Noto Sans KR.
+- **Category tints**: nine colour pairs, light and dark, on the icon tile and the chart icon. Colour is never the only carrier of meaning (every row still prints its name).
+- **Drawn empty state**: an open ledger with a receipt, drawn as SVG; the lines draw in once.
+- **"Checked" stamp**: when a "Check this" row is cleared it is stamped for 900 ms, then a small "✓ Checked" mark replaces the flag for good. The mark is derived from data (the AI was unsure, and the person fixed it or said it is right), so it survives a reload. Rows that were already checked on load get the mark without a stamp.
+- **Counting numbers**: bars grow on first show and glide on month or currency change; the total rolls. Everything is switched off under `prefers-reduced-motion`.
+- **Month-end receipt**: the first time the app opens in a new month, the month that just closed is printed once. "First time" is remembered in the browser (`parsimony.lastMonthOpened`); a browser with no record only records the current month, so nobody gets a receipt on their very first visit. It can be opened again from any past month's chart card. Currencies are never converted: one line each. "Save image" draws the receipt on a canvas, so no screenshot library is needed. It needed one new field from the server, `active_days` (days with spending), because the entry list is capped at 100 and would undercount a busy month.
+- IBM Plex Mono is used only on the receipt, and loaded only when it is shown.

@@ -4,8 +4,36 @@ import type { ReactNode } from "react";
 import { useI18n } from "./i18n";
 
 // Tokens come from docs/design.md (the Claude Design system). Light / dark pairs.
+// Category tints (icon tile background + glyph colour), light then dark. From the final design.
+export const CAT_TINTS = {
+  light: {
+    food_drink: ["#F3E3DA", "#9A4A2E"], groceries: ["#E2EDE4", "#3E6B4A"], transport: ["#E0E8F0", "#3B5B7A"],
+    shopping: ["#EEE3EC", "#7A4A72"], bills: ["#EFE9DA", "#6E5B2E"], health: ["#F4E1E3", "#9A3B4A"],
+    entertainment: ["#E6E4F1", "#4F4A86"], travel: ["#DDEDEE", "#2E6A70"], other: ["#ECEAE6", "#5B605C"],
+  },
+  dark: {
+    food_drink: ["#3A2A24", "#E7A88C"], groceries: ["#22312A", "#9CCBA8"], transport: ["#212B36", "#9DB9D6"],
+    shopping: ["#312532", "#D3A6CC"], bills: ["#2F2A1E", "#D2BE8A"], health: ["#382327", "#EB9DAA"],
+    entertainment: ["#27263A", "#B2ADE6"], travel: ["#1E3133", "#94CDD2"], other: ["#2B2D2B", "#A8ADA8"],
+  },
+} as const;
+
+/** Tile background and glyph colour for a category (unknown ones read as "other"). */
+export function catTint(scheme: "light" | "dark", category: string): { bg: string; fg: string } {
+  const set = CAT_TINTS[scheme] as Record<string, readonly [string, string]>;
+  const [bg, fg] = set[category] ?? set.other;
+  return { bg, fg };
+}
+
+export const SERIF = '"Newsreader", "Iowan Old Style", Georgia, serif';
+export const MONO = '"IBM Plex Mono", ui-monospace, Menlo, monospace';
+export const EASE_OUT = "cubic-bezier(.2,.7,.2,1)";
+export const EASE_PRINT = "cubic-bezier(.3,.6,.15,1)";
+
 export const tokens = {
   light: {
+    marginRule: "rgba(31,111,92,0.30)",
+    paper: "#FBF8F1", paperInk: "#2A2D2A", paperMuted: "#6B6A63", paperLine: "#CFC7B8",
     bg: "#FAF8F4", surface: "#FFFDF9", sunken: "#F1EDE5", line: "#E9E4DA", lineStrong: "#857D70",
     ink: "#1F2421", inkMuted: "#5B605C", inkFaint: "#736C61",
     accent: "#1F6F5C", accentStrong: "#185A4B", accentSoft: "#E3EEE9", onAccent: "#FFFFFF",
@@ -15,6 +43,8 @@ export const tokens = {
     toastBg: "#1F2421", toastInk: "#F3EFE7", toastMuted: "#A8ADA8", toastAction: "#7CCBB3", toastWarn: "#E2B65E",
   },
   dark: {
+    marginRule: "rgba(95,184,158,0.30)",
+    paper: "#FBF8F1", paperInk: "#2A2D2A", paperMuted: "#6B6A63", paperLine: "#CFC7B8",
     bg: "#161917", surface: "#1F2321", sunken: "#2B302D", line: "#2E3330", lineStrong: "#6E746F",
     ink: "#ECE8E0", inkMuted: "#A8ADA8", inkFaint: "#8A908B",
     accent: "#5FB89E", accentStrong: "#7CCBB3", accentSoft: "#1D2E28", onAccent: "#0E1A16",

@@ -23,6 +23,7 @@ class MonthlyStats(BaseModel):
     count: int
     by_category: list[CategoryTotal]  # biggest first
     currencies: list[CurrencyTotal]  # every currency used this month, for the currency tabs
+    active_days: int = 0  # days of the month with at least one entry, in any currency
 
 
 class UsageStatus(BaseModel):

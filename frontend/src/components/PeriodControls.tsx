@@ -2,7 +2,7 @@ import { Box, IconButton, Typography } from "@mui/material";
 import type { CurrencyTotal } from "../api/types";
 import { formatMonth } from "../lib/format";
 import { useI18n } from "../i18n";
-import { useTokens } from "../theme";
+import { SERIF, useTokens } from "../theme";
 import { Icon } from "./Icon";
 
 type Props = {
@@ -26,7 +26,10 @@ export function PeriodControls({ month, thisMonth, currencies, currency, onCurre
         <IconButton aria-label={t("month.prev")} onClick={onPrev} sx={{ width: 44, height: 44 }}>
           <Icon name="chev-left" />
         </IconButton>
-        <Typography component="h2" variant="h3" aria-live="polite" sx={{ minWidth: 132, textAlign: "center" }}>
+        <Typography
+          component="h2" aria-live="polite"
+          sx={{ minWidth: 132, textAlign: "center", fontFamily: SERIF, fontStyle: "italic", fontWeight: 500, fontSize: 21, lineHeight: "24px", letterSpacing: "-0.01em" }}
+        >
           {formatMonth(month, lang)}
         </Typography>
         <IconButton aria-label={t("month.next")} onClick={onNext} disabled={month >= thisMonth} sx={{ width: 44, height: 44 }}>

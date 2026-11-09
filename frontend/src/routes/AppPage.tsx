@@ -1,6 +1,6 @@
 import { Box, Typography, useMediaQuery } from "@mui/material";
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { meQuery } from "../api/auth";
 import { useEntries, useMonthlyStats } from "../api/entries";
 import { AddBar } from "../components/AddBar";
@@ -9,12 +9,15 @@ import { DemoBanner } from "../components/DemoBanner";
 import { ExportMenu } from "../components/ExportMenu";
 import { EntryList } from "../components/EntryList";
 import { FixDialog } from "../components/FixDialog";
+import { MonthReceipt } from "../components/MonthReceipt";
 import { NeedsCheck } from "../components/NeedsCheck";
 import { PeriodControls } from "../components/PeriodControls";
 import { TopBar } from "../components/TopBar";
 import { currentMonth, shiftMonth } from "../lib/format";
 import { useT } from "../i18n";
 import { DESKTOP } from "../theme";
+
+const LAST_OPENED = "parsimony.lastMonthOpened";
 
 // The dashboard. Phones: controls, chart, day-grouped list, add bar docked at the bottom.
 // Desktop (1024px and up): add bar and list on the left, sticky chart and "Needs a check" on the right.
@@ -27,7 +30,20 @@ export function AppPage() {
   const [picked, setPicked] = useState<string | null>(null);
   const [currency, setCurrency] = useState<string | null>(null);
   const [openId, setOpenId] = useState<string | null>(null);
+  const [receiptMonth, setReceiptMonth] = useState<string | null>(null);
   const month = picked ?? thisMonth;
+
+  // The first time the app opens in a new month, the month that just closed is printed as a receipt, once.
+  useEffect(() => {
+    if (!user) return;
+    try {
+      const seen = localStorage.getItem(LAST_OPENED);
+      if (seen && seen < thisMonth) setReceiptMonth(shiftMonth(thisMonth, -1));
+      if (seen !== thisMonth) localStorage.setItem(LAST_OPENED, thisMonth);
+    } catch {
+      /* storage can be blocked; then there is just no receipt */
+    }
+  }, [user, thisMonth]);
 
   const entries = useEntries(month);
   const stats = useMonthlyStats(month, currency);
@@ -50,7 +66,7 @@ export function AppPage() {
       onCurrency={setCurrency}
     />
   );
-  const chart = <CategoryChart month={month} data={stats.data} previous={previous.data} isPending={stats.isPending} isError={stats.isError} />;
+  const chart = <CategoryChart month={month} onReceipt={month < thisMonth ? () => setReceiptMonth(month) : undefined} data={stats.data} previous={previous.data} isPending={stats.isPending} isError={stats.isError} />;
   const exporter = entries.data && entries.data.length > 0 ? <ExportMenu month={month} entries={entries.data} /> : null;
   const list = (
     <EntryList query={entries} month={month} isCurrentMonth={month === thisMonth} timeZone={timeZone} onOpen={setOpenId} />
@@ -90,6 +106,7 @@ export function AppPage() {
           </>
         )}
       </Box>
+      {receiptMonth && <MonthReceipt month={receiptMonth} onClose={() => setReceiptMonth(null)} />}
       {open && <FixDialog entry={open} onClose={() => setOpenId(null)} />}
     </Box>
   );

@@ -70,4 +70,5 @@ export type MonthlyStats = {
   count: number;
   by_category: CategoryTotal[];
   currencies: CurrencyTotal[];
+  active_days?: number; // days with at least one entry, any currency
 };

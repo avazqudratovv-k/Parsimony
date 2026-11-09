@@ -925,3 +925,74 @@ describe("expired session", () => {
     expect(calls.length).toBeGreaterThan(0);
   });
 });
+
+describe("the Checked stamp", () => {
+  it("stamps a row when its check is cleared, then leaves a Checked mark", async () => {
+    const UNSURE = { ...ENTRY, id: "e1", confidence: 0.5, uncertain: ["amount"] };
+    let confirmed = false;
+    signedInApi(
+      {
+        "PATCH /api/entries/e1": () => { confirmed = true; return { status: 200, body: { ...UNSURE, confirmed: true } }; },
+        "GET /api/entries?*": () => ({ status: 200, body: [{ ...UNSURE, confirmed }] }),
+      },
+      [UNSURE],
+    );
+    renderApp("/app");
+    const user = userEvent.setup();
+    await user.click(await screen.findByRole("button", { name: "Blue Bottle, $6.50" }));
+    await user.click(within(await screen.findByRole("dialog")).getByRole("button", { name: "It's right" }));
+    expect(await screen.findByText("CHECKED")).toBeInTheDocument();
+    await waitFor(() => expect(screen.queryByText("CHECKED")).not.toBeInTheDocument(), { timeout: 3000 });
+    expect(screen.getByText("Checked")).toBeInTheDocument();
+    expect(screen.queryByText("Check: amount")).not.toBeInTheDocument();
+  });
+
+  it("an entry that was checked earlier shows the Checked mark, with no stamp", async () => {
+    signedInApi({}, [{ ...ENTRY, confidence: 0.5, confirmed: true }]);
+    renderApp("/app");
+    expect(await screen.findByText("Checked")).toBeInTheDocument();
+    expect(screen.queryByText("CHECKED")).not.toBeInTheDocument();
+  });
+});
+
+describe("the month-end receipt", () => {
+  const OCTOBER = {
+    month: "2026-10", currency: "USD", total: "120.00", count: 4, active_days: 3,
+    by_category: [{ category: "food_drink", total: "120.00", count: 4 }],
+    currencies: [{ currency: "USD", total: "120.00", count: 3 }, { currency: "KRW", total: "9000.00", count: 1 }],
+  };
+  const route = { "GET /api/stats/monthly?month=2026-10": { status: 200, body: OCTOBER } };
+
+  it("prints the closed month the first time the app opens in a new month, once", async () => {
+    localStorage.setItem("parsimony.lastMonthOpened", "2026-10");
+    signedInApi(route);
+    renderApp("/app");
+    const receipt = await screen.findByRole("dialog", { name: "MONTH-END RECEIPT" });
+    expect(within(receipt).getByText(/OCTOBER 2026/)).toBeInTheDocument();
+    expect(within(receipt).getByText("Food & drink")).toBeInTheDocument();
+    expect(within(receipt).getByText("$120.00")).toBeInTheDocument(); // one line per currency, never converted
+    expect(within(receipt).getByText("₩9,000")).toBeInTheDocument();
+    expect(within(receipt).getByText("Closed 31 Oct 2026 · not converted")).toBeInTheDocument();
+    expect(localStorage.getItem("parsimony.lastMonthOpened")).toBe("2026-11");
+    await userEvent.setup().click(screen.getByRole("button", { name: "Close" }));
+    await waitFor(() => expect(screen.queryByRole("dialog", { name: "MONTH-END RECEIPT" })).not.toBeInTheDocument());
+  });
+
+  it("does not print on the very first visit, nor again in the same month", async () => {
+    signedInApi(route);
+    renderApp("/app");
+    await screen.findByText("Blue Bottle");
+    expect(screen.queryByRole("dialog", { name: "MONTH-END RECEIPT" })).not.toBeInTheDocument();
+    expect(localStorage.getItem("parsimony.lastMonthOpened")).toBe("2026-11");
+  });
+
+  it("can be opened again from a past month", async () => {
+    localStorage.setItem("parsimony.lastMonthOpened", "2026-11");
+    signedInApi({ "GET /api/stats/monthly?month=2026-10*": { status: 200, body: OCTOBER }, ...route });
+    renderApp("/app");
+    const user = userEvent.setup();
+    await user.click(await screen.findByRole("button", { name: "Previous month" }));
+    await user.click(await screen.findByRole("button", { name: "Month-end receipt" }));
+    expect(await screen.findByRole("dialog", { name: "MONTH-END RECEIPT" })).toBeInTheDocument();
+  });
+});

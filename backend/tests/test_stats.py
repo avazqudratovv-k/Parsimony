@@ -22,6 +22,7 @@ def test_monthly_stats_group_by_category_in_one_currency(client):
         ("EUR", "100.00", 1),  # biggest total first
         ("USD", "55.25", 3),
     ]
+    assert stats["active_days"] == 4  # four different days, any currency
 
 
 def test_choosing_another_currency(client):
@@ -54,6 +55,7 @@ def test_empty_month_returns_zeros(client):
         "count": 0,
         "by_category": [],
         "currencies": [],
+        "active_days": 0,
     }
 
 

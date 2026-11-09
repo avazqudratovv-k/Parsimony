@@ -1,17 +1,20 @@
 import { Alert, Box, Button, Paper, Skeleton, Typography, useMediaQuery } from "@mui/material";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { MonthlyStats } from "../api/types";
 import { categoryLabel, fill, formatMoney, formatMonthName, formatShare } from "../lib/format";
 import { useI18n } from "../i18n";
 import type { TFn } from "../i18n";
-import { DESKTOP, useTokens } from "../theme";
+import { useReducedMotion, useRolling } from "../lib/motion";
+import { catTint, DESKTOP, EASE_OUT, SERIF, useMode, useTokens } from "../theme";
 import { CategoryIcon } from "./CategoryIcon";
+import { Icon } from "./Icon";
 
 const TOP_N = 5;
 const countText = (t: TFn, n: number) => fill(t(n === 1 ? "chart.count.one" : "chart.count.other"), { count: n });
 
 type Props = {
   month: string;
+  onReceipt?: () => void; // past months only: reopen that month's receipt
   data: MonthlyStats | undefined;
   previous: MonthlyStats | undefined;
   isPending: boolean;
@@ -20,14 +23,42 @@ type Props = {
 
 // Spending by category for one month in one currency: the biggest bar in the accent colour, the rest quieter.
 // Every bar prints its amount and share, so colour never carries meaning alone.
-export function CategoryChart({ month, data, previous, isPending, isError }: Props) {
+/** One bar: it grows to its length when it appears and glides when the month or currency changes. */
+function Bar({ percent, color }: { percent: number; color: string }) {
+  const reduced = useReducedMotion();
+  const [width, setWidth] = useState(reduced ? percent : 0);
+  useEffect(() => {
+    if (reduced) { setWidth(percent); return; }
+    const frame = requestAnimationFrame(() => setWidth(percent));
+    return () => cancelAnimationFrame(frame);
+  }, [percent, reduced]);
+  const c = useTokens();
+  return (
+    <Box sx={{ gridColumn: "2 / 4", height: 8, borderRadius: "4px", bgcolor: c.sunken, overflow: "hidden" }}>
+      <Box sx={{ height: "100%", width: `${width}%`, borderRadius: "4px", bgcolor: color, transition: reduced ? "none" : `width 300ms ${EASE_OUT}` }} />
+    </Box>
+  );
+}
+
+export function CategoryChart({ month, onReceipt, data, previous, isPending, isError }: Props) {
   const { t, lang } = useI18n();
   const c = useTokens();
+  const { scheme } = useMode();
+  const rolled = useRolling(data ? Number(data.total) : 0);
   const desktop = useMediaQuery(DESKTOP);
   const [expanded, setExpanded] = useState(false);
 
   const shell = (children: React.ReactNode) => (
-    <Paper variant="outlined" component="section" aria-label={t("chart.title")} sx={{ p: 4, borderRadius: 3 }}>
+    <Paper
+      variant="outlined" component="section" aria-label={t("chart.title")}
+      sx={{
+        p: 4, borderRadius: 3,
+        // The card ends in a torn receipt edge: a straight mask above, a row of 14 x 9 px teeth below.
+        borderBottom: 0, pb: "calc(16px + 8px)",
+        mask: "linear-gradient(#000 0 0) top/100% calc(100% - 9px) no-repeat, conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom/14px 9px repeat-x",
+        WebkitMask: "linear-gradient(#000 0 0) top/100% calc(100% - 9px) no-repeat, conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom/14px 9px repeat-x",
+      }}
+    >
       {children}
     </Paper>
   );
@@ -57,8 +88,8 @@ export function CategoryChart({ month, data, previous, isPending, isError }: Pro
         <Typography variant="caption" sx={{ display: "block", fontWeight: 500, letterSpacing: "0.04em", textTransform: "uppercase", color: "text.secondary" }}>
           {fill(t("chart.eyebrow"), { month: formatMonthName(month, lang), currency: data.currency })}
         </Typography>
-        <Typography sx={{ fontSize: 32, lineHeight: "38px", fontWeight: 600, letterSpacing: "-0.02em", fontVariantNumeric: "tabular-nums" }}>
-          {money(data.total)}
+        <Typography sx={{ fontFamily: SERIF, fontStyle: "italic", fontWeight: 500, fontSize: 38, lineHeight: "42px", letterSpacing: "-0.01em", fontVariantNumeric: "tabular-nums" }}>
+          {money(rolled.toFixed(2))}
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, fontVariantNumeric: "tabular-nums" }}>
           {[countText(t, data.count), delta].filter(Boolean).join(" · ")}
@@ -75,17 +106,23 @@ export function CategoryChart({ month, data, previous, isPending, isError }: Pro
               key={r.category}
               sx={{ display: "grid", gridTemplateColumns: "20px 1fr auto", columnGap: 2, rowGap: "6px", alignItems: "center" }}
             >
-              <Box sx={{ color: "text.secondary", display: "flex" }}><CategoryIcon category={r.category} tile={false} size={18} /></Box>
+              <Box sx={{ color: catTint(scheme, r.category).fg, display: "flex" }}><CategoryIcon category={r.category} tile={false} size={18} /></Box>
               <Typography sx={{ fontSize: 14, lineHeight: "20px" }}>{categoryLabel(t, r.category)}</Typography>
               <Typography sx={{ fontSize: 14, lineHeight: "20px", fontWeight: 500, textAlign: "right", fontVariantNumeric: "tabular-nums" }}>
                 <Box component="span" sx={{ color: "text.secondary", fontWeight: 400, mr: 2 }}>{formatShare(r.value, total)}</Box>
                 {money(r.total)}
               </Typography>
-              <Box sx={{ gridColumn: "2 / 4", height: 8, borderRadius: "4px", bgcolor: c.sunken, overflow: "hidden" }}>
-                <Box sx={{ height: "100%", width: `${max > 0 ? (r.value / max) * 100 : 0}%`, borderRadius: "4px", bgcolor: i === 0 ? c.accent : c.chartBar }} />
-              </Box>
+              <Bar percent={max > 0 ? (r.value / max) * 100 : 0} color={i === 0 ? c.accent : c.chartBar} />
             </Box>
           ))}
+        </Box>
+      )}
+
+      {onReceipt && (
+        <Box sx={{ mt: 3, pt: 2, borderTop: `1px solid ${c.line}`, display: "flex", justifyContent: "flex-end" }}>
+          <Button size="small" onClick={onReceipt} startIcon={<Icon name="bills" size={16} />} sx={{ minHeight: 44, my: -1, mr: -3 }}>
+            {t("receipt.open")}
+          </Button>
         </Box>
       )}
 

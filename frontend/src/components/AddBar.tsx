@@ -3,12 +3,14 @@ import PersonOutlineIcon from "@mui/icons-material/PersonOutlineOutlined";
 import { Alert, Box, IconButton, InputBase, Paper, Tooltip, Typography, useMediaQuery } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import type { FormEvent } from "react";
 import { useAddEntry, useUsage } from "../api/entries";
 import { addErrorMessage } from "../lib/errors";
 import { fill } from "../lib/format";
 import { useT } from "../i18n";
+import { Icon } from "./Icon";
+import { ReceiptDialog } from "./ReceiptDialog";
 
 // Docked at the bottom on phones, at the top of the list on desktop (as in the design).
 export function AddBar({ onAdded }: { onAdded?: () => void }) {
@@ -17,6 +19,8 @@ export function AddBar({ onAdded }: { onAdded?: () => void }) {
   const docked = useMediaQuery(theme.breakpoints.down("sm"));
   const [text, setText] = useState("");
   const add = useAddEntry();
+  const fileInput = useRef<HTMLInputElement>(null);
+  const [photo, setPhoto] = useState<File | null>(null);
   const { data: usage } = useUsage();
 
   function onSubmit(e: FormEvent) {
@@ -28,6 +32,7 @@ export function AddBar({ onAdded }: { onAdded?: () => void }) {
 
   const bar = (
     <Box sx={{ width: "100%" }}>
+      {photo && <ReceiptDialog file={photo} onClose={() => { setPhoto(null); onAdded?.(); }} />}
       {add.isError && (
         <Alert severity="error" role="alert" onClose={() => add.reset()} sx={{ mb: 2 }}>
           {addErrorMessage(add.error, t)}
@@ -62,6 +67,18 @@ export function AddBar({ onAdded }: { onAdded?: () => void }) {
           <ArrowUpwardIcon />
         </IconButton>
         )}
+        <Tooltip title={t("add.photo")}>
+          <span>
+            <IconButton aria-label={t("add.photo")} disabled={add.isPending || !!photo} onClick={() => fileInput.current?.click()} sx={{ width: 44, height: 44 }}>
+              <Icon name="camera" size={22} />
+            </IconButton>
+          </span>
+        </Tooltip>
+        {/* On a phone this opens the camera or the photo library; on desktop, the file picker. */}
+        <input
+          ref={fileInput} type="file" accept="image/jpeg,image/png,image/webp,image/*" hidden data-testid="photo-input"
+          onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ""; if (f) setPhoto(f); }}
+        />
       </Paper>
       {/* Always take the same height, so the bar never grows when the number arrives. */}
       <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 1, textAlign: "center", minHeight: "1.5em", lineHeight: 1.5 }}>

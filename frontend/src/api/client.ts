@@ -27,16 +27,19 @@ function parseDetail(body: unknown): { message: string; code: string | null; res
   return fallback;
 }
 
-export async function api<T>(path: string, init: { method?: string; body?: unknown } = {}): Promise<T> {
+export async function api<T>(path: string, init: { method?: string; body?: unknown; form?: FormData; signal?: AbortSignal } = {}): Promise<T> {
   let res: Response;
   try {
     res = await fetch(`/api${path}`, {
       method: init.method ?? "GET",
       credentials: "include",
       headers: init.body !== undefined ? { "Content-Type": "application/json" } : undefined,
-      body: init.body !== undefined ? JSON.stringify(init.body) : undefined,
+      // A FormData body sets its own multipart header (with the boundary), so we must not.
+      body: init.form ?? (init.body !== undefined ? JSON.stringify(init.body) : undefined),
+      signal: init.signal,
     });
-  } catch {
+  } catch (e) {
+    if (e instanceof DOMException && e.name === "AbortError") throw new ApiError(0, "Cancelled", "aborted");
     throw new ApiError(0, "Network error", "network");
   }
   if (res.status === 204) return undefined as T;

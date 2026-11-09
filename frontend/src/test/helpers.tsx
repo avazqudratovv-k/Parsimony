@@ -22,11 +22,12 @@ type Handler = (url: string, init?: RequestInit) => { status: number; body?: unk
 
 /** Replace fetch with a fake. Unknown routes fail the test loudly. */
 export function mockApi(routes: Record<string, Handler | { status: number; body?: unknown }>) {
-  const calls: { url: string; method: string; body: unknown }[] = [];
+  const calls: { url: string; method: string; body: unknown; form?: FormData }[] = [];
   const fn = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input);
     const method = init?.method ?? "GET";
-    calls.push({ url, method, body: init?.body ? JSON.parse(String(init.body)) : undefined });
+    const isForm = init?.body instanceof FormData;
+    calls.push({ url, method, body: init?.body && !isForm ? JSON.parse(String(init.body)) : undefined, form: isForm ? (init!.body as FormData) : undefined });
     const exact = `${method} ${url}`;
     // A key ending in "*" matches any URL with that prefix (e.g. "GET /api/entries?*").
     const wild = Object.keys(routes).find((k) => k.endsWith("*") && exact.startsWith(k.slice(0, -1)));

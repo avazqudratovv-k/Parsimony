@@ -115,6 +115,69 @@ describe("add bar", () => {
   });
 });
 
+describe("receipt photo", () => {
+  const PHOTO = { ...ENTRY, id: "p1", merchant: "GS25", note: null, amount: "4800.00", currency: "KRW", category: "groceries", source: "photo", raw_input: null, confidence: 0.9 };
+  const pick = async (name = "r.jpg", type = "image/jpeg") => {
+    const user = userEvent.setup({ applyAccept: false });
+    await user.upload(await screen.findByTestId("photo-input"), new File(["x"], name, { type }));
+    return user;
+  };
+  const stubUrls = () => {
+    URL.createObjectURL = () => "blob:test";
+    URL.revokeObjectURL = () => {};
+  };
+
+  it("uploads the photo with the timezone and shows the fields to check", async () => {
+    stubUrls();
+    const calls = signedInApi({ "POST /api/entries/photo": { status: 201, body: PHOTO } });
+    renderApp("/app");
+    await pick();
+    const dialog = await screen.findByRole("dialog", { name: "Check the receipt" });
+    expect(within(dialog).getAllByText("₩4,800").length).toBeGreaterThan(0);
+    expect(within(dialog).getByText("GS25")).toBeInTheDocument();
+    const post = calls.find((c) => c.url === "/api/entries/photo")!;
+    expect(post.form!.get("file")).toBeInstanceOf(Blob);
+    expect(typeof post.form!.get("timezone")).toBe("string");
+    expect(calls.filter((c) => c.url === "/api/entries/photo")).toHaveLength(1);
+    await userEvent.setup().click(within(dialog).getByRole("button", { name: "Looks right" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+  });
+
+  it("warns when the model was unsure", async () => {
+    stubUrls();
+    signedInApi({ "POST /api/entries/photo": { status: 201, body: { ...PHOTO, confidence: 0.5 } } });
+    renderApp("/app");
+    await pick();
+    expect(await screen.findByText(/I wasn't sure about this one/)).toBeInTheDocument();
+  });
+
+  it("Edit opens the Fix this form for the new entry", async () => {
+    stubUrls();
+    signedInApi({ "POST /api/entries/photo": { status: 201, body: PHOTO } });
+    renderApp("/app");
+    const user = await pick();
+    await user.click(await screen.findByRole("button", { name: "Edit" }));
+    expect(await screen.findByRole("dialog", { name: "Fix this entry" })).toBeInTheDocument();
+  });
+
+  it.each([
+    [415, "isn't a photo I can read"],
+    [413, "too large"],
+    [422, "couldn't find a receipt"],
+    [429, "used all of today's smart adds"],
+    [502, "unavailable right now"],
+  ])("explains a %s failure and lets you close", async (status, expected) => {
+    stubUrls();
+    const body = status === 429 ? { detail: { code: "daily_limit_account", message: "x", resets_at: "2026-11-10T00:00:00Z" } } : { detail: "x" };
+    signedInApi({ "POST /api/entries/photo": { status, body } });
+    renderApp("/app");
+    const user = await pick();
+    expect(await screen.findByRole("alert")).toHaveTextContent(expected);
+    await user.click(screen.getByRole("button", { name: "Close" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+  });
+});
+
 describe("Fix this", () => {
   it("sends only the changed fields", async () => {
     const calls = signedInApi({ "PATCH /api/entries/e1": { status: 200, body: { ...ENTRY, amount: "7.00", user_corrected: true } } });

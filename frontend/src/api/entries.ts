@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "./client";
 import { browserTimezone } from "./auth";
+import { prepareReceipt } from "../lib/photo";
 import type { Entry, EntryUpdate, MonthlyStats, Overview, UsageStatus } from "./types";
 
 // One place to say "the numbers changed": every list, total and counter refetches.
@@ -39,6 +40,20 @@ export function useAddEntry() {
       api<Entry>("/entries", { method: "POST", body: { text, timezone: browserTimezone() } }),
     // A failed AI call still counts toward the daily cap, so refresh the counter either way.
     onSettled: refresh,
+  });
+}
+
+/** Receipt photo -> one saved entry. The file is downscaled first; the server never stores it. */
+export function useAddPhoto() {
+  const refresh = useRefreshData();
+  return useMutation({
+    mutationFn: async ({ file, signal }: { file: File; signal?: AbortSignal }) => {
+      const form = new FormData();
+      form.append("file", await prepareReceipt(file), "receipt.jpg");
+      form.append("timezone", browserTimezone());
+      return api<Entry>("/entries/photo", { method: "POST", form, signal });
+    },
+    onSettled: refresh, // a failed read still counts toward the cap
   });
 }
 

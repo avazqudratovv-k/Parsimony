@@ -180,3 +180,11 @@
 - The real file type is detected from the first bytes (JPEG, PNG, WebP), not the label the browser sends. Limit 8 MB (`MAX_PHOTO_BYTES`). Checks run before a smart add is spent: file type, size, entry room, timezone.
 - The receipt prompt asks for the final total paid (not a subtotal), the printed date and currency, and forbids card numbers, names, addresses and phone numbers in the note. Text written on the photo is treated as data, not instructions.
 - `GEMINI_VISION_MODEL` is optional; empty means the text model is used (it accepts images). Not yet tested against the real Gemini API: the first real test is on the server once the frontend exists (Day 12).
+
+## Day 12: receipt photos in the app
+
+- The camera button uses a plain `<input type="file">`. On a phone that opens the camera or the photo library; on desktop, the file picker. No custom in-app camera (the design's 4a screen is skipped on purpose: no permission prompts, no extra code).
+- The photo is shrunk to 1600px JPEG in the browser before upload (faster on mobile data). If the browser cannot decode it (HEIC), the original goes up and the server answers 415.
+- The server saves the entry straight away, so "Check the receipt" shows what was saved. Edit opens "Fix this"; "Looks right" just closes. Cancel stops the upload but cannot undo a read that already started.
+- One photo costs one smart add; the upload starts exactly once, even in React StrictMode.
+- The mic button is not added until voice works, so there is no dead button.

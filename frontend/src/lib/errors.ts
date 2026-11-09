@@ -15,3 +15,13 @@ export function addErrorMessage(e: unknown, t: TFn): string {
   }
   return t("add.error.generic");
 }
+
+// Same idea for a receipt photo: the status says what went wrong with the picture itself.
+export function photoErrorMessage(e: unknown, t: TFn): string {
+  if (e instanceof ApiError) {
+    if (e.status === 415) return t("photo.error.type");
+    if (e.status === 413) return t("photo.error.size");
+    if (e.status === 422) return t("photo.error.unreadable");
+  }
+  return addErrorMessage(e, t);
+}

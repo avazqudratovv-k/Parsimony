@@ -1,14 +1,12 @@
 # Parsimony
 
-An AI expense tracker. Type it, say it, or photograph a receipt, and a model turns it into one structured entry (date, amount, currency, category, payment method, merchant, items). The app is in English and Korean (Uzbek is also built in).
+**AI expense tracker.** Type a line, say it, or photograph a receipt, and a language model turns it into one structured, editable entry. English, Korean and Uzbek. Installable PWA, light and dark themes, built for phones first.
 
-**Live demo:** https://parsimony.duckdns.org (press "Try it as a guest": sample data, no sign-up, deleted after 7 days)
+**Live:** https://parsimony.duckdns.org (use "Try it as a guest": sample data, no sign-up, wiped after 7 days)
 
 | English | Korean |
 |---|---|
 | ![Dashboard in English](docs/screenshots/dashboard-en.jpg) | ![Dashboard in Korean](docs/screenshots/dashboard-ko.jpg) |
-
-**On a phone** (Korean dashboard, entry list, and the month-end receipt you can save as an image):
 
 <p>
   <img src="docs/screenshots/mobile-dashboard-ko.jpg" width="250" alt="Mobile dashboard in Korean">
@@ -16,60 +14,59 @@ An AI expense tracker. Type it, say it, or photograph a receipt, and a model tur
   <img src="docs/screenshots/mobile-month-receipt-ko.jpg" width="250" alt="Month-end receipt in Korean on mobile">
 </p>
 
-| Typing a Korean sentence | Dark mode |
-|---|---|
-| ![Adding a Korean expense](docs/screenshots/add-korean.jpg) | ![Dark theme](docs/screenshots/dashboard-dark.jpg) |
+`어제 스타벅스 5500원 카드` becomes: merchant 스타벅스, ₩5,500, card, yesterday's date, category food & drink, with a logo.
 
-`어제 스타벅스 5500원 카드` becomes: merchant 스타벅스, ₩5,500, card, yesterday's date.
+## Highlights
 
-## What it does
+- **One flow, three inputs.** Text, voice and receipt photo all end in the same text-to-JSON parser, which returns a schema-constrained answer (date, amount, currency, category, payment method, merchant, items, confidence).
+- **Built for imperfect AI.** Low-confidence entries go to a "Needs a check" box, every entry has a one-tap "Fix this", voice is transcribed first and confirmed before saving, and a manual form works even when the AI fails or the daily limit is used up.
+- **Cost and abuse controls.** Per-account and global daily AI-call caps, rate limits on auth, file size and type checks (magic bytes, not file names), photos and audio held in memory and never stored.
+- **Multi-currency without guessing.** KRW / USD / EUR / UZS are totalled per currency, never converted. A month-end receipt (saveable as an image) closes each month.
+- **Phone-quality UX.** Swipe to delete with an undo window, optimistic updates, reduced-motion support, installable PWA.
+- **Evaluated, not assumed.** The parser is scored on a hand-labeled test set, and a fine-tuned small model was compared against the API (see below).
 
-- One flow: input -> JSON -> list. A monthly total, a category breakdown, an entry list, and a "Fix this" button for anything the AI got wrong.
-- Entries the AI was unsure about land in a "Needs a check" box.
-- A month-end receipt: the closed month printed like a paper receipt (totals per currency, never converted), saved as an image.
-- Multi-currency (KRW / USD / UZS), shown per currency, never converted.
-- Guest accounts with daily AI-call caps, rate limits, file size and type checks.
-- Receipt photos are read and never stored.
-
-## How it works
+## Architecture
 
 ```
-React (Vite, TanStack Query, MUI)  ->  FastAPI  ->  parser service  ->  Gemini (JSON schema output)
-                                          |
-                                      Postgres 16
+React 18 + Vite + TypeScript (TanStack Router/Query, MUI, Recharts)
+        |
+     FastAPI  ->  routers (HTTP only) -> services (logic) -> models (SQLAlchemy 2) -> Postgres 16
+        |
+   AI adapters behind Protocols (ai/base.py) -> Gemini: text, receipt vision, voice transcription
 ```
 
-`routers/` (HTTP only) -> `services/` (logic) -> `models/` (tables). AI sits behind a Protocol in `backend/app/ai/base.py`, so services never import a concrete model class. Text, voice and receipt photo all end in the same text-to-JSON parser. Deployed with Docker Compose and Nginx behind HTTPS.
+Services never import a concrete AI class, so the model can be swapped (this is how the fine-tuned model was benchmarked). Deployed with Docker Compose and Nginx over HTTPS; Alembic migrations; CI runs lint, unit tests and Playwright end-to-end tests.
 
-## Fine-tuning experiment (`ml/`)
+**Tests:** 152 backend tests (pytest), 100+ frontend unit tests (Vitest), Playwright smoke tests in CI.
 
-A self-study project: could a small open model do the parsing instead of the API?
-I fine-tuned Qwen2.5-1.5B with LoRA on a free Colab T4 and scored it on **100 hand-labeled test cases that were never used for training** (34 English, 33 Korean, 33 Uzbek).
+## Model evaluation: API vs fine-tuned small model (`ml/`)
 
-| Entries fully right (all fields) | Score |
+Question: can a small open model replace the API for this task? I built a 100-case hand-labeled test set (34 English, 33 Korean, 33 Uzbek), froze the labels, and scored every model on it. A case counts only if **every field** is right.
+
+| Model | Fully right (of 100) |
 |---|---|
-| Gemini API (the app's real prompt) | **85 / 100** |
-| Qwen2.5-1.5B, untuned | 0 / 100 |
-| LoRA round 1 (template data) | 45 / 100 |
-| LoRA round 2 (Gemini-worded data) | 67 / 100 |
-| LoRA round 3 (date codes resolved in code, mixed-currency items) | **73 / 100** |
+| Gemini API, the app's production prompt | **85** |
+| Qwen2.5-1.5B, untuned | 0 |
+| + LoRA, round 1 (template data) | 45 |
+| + LoRA, round 2 (Gemini-worded, code-labeled data) | 67 |
+| + LoRA, round 3 (date codes resolved in code, mixed-currency items) | **73** |
 
-The app still uses Gemini, because it is better on this test. The point was to learn the whole loop: build a test set first, get a baseline, find why round 1 failed (the model memorized my templates), fix the data, and measure again.
+LoRA r=16 on all attention and MLP layers, 2 epochs, a free Colab T4, ~25 minutes per run. The jump from 45 to 67 came from diagnosing why round 1 failed (the model memorized my templates) and rebuilding the data so labels are decided in code and a model only writes the wording. Round 3 moved date arithmetic out of the model into plain code, a design choice rather than extra model skill.
 
-Be careful with these numbers: 100 cases means a few points is noise; training data is mostly synthetic; Korean and Uzbek wording has had no native review; the date step moved into plain code in round 3, so part of that gain is a design choice, not model skill. Full table, what each round changed, known weaknesses and caveats: [`ml/RESULTS.md`](ml/RESULTS.md).
+**Decision:** production stays on Gemini, because it is better on this test (85 vs 73). The experiment gives a measured fallback and a repeatable evaluation harness.
+
+Read the numbers carefully: 100 cases means a few points are noise; training data is mostly synthetic; Korean and Uzbek wording has not had a native review; the multi-item case is still weak. Full table, per-field breakdown, weaknesses and caveats: [`ml/RESULTS.md`](ml/RESULTS.md).
 
 ## Run locally
 
 ```bash
-cp .env.example .env        # then add your own GEMINI_API_KEY
+cp .env.example .env        # add your own GEMINI_API_KEY
 docker compose up --build
 curl http://localhost:8000/api/health   # -> {"status":"ok"}
 ```
 
-Backend tests: `docker compose exec backend pytest -q` · Frontend: see `frontend/package.json` · End-to-end: Playwright smoke tests run in CI.
+Tests: `docker compose exec backend pytest -q`. Never commit `.env`. Use made-up receipts only; this is a demo and should not receive real personal data.
 
-## Layout
+## Repository
 
-`backend/` FastAPI API · `frontend/` React app · `ml/` data, training notebook, scorer, results · `docs/` design notes, decisions, limitations, deploy · `nginx/`, `deploy/` production setup
-
-Never commit `.env`. Use made-up receipts only; the app is a portfolio demo and should not receive real personal data.
+`backend/` FastAPI API · `frontend/` React app · `ml/` test set, data generators, training notebook, scorer, results · `docs/` design notes, decisions log, honest limitations, deploy guide · `nginx/`, `deploy/` production setup

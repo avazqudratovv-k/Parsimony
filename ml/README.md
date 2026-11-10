@@ -25,3 +25,6 @@ Round 1 results on the 100 held-out cases: Gemini API 85, untuned Qwen2.5-1.5B 0
 - `data/build_train_v2.py` decides every label in code and asks Gemini only to write natural, messy messages for it (typos, 4만8천원, 85 ming, multi-item, same-category lists that must NOT be split, non-expenses). It drops messages that equal a test sentence or whose written amount does not match the label. Resumable (`data/raw_v2/` cache).
 - Caveat: category conventions in the training data follow my own labeling choices, which the Gemini baseline prompt does not state.
 - Run: `GEMINI_API_KEY=... python ml/data/build_train_v2.py --calls 180`, then re-zip `ml/` and rerun the notebook (it picks `train_v2.jsonl` automatically).
+
+## Result so far
+Gemini 85 / untuned 0 / templates 45 / Gemini-worded data 67 (of 100 held-out cases). Full table, weaknesses and caveats: `RESULTS.md`.

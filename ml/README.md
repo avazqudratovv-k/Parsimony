@@ -19,3 +19,9 @@ Rules: no real receipts or personal data in any dataset; report held-out test re
 6. Next: run 3 and 5, put the three reports side by side (Gemini, base, tuned), then decide what is honest to claim.
 
 Known limits: the training sentences are templates, so they are cleaner than real typing; the small model does not produce confidence/uncertain/items-from-prose yet; Korean and Uzbek templates need a native reader.
+
+## Round 2 (label first, Gemini writes the wording)
+Round 1 results on the 100 held-out cases: Gemini API 85, untuned Qwen2.5-1.5B 0, LoRA on templates 45 (valid JSON 100/100, payment 97%, multi-item 0%, Uzbek 27%). Training loss was ~0.001: the model learned my templates, not real typing.
+- `data/build_train_v2.py` decides every label in code and asks Gemini only to write natural, messy messages for it (typos, 4만8천원, 85 ming, multi-item, same-category lists that must NOT be split, non-expenses). It drops messages that equal a test sentence or whose written amount does not match the label. Resumable (`data/raw_v2/` cache).
+- Caveat: category conventions in the training data follow my own labeling choices, which the Gemini baseline prompt does not state.
+- Run: `GEMINI_API_KEY=... python ml/data/build_train_v2.py --calls 180`, then re-zip `ml/` and rerun the notebook (it picks `train_v2.jsonl` automatically).

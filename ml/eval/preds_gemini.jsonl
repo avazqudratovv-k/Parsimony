@@ -2,7 +2,7 @@
 {"text": "yesterday taxi 12,000 won cash", "output": {"date": "2026-11-08", "merchant": null, "note": "Taxi", "amount": 12000, "currency": "KRW", "category": "transport", "payment_method": "cash", "confidence": 0.9, "uncertain": []}, "seconds": 1.62}
 {"text": "lunch at Kimbap Cheonguk 8500 won card", "output": {"date": "2026-11-09", "merchant": "Kimbap Cheonguk", "note": "Lunch", "amount": 8500, "currency": "KRW", "category": "food_drink", "payment_method": "card", "confidence": 0.95, "uncertain": []}, "seconds": 5.53}
 {"text": "Netflix 15.49 EUR", "output": {"date": "2026-11-09", "merchant": "Netflix", "note": null, "amount": 15.49, "currency": "EUR", "category": "entertainment", "payment_method": "unknown", "confidence": 0.9, "uncertain": []}, "seconds": 5.43}
-{"text": "bought milk 2,000 won and shampoo 5,500 won at GS25 by card", "output": null, "seconds": 2.57}
+{"text": "bought milk 2,000 won and shampoo 5,500 won at GS25 by card", "output": {"date": "2026-11-09", "merchant": "GS25", "note": null, "amount": 7500, "currency": "KRW", "category": "shopping", "payment_method": "card", "confidence": 0.9, "uncertain": [], "items": [{"note": "Milk", "amount": 2000, "category": "groceries"}, {"note": "Shampoo", "amount": 5500, "category": "shopping"}]}, "seconds": 1.75, "error": ""}
 {"text": "Metro card top-up €20 cash yesterday", "output": {"date": "2026-11-08", "merchant": null, "note": "Metro card top-up", "amount": 20, "currency": "EUR", "category": "transport", "payment_method": "cash", "confidence": 0.9, "uncertain": []}, "seconds": 1.42}
 {"text": "rent 650,000 won transfer", "output": {"date": "2026-11-09", "merchant": null, "note": "Rent", "amount": 650000, "currency": "KRW", "category": "bills", "payment_method": "transfer", "confidence": 0.9, "uncertain": []}, "seconds": 5.75}
 {"text": "paid electricity bill 48,300 won", "output": {"date": "2026-11-09", "merchant": null, "note": "Electricity bill", "amount": 48300, "currency": "KRW", "category": "bills", "payment_method": "unknown", "confidence": 0.9, "uncertain": []}, "seconds": 1.54}
@@ -13,88 +13,88 @@
 {"text": "new running shoes 129,000 won Kakao Pay", "output": {"date": "2026-11-09", "merchant": null, "note": "New running shoes", "amount": 129000, "currency": "KRW", "category": "shopping", "payment_method": "mobile", "confidence": 0.95, "uncertain": []}, "seconds": 1.38}
 {"text": "hotel in Busan 2 nights 240,000 won card", "output": {"date": "2026-11-09", "merchant": null, "note": "Hotel in Busan 2 nights", "amount": 240000, "currency": "KRW", "category": "travel", "payment_method": "card", "confidence": 0.9, "uncertain": []}, "seconds": 5.84}
 {"text": "bus 1,500", "output": {"date": "2026-11-09", "merchant": null, "note": "Bus", "amount": 1500, "currency": "KRW", "category": "transport", "payment_method": "unknown", "confidence": 0.85, "uncertain": ["currency"]}, "seconds": 1.33}
-{"text": "snack 3 dollars", "output": null, "seconds": 0.31}
-{"text": "bought a book for 14.99 GBP online, card", "output": null, "seconds": 0.41}
-{"text": "haircut 20,000 won", "output": null, "seconds": 0.24}
+{"text": "snack 3 dollars", "output": {"date": "2026-11-09", "merchant": null, "note": "Snack", "amount": 3.0, "currency": "USD", "category": "food_drink", "payment_method": "unknown", "confidence": 0.8, "uncertain": ["currency"]}, "seconds": 1.43, "error": ""}
+{"text": "bought a book for 14.99 GBP online, card", "output": {"date": "2026-11-09", "merchant": null, "note": "Book", "amount": 14.99, "currency": "GBP", "category": "shopping", "payment_method": "card", "confidence": 0.95, "uncertain": []}, "seconds": 4.54, "error": ""}
+{"text": "haircut 20,000 won", "output": {"date": "2026-11-09", "merchant": null, "note": "Haircut", "amount": 20000, "currency": "KRW", "category": "health", "payment_method": "unknown", "confidence": 0.9, "uncertain": []}, "seconds": 1.46, "error": ""}
 {"text": "dinner with the team 87,000 won, I paid on card", "output": {"date": "2026-11-09", "merchant": null, "note": "Dinner with the team", "amount": 87000, "currency": "KRW", "category": "food_drink", "payment_method": "card", "confidence": 1.0, "uncertain": []}, "seconds": 2.05}
-{"text": "weekly train ticket 45 euros", "output": null, "seconds": 0.2}
-{"text": "Apple Music 10.99 USD", "output": null, "seconds": 0.37}
-{"text": "gift for mom 60,000 won, cash, on the 3rd", "output": null, "seconds": 0.31}
+{"text": "weekly train ticket 45 euros", "output": {"date": "2026-11-09", "merchant": null, "note": "Weekly train ticket", "amount": 45.0, "currency": "EUR", "category": "transport", "payment_method": "unknown", "confidence": 0.85, "uncertain": []}, "seconds": 1.72, "error": ""}
+{"text": "Apple Music 10.99 USD", "output": {"date": "2026-11-09", "merchant": "Apple Music", "note": null, "amount": 10.99, "currency": "USD", "category": "entertainment", "payment_method": "unknown", "confidence": 0.9, "uncertain": []}, "seconds": 1.43, "error": ""}
+{"text": "gift for mom 60,000 won, cash, on the 3rd", "output": {"date": "2026-11-03", "merchant": null, "note": "Gift for mom", "amount": 60000, "currency": "KRW", "category": "shopping", "payment_method": "cash", "confidence": 0.9, "uncertain": []}, "seconds": 1.32, "error": ""}
 {"text": "bag 15,000 won card, wallet 30,000 won cash", "output": {"date": "2026-11-09", "merchant": null, "note": null, "amount": 45000, "currency": "KRW", "category": "shopping", "payment_method": "cash", "confidence": 0.9, "uncertain": [], "items": [{"note": "Bag", "amount": 15000, "category": "shopping", "payment_method": "card", "currency": "KRW"}, {"note": "Wallet", "amount": 30000, "category": "shopping", "payment_method": "cash", "currency": "KRW"}]}, "seconds": 2.36}
-{"text": "laptop 50$ cash, macbook 150000 krw card", "output": null, "seconds": 0.21}
+{"text": "laptop 50$ cash, macbook 150000 krw card", "output": {"date": "2026-11-09", "merchant": null, "note": null, "amount": 150050, "currency": "KRW", "category": "shopping", "payment_method": "card", "confidence": 0.9, "uncertain": [], "items": [{"note": "Laptop", "amount": 50, "category": "shopping", "payment_method": "cash", "currency": "USD"}, {"note": "Macbook", "amount": 150000, "category": "shopping", "payment_method": "card", "currency": "KRW"}]}, "seconds": 1.71, "error": ""}
 {"text": "remind me to call the dentist tomorrow", "output": {"date": "2026-11-09", "merchant": null, "note": "remind me to call the dentist tomorrow", "amount": 0, "currency": "KRW", "category": "other", "payment_method": "unknown", "confidence": 0.5, "uncertain": ["amount"]}, "seconds": 1.29}
-{"text": "hello", "output": null, "seconds": 2.08}
+{"text": "hello", "output": {"date": "2026-11-09", "merchant": null, "note": null, "amount": 0, "currency": "KRW", "category": "other", "payment_method": "unknown", "confidence": 0.0, "uncertain": ["amount", "category"]}, "seconds": 1.65, "error": ""}
 {"text": "cofee 4500 won crd", "output": {"date": "2026-11-09", "merchant": null, "note": "Coffee", "amount": 4500, "currency": "KRW", "category": "food_drink", "payment_method": "card", "confidence": 0.9, "uncertain": []}, "seconds": 1.2}
 {"text": "paid 120 USD for an online course, card", "output": {"date": "2026-11-09", "merchant": null, "note": "Online course", "amount": 120.0, "currency": "USD", "category": "bills", "payment_method": "card", "confidence": 0.9, "uncertain": []}, "seconds": 1.26}
 {"text": "gas 54,000 won", "output": {"date": "2026-11-09", "merchant": null, "note": "Gas", "amount": 54000, "currency": "KRW", "category": "transport", "payment_method": "unknown", "confidence": 0.9, "uncertain": []}, "seconds": 1.63}
 {"text": "bubble tea 4,500 won, mobile pay, this afternoon", "output": {"date": "2026-11-09", "merchant": null, "note": "Bubble tea", "amount": 4500, "currency": "KRW", "category": "food_drink", "payment_method": "mobile", "confidence": 0.95, "uncertain": []}, "seconds": 1.27}
 {"text": "doctor visit 15,000 won", "output": {"date": "2026-11-09", "merchant": null, "note": "Doctor visit", "amount": 15000, "currency": "KRW", "category": "health", "payment_method": "unknown", "confidence": 0.9, "uncertain": []}, "seconds": 2.98}
 {"text": "wifi bill 33,000 won, transfer, on the 5th", "output": {"date": "2026-11-05", "merchant": null, "note": "Wifi bill", "amount": 33000, "currency": "KRW", "category": "bills", "payment_method": "transfer", "confidence": 0.9, "uncertain": []}, "seconds": 3.2}
-{"text": "flight to Tokyo 210,000 won card", "output": null, "seconds": 3.93}
+{"text": "flight to Tokyo 210,000 won card", "output": {"date": "2026-11-09", "merchant": null, "note": "Flight to Tokyo", "amount": 210000, "currency": "KRW", "category": "travel", "payment_method": "card", "confidence": 0.95, "uncertain": []}, "seconds": 4.22, "error": ""}
 {"text": "dinner 3 days ago 42,000 won cash", "output": {"date": "2026-11-06", "merchant": null, "note": "Dinner", "amount": 42000, "currency": "KRW", "category": "food_drink", "payment_method": "cash", "confidence": 0.9, "uncertain": []}, "seconds": 2.25}
 {"text": "스타벅스 아메리카노 4,500원 카드", "output": {"date": "2026-11-09", "merchant": "스타벅스", "note": "아메리카노", "amount": 4500, "currency": "KRW", "category": "food_drink", "payment_method": "card", "confidence": 0.95, "uncertain": []}, "seconds": 1.59}
 {"text": "어제 택시 12,000원 현금", "output": {"date": "2026-11-08", "merchant": null, "note": "Taxi", "amount": 12000, "currency": "KRW", "category": "transport", "payment_method": "cash", "confidence": 0.95, "uncertain": []}, "seconds": 1.38}
 {"text": "점심 김치찌개 9000원 카드로", "output": {"date": "2026-11-09", "merchant": null, "note": "점심 김치찌개", "amount": 9000, "currency": "KRW", "category": "food_drink", "payment_method": "card", "confidence": 0.95, "uncertain": []}, "seconds": 1.31}
 {"text": "GS25에서 우유 2,000원 샴푸 5,500원 카드", "output": {"date": "2026-11-09", "merchant": "GS25", "note": null, "amount": 7500, "currency": "KRW", "category": "shopping", "payment_method": "card", "confidence": 0.9, "uncertain": [], "items": [{"note": "우유", "amount": 2000, "category": "groceries"}, {"note": "샴푸", "amount": 5500, "category": "shopping"}]}, "seconds": 1.28}
 {"text": "월세 65만원 계좌이체", "output": {"date": "2026-11-09", "merchant": null, "note": "월세", "amount": 650000, "currency": "KRW", "category": "bills", "payment_method": "transfer", "confidence": 0.95, "uncertain": []}, "seconds": 2.94}
-{"text": "전기요금 4만8천3백원", "output": null, "seconds": 0.24}
-{"text": "약국 감기약 7천원 현금 그저께", "output": null, "seconds": 0.26}
-{"text": "토요일에 영화 2만8천원 카드", "output": null, "seconds": 0.28}
-{"text": "이마트 장보기 54,200원 카드", "output": null, "seconds": 0.34}
+{"text": "전기요금 4만8천3백원", "output": {"date": "2026-11-09", "merchant": null, "note": "전기요금", "amount": 48300, "currency": "KRW", "category": "bills", "payment_method": "unknown", "confidence": 0.9, "uncertain": []}, "seconds": 5.33, "error": ""}
+{"text": "약국 감기약 7천원 현금 그저께", "output": {"date": "2026-11-07", "merchant": null, "note": "감기약", "amount": 7000, "currency": "KRW", "category": "health", "payment_method": "cash", "confidence": 0.9, "uncertain": []}, "seconds": 6.21, "error": ""}
+{"text": "토요일에 영화 2만8천원 카드", "output": {"date": "2026-11-08", "merchant": null, "note": "영화", "amount": 28000, "currency": "KRW", "category": "entertainment", "payment_method": "card", "confidence": 0.95, "uncertain": []}, "seconds": 1.44, "error": ""}
+{"text": "이마트 장보기 54,200원 카드", "output": {"date": "2026-11-09", "merchant": "이마트", "note": "장보기", "amount": 54200, "currency": "KRW", "category": "groceries", "payment_method": "card", "confidence": 0.95, "uncertain": []}, "seconds": 1.31, "error": ""}
 {"text": "카카오페이로 운동화 12만9천원", "output": {"date": "2026-11-09", "merchant": null, "note": "운동화", "amount": 129000, "currency": "KRW", "category": "shopping", "payment_method": "mobile", "confidence": 0.9, "uncertain": []}, "seconds": 3.2}
-{"text": "부산 호텔 2박 24만원 카드", "output": null, "seconds": 0.24}
+{"text": "부산 호텔 2박 24만원 카드", "output": {"date": "2026-11-09", "merchant": "부산 호텔", "note": "부산 호텔 2박", "amount": 240000, "currency": "KRW", "category": "travel", "payment_method": "card", "confidence": 0.9, "uncertain": []}, "seconds": 1.42, "error": ""}
 {"text": "버스 1500원", "output": {"date": "2026-11-09", "merchant": null, "note": "버스", "amount": 1500, "currency": "KRW", "category": "transport", "payment_method": "unknown", "confidence": 0.9, "uncertain": []}, "seconds": 1.23}
 {"text": "이번 주 지하철 정기권 45,000원", "output": {"date": "2026-11-09", "merchant": null, "note": "지하철 정기권", "amount": 45000, "currency": "KRW", "category": "transport", "payment_method": "unknown", "confidence": 0.9, "uncertain": []}, "seconds": 5.57}
-{"text": "미용실 컷 2만원 현금", "output": null, "seconds": 0.22}
-{"text": "팀 회식 87,000원 내 카드로 결제", "output": null, "seconds": 0.29}
-{"text": "넷플릭스 17,000원", "output": null, "seconds": 0.28}
-{"text": "엄마 선물 6만원 현금 3일에", "output": null, "seconds": 0.33}
-{"text": "편의점 삼각김밥 1,300원 바나나우유 1,800원", "output": null, "seconds": 0.31}
-{"text": "치킨 22,000원 배달 현금", "output": null, "seconds": 0.31}
-{"text": "책 구매 1만4천원 카드", "output": null, "seconds": 0.3}
-{"text": "주유 5만원", "output": null, "seconds": 0.25}
-{"text": "병원 진료비 15,000원", "output": null, "seconds": 0.37}
-{"text": "인터넷 요금 33,000원 5일에 자동이체", "output": null, "seconds": 0.31}
+{"text": "미용실 컷 2만원 현금", "output": {"date": "2026-11-09", "merchant": null, "note": "미용실 컷", "amount": 20000, "currency": "KRW", "category": "shopping", "payment_method": "cash", "confidence": 0.9, "uncertain": []}, "seconds": 1.47, "error": ""}
+{"text": "팀 회식 87,000원 내 카드로 결제", "output": {"date": "2026-11-09", "merchant": null, "note": "팀 회식", "amount": 87000, "currency": "KRW", "category": "food_drink", "payment_method": "card", "confidence": 0.95, "uncertain": []}, "seconds": 17.25, "error": ""}
+{"text": "넷플릭스 17,000원", "output": {"date": "2026-11-09", "merchant": "Netflix", "note": null, "amount": 17000, "currency": "KRW", "category": "entertainment", "payment_method": "unknown", "confidence": 0.9, "uncertain": []}, "seconds": 4.99, "error": ""}
+{"text": "엄마 선물 6만원 현금 3일에", "output": {"date": "2026-11-03", "merchant": null, "note": "엄마 선물", "amount": 60000, "currency": "KRW", "category": "shopping", "payment_method": "cash", "confidence": 0.95, "uncertain": []}, "seconds": 1.34, "error": ""}
+{"text": "편의점 삼각김밥 1,300원 바나나우유 1,800원", "output": {"date": "2026-11-09", "merchant": null, "note": null, "amount": 3100, "currency": "KRW", "category": "food_drink", "payment_method": "unknown", "confidence": 0.85, "uncertain": [], "items": [{"note": "삼각김밥", "amount": 1300, "category": "food_drink"}, {"note": "바나나우유", "amount": 1800, "category": "food_drink"}]}, "seconds": 12.76, "error": ""}
+{"text": "치킨 22,000원 배달 현금", "output": {"date": "2026-11-09", "merchant": null, "note": "치킨", "amount": 22000, "currency": "KRW", "category": "food_drink", "payment_method": "cash", "confidence": 0.95, "uncertain": []}, "seconds": 12.97, "error": ""}
+{"text": "책 구매 1만4천원 카드", "output": {"date": "2026-11-09", "merchant": null, "note": "책 구매", "amount": 14000, "currency": "KRW", "category": "shopping", "payment_method": "card", "confidence": 0.95, "uncertain": []}, "seconds": 1.55, "error": ""}
+{"text": "주유 5만원", "output": {"date": "2026-11-09", "merchant": null, "note": "주유", "amount": 50000, "currency": "KRW", "category": "transport", "payment_method": "unknown", "confidence": 0.9, "uncertain": []}, "seconds": 1.29, "error": ""}
+{"text": "병원 진료비 15,000원", "output": {"date": "2026-11-09", "merchant": null, "note": "병원 진료비", "amount": 15000, "currency": "KRW", "category": "health", "payment_method": "unknown", "confidence": 0.9, "uncertain": []}, "seconds": 1.51, "error": ""}
+{"text": "인터넷 요금 33,000원 5일에 자동이체", "output": {"date": "2026-11-05", "merchant": null, "note": "인터넷 요금", "amount": 33000, "currency": "KRW", "category": "bills", "payment_method": "transfer", "confidence": 0.85, "uncertain": []}, "seconds": 17.62, "error": ""}
 {"text": "도쿄 항공권 21만원 카드", "output": {"date": "2026-11-09", "merchant": null, "note": "도쿄 항공권", "amount": 210000, "currency": "KRW", "category": "travel", "payment_method": "card", "confidence": 0.95, "uncertain": []}, "seconds": 1.1}
-{"text": "커피 4500원 오늘 아침 현금", "output": null, "seconds": 0.24}
-{"text": "가방 15,000원 카드 지갑 30,000원 현금", "output": null, "seconds": 0.26}
-{"text": "노트북 50달러 현금 맥북 15만원 카드", "output": null, "seconds": 2.31}
-{"text": "내일 치과 예약해야 해", "output": null, "seconds": 0.2}
-{"text": "안녕", "output": null, "seconds": 0.28}
-{"text": "택시 만이천원", "output": null, "seconds": 0.33}
-{"text": "어제 점심 8천원", "output": null, "seconds": 0.2}
-{"text": "스팀 게임 25,000원 카드", "output": null, "seconds": 0.31}
-{"text": "헬스장 3개월 25만원 카드", "output": null, "seconds": 0.22}
-{"text": "Taksi 25 ming so'm naqd kecha", "output": null, "seconds": 0.29}
-{"text": "Tushlik osh 35 000 so'm karta bilan", "output": null, "seconds": 0.31}
-{"text": "Korzinkada non va sut 18 ming so'm", "output": null, "seconds": 0.27}
-{"text": "Kofe 4500 won karta", "output": null, "seconds": 0.23}
-{"text": "Ijara 3 million so'm o'tkazma", "output": null, "seconds": 0.26}
-{"text": "Elektr to'lovi 85 ming so'm", "output": null, "seconds": 0.37}
-{"text": "Dorixonada shamollash dorisi 40 ming so'm naqd, ikki kun oldin", "output": null, "seconds": 0.27}
-{"text": "Shanba kuni kino 60 ming so'm karta", "output": null, "seconds": 0.35}
-{"text": "Makromarketda 230 000 so'm karta", "output": null, "seconds": 0.31}
-{"text": "krossovka 450 ming so'm Click orqali", "output": null, "seconds": 0.24}
-{"text": "Samarqandda mehmonxona 2 kecha 600 ming so'm karta", "output": null, "seconds": 0.28}
-{"text": "avtobus 1400 so'm", "output": null, "seconds": 0.29}
-{"text": "Netflix 15.49 dollar", "output": null, "seconds": 0.31}
-{"text": "sartaroshxona 50 ming so'm naqd", "output": null, "seconds": 0.2}
-{"text": "Onam uchun sovg'a 300 ming so'm naqd 3-kuni", "output": null, "seconds": 0.27}
-{"text": "Toshkentga samolyot chiptasi 900 ming so'm karta", "output": null, "seconds": 0.3}
-{"text": "benzin 200 ming so'm", "output": null, "seconds": 0.25}
-{"text": "shifokor ko'rigi 100 ming so'm", "output": null, "seconds": 0.28}
-{"text": "internet 90 ming so'm 5-kuni o'tkazma", "output": null, "seconds": 0.25}
-{"text": "kitob 80 ming so'm karta", "output": null, "seconds": 0.27}
-{"text": "Bugun ertalab choy 5 ming so'm naqd", "output": null, "seconds": 0.28}
-{"text": "sumka 150 ming karta, hamyon 300 ming naqd", "output": null, "seconds": 0.26}
-{"text": "noutbuk 50$ naqd, makbuk 150000 won karta", "output": null, "seconds": 0.31}
-{"text": "ertaga stomatologga yozilishim kerak", "output": null, "seconds": 0.31}
-{"text": "salom", "output": null, "seconds": 0.2}
-{"text": "GS25da suv 1200 won karta", "output": null, "seconds": 0.28}
-{"text": "kecha tushlik 9000 won", "output": null, "seconds": 0.27}
-{"text": "Spotify 12 dollar", "output": null, "seconds": 0.27}
-{"text": "taksi 12 000 won naqd", "output": null, "seconds": 0.31}
-{"text": "onlayn kurs 100 dollar karta", "output": null, "seconds": 0.22}
-{"text": "sport zal 3 oy 250 ming won karta", "output": null, "seconds": 0.29}
-{"text": "non 3 ming so'm", "output": null, "seconds": 0.25}
-{"text": "kafe 70 ming so'm, uch kun oldin", "output": null, "seconds": 0.36}
+{"text": "커피 4500원 오늘 아침 현금", "output": {"date": "2026-11-09", "merchant": null, "note": "커피", "amount": 4500, "currency": "KRW", "category": "food_drink", "payment_method": "cash", "confidence": 0.95, "uncertain": []}, "seconds": 1.14, "error": ""}
+{"text": "가방 15,000원 카드 지갑 30,000원 현금", "output": {"date": "2026-11-09", "merchant": null, "note": null, "amount": 45000, "currency": "KRW", "category": "shopping", "payment_method": "cash", "confidence": 0.95, "uncertain": [], "items": [{"note": "가방", "amount": 15000, "category": "shopping", "payment_method": "card", "currency": "KRW"}, {"note": "지갑", "amount": 30000, "category": "shopping", "payment_method": "cash", "currency": "KRW"}]}, "seconds": 1.48, "error": ""}
+{"text": "노트북 50달러 현금 맥북 15만원 카드", "output": {"date": "2026-11-09", "merchant": null, "note": null, "amount": 222500, "currency": "KRW", "category": "shopping", "payment_method": "card", "confidence": 0.85, "uncertain": [], "items": [{"note": "노트북", "amount": 50, "category": "shopping", "currency": "USD"}, {"note": "맥북", "amount": 150000, "category": "shopping", "payment_method": "card", "currency": "KRW"}]}, "seconds": 1.31, "error": ""}
+{"text": "내일 치과 예약해야 해", "output": {"date": "2026-11-09", "merchant": null, "note": "치과 예약", "amount": 0, "currency": "KRW", "category": "health", "payment_method": "unknown", "confidence": 0.5, "uncertain": ["amount"]}, "seconds": 7.94, "error": ""}
+{"text": "안녕", "output": {"date": "2026-11-09", "merchant": null, "note": null, "amount": 0, "currency": "KRW", "category": "other", "payment_method": "unknown", "confidence": 0.1, "uncertain": ["amount", "currency"]}, "seconds": 6.93, "error": ""}
+{"text": "택시 만이천원", "output": {"date": "2026-11-09", "merchant": null, "note": "Taxi", "amount": 12000, "currency": "KRW", "category": "transport", "payment_method": "unknown", "confidence": 0.9, "uncertain": []}, "seconds": 1.96, "error": ""}
+{"text": "어제 점심 8천원", "output": {"date": "2026-11-08", "merchant": null, "note": "점심", "amount": 8000, "currency": "KRW", "category": "food_drink", "payment_method": "unknown", "confidence": 0.9, "uncertain": []}, "seconds": 1.17, "error": ""}
+{"text": "스팀 게임 25,000원 카드", "output": {"date": "2026-11-09", "merchant": "Steam", "note": "Game", "amount": 25000, "currency": "KRW", "category": "entertainment", "payment_method": "card", "confidence": 0.95, "uncertain": []}, "seconds": 1.31, "error": ""}
+{"text": "헬스장 3개월 25만원 카드", "output": {"date": "2026-11-09", "merchant": null, "note": "헬스장 3개월", "amount": 250000, "currency": "KRW", "category": "health", "payment_method": "card", "confidence": 0.95, "uncertain": []}, "seconds": 1.53, "error": ""}
+{"text": "Taksi 25 ming so'm naqd kecha", "output": {"date": "2026-11-08", "merchant": null, "note": "Taksi", "amount": 25000, "currency": "UZS", "category": "transport", "payment_method": "cash", "confidence": 0.95, "uncertain": []}, "seconds": 2.28, "error": ""}
+{"text": "Tushlik osh 35 000 so'm karta bilan", "output": {"date": "2026-11-09", "merchant": null, "note": "Tushlik osh", "amount": 35000, "currency": "UZS", "category": "food_drink", "payment_method": "card", "confidence": 0.95, "uncertain": []}, "seconds": 1.34, "error": ""}
+{"text": "Korzinkada non va sut 18 ming so'm", "output": {"date": "2026-11-09", "merchant": "Korzinka", "note": null, "amount": 18000, "currency": "UZS", "category": "groceries", "payment_method": "unknown", "confidence": 0.85, "uncertain": [], "items": [{"note": "Non", "amount": 9000, "category": "groceries"}, {"note": "Sut", "amount": 9000, "category": "groceries"}]}, "seconds": 1.95, "error": ""}
+{"text": "Kofe 4500 won karta", "output": {"date": "2026-11-09", "merchant": null, "note": "Kofe", "amount": 4500, "currency": "KRW", "category": "food_drink", "payment_method": "card", "confidence": 0.95, "uncertain": []}, "seconds": 5.36, "error": ""}
+{"text": "Ijara 3 million so'm o'tkazma", "output": {"date": "2026-11-09", "merchant": null, "note": "Ijara", "amount": 3000000, "currency": "UZS", "category": "bills", "payment_method": "transfer", "confidence": 0.95, "uncertain": []}, "seconds": 4.6, "error": ""}
+{"text": "Elektr to'lovi 85 ming so'm", "output": {"date": "2026-11-09", "merchant": null, "note": "Elektr to'lovi", "amount": 85000, "currency": "UZS", "category": "bills", "payment_method": "unknown", "confidence": 0.9, "uncertain": []}, "seconds": 1.44, "error": ""}
+{"text": "Dorixonada shamollash dorisi 40 ming so'm naqd, ikki kun oldin", "output": {"date": "2026-11-07", "merchant": "Dorixona", "note": "Shamollash dorisi", "amount": 40000, "currency": "UZS", "category": "health", "payment_method": "cash", "confidence": 0.95, "uncertain": []}, "seconds": 1.24, "error": ""}
+{"text": "Shanba kuni kino 60 ming so'm karta", "output": {"date": "2026-11-07", "merchant": null, "note": "Kino", "amount": 60000, "currency": "UZS", "category": "entertainment", "payment_method": "card", "confidence": 0.9, "uncertain": []}, "seconds": 1.3, "error": ""}
+{"text": "Makromarketda 230 000 so'm karta", "output": {"date": "2026-11-09", "merchant": "Makromarket", "note": null, "amount": 230000, "currency": "UZS", "category": "groceries", "payment_method": "card", "confidence": 0.95, "uncertain": []}, "seconds": 1.69, "error": ""}
+{"text": "krossovka 450 ming so'm Click orqali", "output": {"date": "2026-11-09", "merchant": null, "note": "Krossovka", "amount": 450000, "currency": "UZS", "category": "shopping", "payment_method": "mobile", "confidence": 0.95, "uncertain": []}, "seconds": 5.32, "error": ""}
+{"text": "Samarqandda mehmonxona 2 kecha 600 ming so'm karta", "output": {"date": "2026-11-09", "merchant": null, "note": "Mehmonxona 2 kecha Samarqandda", "amount": 600000, "currency": "UZS", "category": "travel", "payment_method": "card", "confidence": 0.9, "uncertain": []}, "seconds": 2.83, "error": ""}
+{"text": "avtobus 1400 so'm", "output": {"date": "2026-11-09", "merchant": null, "note": "Avtobus", "amount": 1400, "currency": "UZS", "category": "transport", "payment_method": "unknown", "confidence": 0.9, "uncertain": []}, "seconds": 1.41, "error": ""}
+{"text": "Netflix 15.49 dollar", "output": {"date": "2026-11-09", "merchant": "Netflix", "note": null, "amount": 15.49, "currency": "USD", "category": "entertainment", "payment_method": "unknown", "confidence": 0.9, "uncertain": []}, "seconds": 1.31, "error": ""}
+{"text": "sartaroshxona 50 ming so'm naqd", "output": {"date": "2026-11-09", "merchant": null, "note": "Sartaroshxona", "amount": 50000, "currency": "UZS", "category": "other", "payment_method": "cash", "confidence": 0.95, "uncertain": []}, "seconds": 5.74, "error": ""}
+{"text": "Onam uchun sovg'a 300 ming so'm naqd 3-kuni", "output": {"date": "2026-11-03", "merchant": null, "note": "Onam uchun sovg'a", "amount": 300000, "currency": "UZS", "category": "shopping", "payment_method": "cash", "confidence": 0.9, "uncertain": []}, "seconds": 1.43, "error": ""}
+{"text": "Toshkentga samolyot chiptasi 900 ming so'm karta", "output": {"date": "2026-11-09", "merchant": null, "note": "Toshkentga samolyot chiptasi", "amount": 900000, "currency": "UZS", "category": "travel", "payment_method": "card", "confidence": 0.95, "uncertain": []}, "seconds": 5.99, "error": ""}
+{"text": "benzin 200 ming so'm", "output": {"date": "2026-11-09", "merchant": null, "note": "Benzin", "amount": 200000, "currency": "UZS", "category": "transport", "payment_method": "unknown", "confidence": 0.9, "uncertain": []}, "seconds": 1.24, "error": ""}
+{"text": "shifokor ko'rigi 100 ming so'm", "output": {"date": "2026-11-09", "merchant": null, "note": "Shifokor ko'rigi", "amount": 100000, "currency": "UZS", "category": "health", "payment_method": "unknown", "confidence": 0.9, "uncertain": []}, "seconds": 1.85, "error": ""}
+{"text": "internet 90 ming so'm 5-kuni o'tkazma", "output": {"date": "2026-11-05", "merchant": null, "note": "Internet", "amount": 90000, "currency": "UZS", "category": "bills", "payment_method": "transfer", "confidence": 0.9, "uncertain": []}, "seconds": 5.54, "error": ""}
+{"text": "kitob 80 ming so'm karta", "output": {"date": "2026-11-09", "merchant": null, "note": "Kitob", "amount": 80000, "currency": "UZS", "category": "shopping", "payment_method": "card", "confidence": 0.95, "uncertain": []}, "seconds": 1.69, "error": ""}
+{"text": "Bugun ertalab choy 5 ming so'm naqd", "output": {"date": "2026-11-09", "merchant": null, "note": "Choy", "amount": 5000, "currency": "UZS", "category": "food_drink", "payment_method": "cash", "confidence": 0.95, "uncertain": []}, "seconds": 1.81, "error": ""}
+{"text": "sumka 150 ming karta, hamyon 300 ming naqd", "output": {"date": "2026-11-09", "merchant": null, "note": null, "amount": 450000, "currency": "UZS", "category": "shopping", "payment_method": "card", "confidence": 0.85, "uncertain": [], "items": [{"note": "Sumka", "amount": 150000, "category": "shopping", "payment_method": "card", "currency": "UZS"}, {"note": "Hamyon", "amount": 300000, "category": "shopping", "payment_method": "cash", "currency": "UZS"}]}, "seconds": 1.6, "error": ""}
+{"text": "noutbuk 50$ naqd, makbuk 150000 won karta", "output": {"date": "2026-11-09", "merchant": null, "note": null, "amount": 150000, "currency": "KRW", "category": "shopping", "payment_method": "card", "confidence": 0.85, "uncertain": ["currency"], "items": [{"note": "noutbuk", "amount": 50, "category": "shopping", "payment_method": "cash", "currency": "USD"}, {"note": "makbuk", "amount": 150000, "category": "shopping", "payment_method": "card", "currency": "KRW"}]}, "seconds": 6.97, "error": ""}
+{"text": "ertaga stomatologga yozilishim kerak", "output": {"date": "2026-11-09", "merchant": null, "note": "Dentist appointment", "amount": 0, "currency": "KRW", "category": "health", "payment_method": "unknown", "confidence": 0.5, "uncertain": ["amount"]}, "seconds": 1.7, "error": ""}
+{"text": "salom", "output": {"date": "2026-11-09", "merchant": null, "note": null, "amount": 0, "currency": "KRW", "category": "other", "payment_method": "unknown", "confidence": 0.1, "uncertain": ["amount", "category"]}, "seconds": 1.36, "error": ""}
+{"text": "GS25da suv 1200 won karta", "output": {"date": "2026-11-09", "merchant": "GS25", "note": "Suv", "amount": 1200, "currency": "UZS", "category": "food_drink", "payment_method": "card", "confidence": 0.85, "uncertain": ["currency"]}, "seconds": 1.72, "error": ""}
+{"text": "kecha tushlik 9000 won", "output": {"date": "2026-11-08", "merchant": null, "note": "Tushlik", "amount": 9000, "currency": "KRW", "category": "food_drink", "payment_method": "unknown", "confidence": 0.9, "uncertain": []}, "seconds": 2.15, "error": ""}
+{"text": "Spotify 12 dollar", "output": {"date": "2026-11-09", "merchant": "Spotify", "note": null, "amount": 12.0, "currency": "USD", "category": "entertainment", "payment_method": "unknown", "confidence": 0.9, "uncertain": []}, "seconds": 1.34, "error": ""}
+{"text": "taksi 12 000 won naqd", "output": {"date": "2026-11-09", "merchant": null, "note": "Taxi", "amount": 12000, "currency": "KRW", "category": "transport", "payment_method": "cash", "confidence": 0.9, "uncertain": []}, "seconds": 1.26, "error": ""}
+{"text": "onlayn kurs 100 dollar karta", "output": {"date": "2026-11-09", "merchant": null, "note": "Online course", "amount": 100.0, "currency": "USD", "category": "bills", "payment_method": "card", "confidence": 0.9, "uncertain": []}, "seconds": 1.57, "error": ""}
+{"text": "sport zal 3 oy 250 ming won karta", "output": {"date": "2026-11-09", "merchant": null, "note": "Sport zal 3 oy", "amount": 250000, "currency": "KRW", "category": "health", "payment_method": "card", "confidence": 0.9, "uncertain": []}, "seconds": 3.17, "error": ""}
+{"text": "non 3 ming so'm", "output": {"date": "2026-11-09", "merchant": null, "note": "Non", "amount": 3000, "currency": "UZS", "category": "food_drink", "payment_method": "unknown", "confidence": 0.9, "uncertain": []}, "seconds": 1.49, "error": ""}
+{"text": "kafe 70 ming so'm, uch kun oldin", "output": {"date": "2026-11-06", "merchant": "Kafe", "note": null, "amount": 70000, "currency": "UZS", "category": "food_drink", "payment_method": "unknown", "confidence": 0.9, "uncertain": []}, "seconds": 7.35, "error": ""}

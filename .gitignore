@@ -43,3 +43,8 @@ playwright-report/
 
 # Delivery bundles from Claude (never commit)
 Claude outputs/
+
+# Colab upload bundles and trained weights
+*.zip
+lora*/
+parsimony-lora/

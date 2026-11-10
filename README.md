@@ -8,6 +8,14 @@ An AI expense tracker. Type it, say it, or photograph a receipt, and a model tur
 |---|---|
 | ![Dashboard in English](docs/screenshots/dashboard-en.jpg) | ![Dashboard in Korean](docs/screenshots/dashboard-ko.jpg) |
 
+**On a phone** (Korean dashboard, entry list, and the month-end receipt you can save as an image):
+
+<p>
+  <img src="docs/screenshots/mobile-dashboard-ko.jpg" width="250" alt="Mobile dashboard in Korean">
+  <img src="docs/screenshots/mobile-list-en.jpg" width="250" alt="Mobile entry list in English">
+  <img src="docs/screenshots/mobile-month-receipt-ko.jpg" width="250" alt="Month-end receipt in Korean on mobile">
+</p>
+
 | Typing a Korean sentence | Dark mode |
 |---|---|
 | ![Adding a Korean expense](docs/screenshots/add-korean.jpg) | ![Dark theme](docs/screenshots/dashboard-dark.jpg) |
@@ -18,6 +26,7 @@ An AI expense tracker. Type it, say it, or photograph a receipt, and a model tur
 
 - One flow: input -> JSON -> list. A monthly total, a category breakdown, an entry list, and a "Fix this" button for anything the AI got wrong.
 - Entries the AI was unsure about land in a "Needs a check" box.
+- A month-end receipt: the closed month printed like a paper receipt (totals per currency, never converted), saved as an image.
 - Multi-currency (KRW / USD / UZS), shown per currency, never converted.
 - Guest accounts with daily AI-call caps, rate limits, file size and type checks.
 - Receipt photos are read and never stored.

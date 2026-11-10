@@ -1,3 +1,4 @@
 data/raw_v2/
 data/raw_v2_fake/
+data/train_v3_fake.jsonl
 data/train_v2_fake.jsonl

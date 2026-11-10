@@ -28,3 +28,7 @@ Round 1 results on the 100 held-out cases: Gemini API 85, untuned Qwen2.5-1.5B 0
 
 ## Result so far
 Gemini 85 / untuned 0 / templates 45 / Gemini-worded data 67 (of 100 held-out cases). Full table, weaknesses and caveats: `RESULTS.md`.
+
+## Round 3 (in progress): the model no longer does date arithmetic
+- The model writes a date code (`0`, `-3`, `d5`, `fri`) and `prompt.resolve_when` turns it into a date; categories outside the list become `other` (`prompt.finalize`). Both are code, not model skill, and are reported as such.
+- `build_train_v2.py` now also makes mixed-currency items and realistic Uzbek prices, and writes `train_v3.jsonl`. The 180 cached Gemini calls are reused; `--calls 300` adds 120 more.

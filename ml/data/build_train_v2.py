@@ -30,10 +30,10 @@ from pathlib import Path
 
 ML = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ML))
-from prompt import make_completion, make_prompt
+from prompt import make_completion, make_prompt, resolve_when, when_code_for
 
 RAW = ML / "data" / "raw_v2"
-OUT = ML / "data" / "train_v2.jsonl"
+OUT = ML / "data" / "train_v3.jsonl"
 MODEL = os.environ.get("GEMINI_MODEL", "gemini-3.5-flash-lite")
 PER_CALL = 20
 LANG_CYCLE = [
@@ -136,6 +136,17 @@ WEEKDAYS = [
     "Saturday",
     "Sunday",
 ]
+UZS_RANGE = {  # local prices in so'm (a bus ride is ~1,400; the won table would make it 11,000)
+    "food_drink": (8000, 250000),
+    "groceries": (3000, 500000),
+    "transport": (1400, 80000),
+    "shopping": (50000, 1500000),
+    "bills": (30000, 1500000),
+    "health": (10000, 500000),
+    "entertainment": (20000, 400000),
+    "travel": (100000, 3000000),
+    "other": (10000, 500000),
+}
 RATES = {"KRW": 1, "USD": 1 / 1400, "EUR": 1 / 1500, "UZS": 9}
 
 
@@ -154,6 +165,11 @@ def convert(krw: int, cur: str, rng) -> float | int:
 
 
 def pick_amount(cat: str, cur: str, rng) -> float | int:
+    if cur == "UZS":
+        lo, hi = UZS_RANGE[cat]
+        v = int(lo * (hi / lo) ** (rng.random() ** 1.6))
+        step = 100 if v < 10000 else 500 if v < 100000 else 5000
+        return max(step, round(v / step) * step)
     lo, hi = KRW_RANGE[cat]
     krw = int(
         lo * (hi / lo) ** (rng.random() ** 1.6)
@@ -161,7 +177,7 @@ def pick_amount(cat: str, cur: str, rng) -> float | int:
     return convert(krw, cur, rng)
 
 
-def resolve_when(today: dt.date, rng):
+def pick_when(today: dt.date, rng):
     """Returns (instruction for Gemini, resulting date)."""
     kind = rng.choices(
         ["none", "today", "yesterday", "ago", "dom", "weekday"],
@@ -202,7 +218,8 @@ def make_spec(lang: str, rng: random.Random) -> dict:
         }[lang]
     )
     kind = rng.choices(
-        ["single", "merchant", "multi", "samecat", "none"], [52, 16, 14, 8, 6]
+        ["single", "merchant", "multi", "mixed", "samecat", "none"],
+        [48, 15, 12, 6, 8, 6],
     )[0]
     cur = (
         default
@@ -218,7 +235,7 @@ def make_spec(lang: str, rng: random.Random) -> dict:
     }
     if kind == "none":
         return spec
-    instr, date = resolve_when(today, rng)
+    instr, date = pick_when(today, rng)
     spec.update(
         when=instr,
         date=date.isoformat(),
@@ -248,6 +265,19 @@ def make_spec(lang: str, rng: random.Random) -> dict:
             cats
         ):  # avoid a tie for "biggest"
             return make_spec(lang, rng)
+    elif (
+        kind == "mixed"
+    ):  # two things bought in two currencies, each with its own currency
+        cats = rng.sample(
+            ["shopping", "food_drink", "groceries", "entertainment", "travel"], 2
+        )
+        curs = rng.sample([default] + [c for c in RATES if c != default], 2)
+        pays = [rng.choice(["card", "cash", "transfer", "mobile"]) for _ in cats]
+        spec["items"] = [
+            {"cat": c, "amount": pick_amount(c, cu, rng), "pay": p, "cur": cu}
+            for c, cu, p in zip(cats, curs, pays, strict=True)
+        ]
+        spec["cur"] = curs[0]
     else:  # samecat: one purchase listing several things of the same category -> NO split
         cat = rng.choice(["food_drink", "groceries", "shopping", "health"])
         n = rng.choice([2, 2, 3])
@@ -279,6 +309,12 @@ def describe(i: int, s: dict) -> str:
             else "no merchant name (describe what was bought; choose a specific, realistic item)"
         )
         return f"{i}. SINGLE category={s['cat']} amount={num(s['amount'])} {s['cur']} ({cur_note}); {PAY_TEXT[s['pay']]}; date: {s['when']}; {m}"
+    if k == "mixed":
+        its = "; ".join(
+            f"item{j + 1}: category={it['cat']} amount={num(it['amount'])} {it['cur']} (write this currency next to it), {PAY_TEXT[it['pay']]}"
+            for j, it in enumerate(s["items"])
+        )
+        return f"{i}. MIXED_CURRENCY one outing with two purchases in different currencies, in this order: {its}; date: {s['when']}"
     if k == "multi":
         its = "; ".join(
             f"item{j + 1}: category={it['cat']} amount={num(it['amount'])} {s['cur']}, {PAY_TEXT[it['pay']]}"
@@ -309,6 +345,27 @@ notes: for SINGLE one name (what was bought, 1-3 words, in the message's languag
 """
 
 
+def when_code(s: dict) -> str:
+    """The date code the model should write, read back from the instruction given to Gemini."""
+    w, today = s["when"], dt.date.fromisoformat(s["today"])
+    if w.startswith("do NOT") or " today" in w:
+        code = "0"
+    elif "yesterday" in w:
+        code = "-1"
+    elif m := re.search(r"(\d+) days ago", w):
+        code = f"-{m.group(1)}"
+    elif m := re.search(r"on the (\d+)th", w):
+        code = f"d{m.group(1)}"
+    else:
+        day = next(d for d in WEEKDAYS if d in w)
+        code = day[:3].lower()
+    assert resolve_when(code, today).isoformat() == s["date"], (
+        code,
+        s,
+    )  # code and label agree
+    return code
+
+
 def clean(x):
     return int(x) if float(x) == int(x) else round(float(x), 2)
 
@@ -323,7 +380,7 @@ def label_for(s: dict, notes: list[str]) -> dict:
 
 def _label_for(s: dict, notes: list[str]) -> dict:
     base = {
-        "date": s["today"],
+        "when": "0",
         "merchant": None,
         "note": None,
         "amount": 0,
@@ -334,7 +391,7 @@ def _label_for(s: dict, notes: list[str]) -> dict:
     k = s["kind"]
     if k == "none":
         return base
-    base.update(date=s["date"], currency=s["cur"])
+    base.update(when=when_code(s), currency=s["cur"])
     if k in ("single", "merchant"):
         base.update(
             merchant=s["merchant"],
@@ -358,6 +415,27 @@ def _label_for(s: dict, notes: list[str]) -> dict:
             payment_method=big["pay"],
             items=items,
         )
+    elif (
+        k == "mixed"
+    ):  # amounts are in different currencies: top level = the biggest item's
+        big = max(s["items"], key=lambda it: it["amount"] * RATES[it["cur"]] ** -1)
+        items = [
+            {
+                "note": n,
+                "amount": it["amount"],
+                "category": it["cat"],
+                "currency": it["cur"],
+                "payment_method": it["pay"],
+            }
+            for it, n in zip(s["items"], notes, strict=True)
+        ]
+        base.update(
+            amount=big["amount"],
+            currency=big["cur"],
+            category=big["cat"],
+            payment_method=big["pay"],
+            items=items,
+        )
     else:
         base.update(
             amount=round(sum(s["parts"]), 2), category=s["cat"], payment_method=s["pay"]
@@ -367,15 +445,13 @@ def _label_for(s: dict, notes: list[str]) -> dict:
 
 def amounts_of(s: dict) -> list:
     k = s["kind"]
-    return (
-        []
-        if k == "none"
-        else [s["amount"]]
-        if k in ("single", "merchant")
-        else [it["amount"] for it in s["items"]]
-        if k == "multi"
-        else s["parts"]
-    )
+    if k == "none":
+        return []
+    if k in ("single", "merchant"):
+        return [s["amount"]]
+    if k in ("multi", "mixed"):
+        return [it["amount"] for it in s["items"]]
+    return s["parts"]
 
 
 UNIT_WORDS = re.compile(
@@ -464,7 +540,7 @@ def fake_result(specs: list[dict]) -> list[dict]:
         if s["kind"] == "none":
             out.append({"text": "hello there", "notes": []})
             continue
-        n = len(s["items"]) if s["kind"] == "multi" else 1
+        n = len(s["items"]) if s["kind"] in ("multi", "mixed") else 1
         amts = " + ".join(num(a) for a in amounts_of(s))
         out.append(
             {
@@ -508,6 +584,20 @@ def collect(calls: int, fake: bool, pause: float) -> None:
             time.sleep(pause)
 
 
+def v1_text(r: dict) -> str:
+    return r["prompt"].split("\nExpense: ")[1].rsplit("\nJSON:", 1)[0].strip()
+
+
+def v1_to_when(r: dict) -> dict:
+    """Round-1 rows store a date; the model now writes a date code (0 or -N days) instead."""
+    today = dt.date.fromisoformat(r["prompt"].split("Today: ")[1][:10])
+    lab = json.loads(r["completion"])
+    date = dt.date.fromisoformat(lab.pop("date"))
+    lab["when"] = when_code_for(date, today)
+    assert resolve_when(lab["when"], today) == date
+    return {**r, "completion": make_completion(lab)}
+
+
 def assemble(v1_rows: int) -> None:
     test = {
         json.loads(line)["text"].strip().lower()
@@ -522,7 +612,7 @@ def assemble(v1_rows: int) -> None:
         d = json.loads(f.read_text())
         for s, r in zip(d["specs"], d["result"], strict=True):
             text, notes = r["text"].strip(), [n.strip() or None for n in r["notes"]]
-            need = len(s["items"]) if s["kind"] == "multi" else 0
+            need = len(s["items"]) if s["kind"] in ("multi", "mixed") else 0
             if len(notes) < need:
                 dropped["short_list"] += 1
                 continue
@@ -540,7 +630,7 @@ def assemble(v1_rows: int) -> None:
                 dropped["dup"] += 1
                 continue
             seen.add(key)
-            lab = label_for(s, notes[:need] if s["kind"] == "multi" else notes)
+            lab = label_for(s, notes[:need] if need else notes)
             rows.append(
                 {
                     "lang": d["lang"],
@@ -553,12 +643,8 @@ def assemble(v1_rows: int) -> None:
     n_gemini = len(rows)
     v1 = [json.loads(line) for line in (ML / "data/train.jsonl").open()]
     random.Random(3).shuffle(v1)
-    rows += [
-        r
-        for r in v1
-        if r["prompt"].split("\nExpense: ")[1].rsplit("\nJSON:", 1)[0].strip().lower()
-        not in test
-    ][:v1_rows]
+    v1 = [r for r in v1 if v1_text(r).lower() not in test][:v1_rows]
+    rows += [v1_to_when(r) for r in v1]
     random.Random(4).shuffle(rows)
     OUT.write_text(
         "\n".join(json.dumps(r, ensure_ascii=False) for r in rows) + "\n",
@@ -601,7 +687,7 @@ def main() -> None:
     a = ap.parse_args()
     global RAW, OUT
     if a.fake:  # never mix placeholder rows into the real files
-        RAW, OUT = ML / "data" / "raw_v2_fake", ML / "data" / "train_v2_fake.jsonl"
+        RAW, OUT = ML / "data" / "raw_v2_fake", ML / "data" / "train_v3_fake.jsonl"
     if not a.assemble_only:
         collect(a.calls, a.fake, a.pause)
     assemble(a.v1_rows)

@@ -55,7 +55,7 @@ LoRA r=16 on all attention and MLP layers, 2 epochs, a free Colab T4, ~25 minute
 
 **Decision:** production stays on Gemini, because it is better on this test (85 vs 73). The experiment gives a measured fallback and a repeatable evaluation harness.
 
-Read the numbers carefully: 100 cases means a few points are noise; training data is mostly synthetic; Korean and Uzbek wording has not had a native review; the multi-item case is still weak. Full table, per-field breakdown, weaknesses and caveats: [`ml/RESULTS.md`](ml/RESULTS.md).
+Test set is 100 cases (a few points is noise) and the training data is mostly synthetic. Full table, per-field breakdown and caveats: [`ml/RESULTS.md`](ml/RESULTS.md).
 
 ## Run locally
 

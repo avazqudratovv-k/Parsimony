@@ -1,4 +1,5 @@
 import logging
+import time
 
 from google import genai
 from google.genai import types
@@ -29,6 +30,7 @@ def _log_failure(exc: Exception) -> None:
 
 def _generate(client: genai.Client, model: str, contents, system: str) -> RawModelOutput:
     """One Gemini call that must answer with JSON. Any failure becomes AdapterError."""
+    started = time.perf_counter()
     try:
         response = client.models.generate_content(
             model=model,
@@ -45,6 +47,14 @@ def _generate(client: genai.Client, model: str, contents, system: str) -> RawMod
         _log_failure(exc)
         raise AdapterError("The AI service is unavailable") from exc
 
+    usage = response.usage_metadata
+    logger.info(
+        "Gemini call %.2fs in=%s out=%s thoughts=%s",
+        time.perf_counter() - started,
+        getattr(usage, "prompt_token_count", None),
+        getattr(usage, "candidates_token_count", None),
+        getattr(usage, "thoughts_token_count", None),
+    )
     if not response.text:
         raise AdapterError("The AI service returned no answer")
     return RawModelOutput(text=response.text, model=model)

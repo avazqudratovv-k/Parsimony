@@ -35,13 +35,25 @@ export const useOverview = () =>
 
 export function useAddEntry() {
   const refresh = useRefreshData();
+  const qc = useQueryClient();
   return useMutation({
     mutationFn: (input: string | { text: string; source: "voice" }) => {
       const { text, source } = typeof input === "string" ? { text: input, source: "text" as const } : input;
       return api<EntryCreated>("/entries", { method: "POST", body: { text, source, timezone: browserTimezone() } });
     },
+    // Show the saved row at once; the refetch below then settles totals and the counter.
+    onSuccess: (created) => {
+      for (const e of [created, ...(created.siblings ?? [])]) {
+        qc.setQueryData<Entry[]>(["entries", e.date.slice(0, 7)], (old) =>
+          old && !old.some((o) => o.id === e.id) ? [e, ...old] : old,
+        );
+      }
+    },
     // A failed AI call still counts toward the daily cap, so refresh the counter either way.
-    onSettled: refresh,
+    // Not awaited: the input must clear as soon as the entry is saved, not after four refetches.
+    onSettled: () => {
+      void refresh();
+    },
   });
 }
 

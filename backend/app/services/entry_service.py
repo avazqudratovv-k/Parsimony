@@ -11,6 +11,7 @@ from app.models import Entry, User
 from app.models.enums import UsageKind
 from app.schemas.entry import EntryCreate
 from app.services import parse_service, usage_service
+from app.services.brand_domains import known_domain
 
 
 class EntryLimitReached(Exception):
@@ -52,11 +53,14 @@ def _save(
     merchant_domain: str | None = None,
     group_id: uuid.UUID | None = None,
 ) -> Entry:
+    logo_domain = (
+        (known_domain(data.merchant) or merchant_domain) if get_settings().logos_enabled else None
+    )
     entry = Entry(
         user_id=user.id,
         date=data.date,
         merchant=data.merchant,
-        merchant_domain=merchant_domain if get_settings().logos_enabled else None,
+        merchant_domain=logo_domain,
         group_id=group_id,
         note=data.note,
         amount=data.amount,

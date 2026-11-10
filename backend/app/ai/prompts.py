@@ -109,7 +109,7 @@ Examples (today is 2026-11-09):
 
 
 LOGO_RULE = """
-- merchant_domain: the merchant's main website, like "gs25.com", ONLY when merchant is a real, \
+- merchant_domain: the merchant's main website, like "netflix.com", ONLY when merchant is a real, \
 well-known business you are sure about. Otherwise null. Never guess.
 """
 

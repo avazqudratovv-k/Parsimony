@@ -9,6 +9,7 @@ from app.config import get_settings
 from app.core.clock import utcnow
 from app.models import Entry, User
 from app.services import account_service, parse_service
+from app.services.brand_domains import known_domain
 from app.services.demo_data import SAMPLE_ENTRIES
 
 DEMO_EMAIL_DOMAIN = "demo.parsimony.invalid"  # .invalid can never be a real address
@@ -69,6 +70,7 @@ def create_demo_user(db: Session, timezone: str | None) -> User:
                 user_id=user.id,
                 date=date,
                 merchant=merchant,
+                merchant_domain=known_domain(merchant) if settings.logos_enabled else None,
                 note=note,
                 amount=Decimal(amount),
                 currency=currency,

@@ -73,3 +73,14 @@ def test_a_junk_domain_never_breaks_saving(client, logos_on):
     response = post(client)
     assert response.status_code == 201
     assert response.json()["merchant_domain"] is None
+
+
+def test_known_brands_map_to_their_logo_domain():
+    from app.services.brand_domains import known_domain
+
+    assert known_domain("Starbucks") == "starbucks.co.kr"
+    assert known_domain("스타벅스") == "starbucks.co.kr"
+    assert known_domain("Trader Joe's") == "traderjoes.com"
+    assert known_domain("Whole Foods") == "wholefoodsmarket.com"
+    assert known_domain("Corner shop") is None
+    assert known_domain(None) is None

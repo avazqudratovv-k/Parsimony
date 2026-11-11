@@ -37,7 +37,7 @@ React 18 + Vite + TypeScript (TanStack Router/Query, MUI, Recharts)
 
 Services never import a concrete AI class, so the model can be swapped (this is how the fine-tuned model was benchmarked). Deployed with Docker Compose and Nginx over HTTPS; Alembic migrations; CI runs lint, unit tests and Playwright end-to-end tests.
 
-**Tests:** 152 backend tests (pytest), 100+ frontend unit tests (Vitest), Playwright smoke tests in CI.
+**Tests:** 152 backend tests (pytest), 121 frontend unit tests (Vitest), Playwright smoke tests in CI.
 
 ## Model evaluation: API vs fine-tuned small model (`ml/`)
 
